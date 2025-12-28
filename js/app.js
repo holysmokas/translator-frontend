@@ -34,7 +34,10 @@
         recognition: null,
         isListening: false,
         speechSupported: false,
-        interimTranscript: ''
+        interimTranscript: '',
+        
+        // Notifications
+        notificationsEnabled: false
     };
 
     // ========================================
@@ -72,6 +75,7 @@
         paywallCloseBtn: document.getElementById('paywallCloseBtn'),
         logoutBtn: document.getElementById('logoutBtn'),
         accountBtn: document.getElementById('accountBtn'),
+        roomHistory: document.getElementById('roomHistory'),
         
         // Speech elements (will be created dynamically)
         micBtn: null,
@@ -90,8 +94,14 @@
         // Load profile and usage
         await loadProfile();
         
+        // Load room history
+        await loadRoomHistory();
+        
         // Initialize speech recognition
         initSpeechRecognition();
+        
+        // Request notification permission
+        initNotifications();
         
         // Bind events
         bindEvents();
@@ -185,6 +195,64 @@
         };
         
         console.log('✅ Speech recognition initialized');
+    }
+
+    // ========================================
+    // Push Notifications
+    // ========================================
+    function initNotifications() {
+        if (!('Notification' in window)) {
+            console.log('⚠️ Notifications not supported');
+            return;
+        }
+        
+        if (Notification.permission === 'granted') {
+            state.notificationsEnabled = true;
+            console.log('✅ Notifications enabled');
+        } else if (Notification.permission !== 'denied') {
+            // Request permission when user creates/joins a room
+            console.log('📢 Will request notification permission on room action');
+        }
+    }
+    
+    function requestNotificationPermission() {
+        if (!('Notification' in window)) return;
+        
+        if (Notification.permission === 'default') {
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    state.notificationsEnabled = true;
+                    console.log('✅ Notifications granted');
+                }
+            });
+        }
+    }
+    
+    function sendNotification(title, body, icon = '🌍') {
+        if (!state.notificationsEnabled) return;
+        
+        // Only send if page is not visible
+        if (document.visibilityState === 'visible') return;
+        
+        try {
+            const notification = new Notification(title, {
+                body: body,
+                icon: '/favicon.ico',
+                badge: '/favicon.ico',
+                tag: 'mamnoon-notification',
+                requireInteraction: false
+            });
+            
+            notification.onclick = () => {
+                window.focus();
+                notification.close();
+            };
+            
+            // Auto close after 5 seconds
+            setTimeout(() => notification.close(), 5000);
+        } catch (e) {
+            console.log('Notification failed:', e);
+        }
     }
     
     function updateRecognitionLanguage() {
@@ -386,6 +454,60 @@
         }
     }
 
+    async function loadRoomHistory() {
+        try {
+            const response = await fetch(`${CONFIG.API_BASE}/api/sessions/history/${state.user.id}?limit=10`);
+            if (response.ok) {
+                const data = await response.json();
+                displayRoomHistory(data.sessions || []);
+            } else {
+                elements.roomHistory.innerHTML = '<div class="history-empty">No sessions yet</div>';
+            }
+        } catch (error) {
+            console.error('Failed to load room history:', error);
+            elements.roomHistory.innerHTML = '<div class="history-empty">Could not load history</div>';
+        }
+    }
+
+    function displayRoomHistory(sessions) {
+        if (!sessions || sessions.length === 0) {
+            elements.roomHistory.innerHTML = '<div class="history-empty">No sessions yet</div>';
+            return;
+        }
+        
+        const html = sessions.slice(0, 5).map(session => {
+            const date = new Date(session.created_at);
+            const timeAgo = getTimeAgo(date);
+            const duration = session.duration_minutes ? `${session.duration_minutes} min` : 'In progress';
+            const status = session.status === 'active' ? '🟢' : '⚪';
+            
+            return `
+                <div class="history-item">
+                    <div class="history-room">
+                        <span class="history-status">${status}</span>
+                        <span class="history-code">${session.room_code}</span>
+                    </div>
+                    <div class="history-meta">
+                        <span class="history-time">${timeAgo}</span>
+                        <span class="history-duration">${duration}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        elements.roomHistory.innerHTML = html;
+    }
+
+    function getTimeAgo(date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
+        
+        if (seconds < 60) return 'Just now';
+        if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+        if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+        if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
+        return date.toLocaleDateString();
+    }
+
     async function openBillingPortal() {
         try {
             const response = await fetch(`${CONFIG.API_BASE}/api/billing/portal?user_id=${state.user.id}`, {
@@ -467,6 +589,9 @@
     // Room Creation
     // ========================================
     async function createRoom() {
+        // Request notification permission
+        requestNotificationPermission();
+        
         showLoading('Creating room...');
         
         try {
@@ -758,6 +883,10 @@
         switch (data.type) {
             case 'system':
                 addSystemMessage(data.message);
+                // Send notification if someone joined
+                if (data.message.includes('joined')) {
+                    sendNotification('Mamnoon.ai', data.message);
+                }
                 break;
             case 'translation':
                 addReceivedMessage(data);

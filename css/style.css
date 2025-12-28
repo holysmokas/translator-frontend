@@ -358,11 +358,11 @@ a:hover { color: var(--primary-dark); }
 /* Subtitle Overlay */
 .subtitle-overlay {
     position: absolute;
-    bottom: 80px;
+    bottom: 12px;
     left: 50%;
     transform: translateX(-50%);
-    width: 90%;
-    max-width: 700px;
+    width: 95%;
+    max-width: 800px;
     z-index: 100;
     display: none;
     pointer-events: none;
@@ -430,13 +430,12 @@ a:hover { color: var(--primary-dark); }
 /* Mic Button Container */
 .mic-container {
     position: absolute;
-    bottom: 16px;
-    left: 50%;
-    transform: translateX(-50%);
+    top: 16px;
+    right: 16px;
     z-index: 101;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-end;
     gap: 8px;
 }
 
@@ -525,4 +524,71 @@ a:hover { color: var(--primary-dark); }
 .loading-content p {
     font-size: 16px;
     font-weight: 500;
+}
+
+/* ========================================
+   Room History
+   ======================================== */
+
+.room-history {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background: var(--gray-800);
+    border-radius: 8px;
+    font-size: 13px;
+    transition: background 0.2s;
+}
+
+.history-item:hover {
+    background: var(--gray-700);
+}
+
+.history-room {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.history-status {
+    font-size: 10px;
+}
+
+.history-code {
+    font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+    font-weight: 600;
+    color: var(--primary-light);
+}
+
+.history-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.history-time {
+    color: var(--gray-400);
+    font-size: 11px;
+}
+
+.history-duration {
+    color: var(--gray-500);
+    font-size: 11px;
+}
+
+.history-empty, .history-loading {
+    text-align: center;
+    padding: 16px;
+    color: var(--gray-500);
+    font-size: 13px;
 }
