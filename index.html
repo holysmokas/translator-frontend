@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Translator | Speak Your Language, They Hear Theirs</title>
+    <meta name="description" content="Break language barriers instantly with real-time translation. Connect with anyone in their native language.">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>">
+</head>
+<body>
+    <div class="bg-particles" id="particles"></div>
+
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <h1>🌍 Real-Time Translator</h1>
+                <p class="tagline">Speak Your Language, They Hear Theirs</p>
+                <span class="version-badge">v2.1</span>
+            </div>
+        </header>
+
+        <div class="status-bar">
+            <div>
+                <span class="status-badge status-disconnected" id="statusBadge">
+                    <span class="status-indicator"></span>
+                    Disconnected
+                </span>
+            </div>
+            <div id="languageBadge" style="display: none;">
+                <span class="status-badge language-badge">
+                    <span id="yourLanguageDisplay">English 🇺🇸</span>
+                </span>
+            </div>
+            <div id="participantCount" style="display: none;">
+                <span class="status-badge" style="background: #dbeafe; color: #1e40af;">
+                    👥 <span id="participantNumber">0</span>
+                </span>
+            </div>
+        </div>
+
+        <main class="content">
+            <!-- Welcome Screen -->
+            <div id="welcomeScreen" class="welcome-screen">
+                <div class="welcome-icon">🌐</div>
+                <h2>Break Language Barriers Instantly</h2>
+                <p>Connect with anyone in the world. Speak in your language, and they hear it in theirs. Real-time translation powered by AI.</p>
+
+                <div class="features">
+                    <div class="feature-card">
+                        <div class="feature-icon">🗣️</div>
+                        <h3>Any Language</h3>
+                        <p>18+ languages supported with bidirectional translation</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Real-Time</h3>
+                        <p>Instant translation as you speak or type</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔒</div>
+                        <h3>Private Rooms</h3>
+                        <p>Secure conversations with room codes</p>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="action-selector">
+                        <div class="action-option active" data-action="create" id="createOption">
+                            <div class="action-option-icon">➕</div>
+                            <h3>Create Room</h3>
+                            <p>Start a new conversation</p>
+                        </div>
+                        <div class="action-option" data-action="join" id="joinOption">
+                            <div class="action-option-icon">🚪</div>
+                            <h3>Join Room</h3>
+                            <p>Enter an existing room</p>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="roomCodeGroup" style="display: none;">
+                        <label for="roomCodeInput">Room Code</label>
+                        <input type="text" id="roomCodeInput" placeholder="Enter 6-character code" maxlength="6" class="room-code-input">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="nameInput">Your Name</label>
+                        <input type="text" id="nameInput" placeholder="Enter your name" value="Guest">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="languageSelect">Your Language</label>
+                        <select id="languageSelect">
+                            <option value="en">🇺🇸 English</option>
+                            <option value="zh">🇨🇳 Chinese (Simplified)</option>
+                            <option value="es">🇪🇸 Spanish</option>
+                            <option value="fr">🇫🇷 French</option>
+                            <option value="de">🇩🇪 German</option>
+                            <option value="ja">🇯🇵 Japanese</option>
+                            <option value="ko">🇰🇷 Korean</option>
+                            <option value="pt">🇵🇹 Portuguese</option>
+                            <option value="it">🇮🇹 Italian</option>
+                            <option value="ru">🇷🇺 Russian</option>
+                            <option value="ar">🇸🇦 Arabic</option>
+                            <option value="hi">🇮🇳 Hindi</option>
+                            <option value="tr">🇹🇷 Turkish</option>
+                            <option value="nl">🇳🇱 Dutch</option>
+                            <option value="pl">🇵🇱 Polish</option>
+                            <option value="vi">🇻🇳 Vietnamese</option>
+                            <option value="th">🇹🇭 Thai</option>
+                            <option value="fa">🇮🇷 Persian (Farsi)</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-primary" id="startBtn">
+                        <span>Start Conversation</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Chat Interface -->
+            <div id="chatInterface" class="chat-interface">
+                <div class="room-banner">
+                    <div class="room-code-label">Room Code</div>
+                    <div class="room-code-display" id="roomCodeDisplay">------</div>
+                    <div class="room-share-hint">Share this code to invite others</div>
+                    <button class="disconnect-btn" id="disconnectBtn">🚪 Disconnect</button>
+                </div>
+
+                <div class="video-container" id="videoContainer">
+                    <div class="video-placeholder">
+                        <div class="video-placeholder-content">
+                            <div class="video-placeholder-icon">📹</div>
+                            <h3>Video Chat</h3>
+                            <p id="videoStatus">Connecting to video...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-section">
+                    <input type="text" id="messageInput" placeholder="Type your message in your language...">
+                    <button class="btn btn-primary" id="sendBtn"><span>Send</span></button>
+                    <button class="btn btn-icon btn-voice" id="voiceBtn" title="Voice message (coming soon)">🎤</button>
+                </div>
+
+                <div class="messages-container" id="messagesContainer">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">💬</div>
+                        <p>No messages yet. Start the conversation!</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>Powered by Azure Translator • Built with ❤️</p>
+        </footer>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
