@@ -1,5 +1,6 @@
 // ========================================
 // Mamnoon.ai Translator - Main Application
+// With Speech Recognition & Live Subtitles
 // ========================================
 
 (function() {
@@ -27,7 +28,13 @@
         timerInterval: null,
         startTime: null,
         myLanguage: 'en',
-        connected: false
+        connected: false,
+        
+        // Speech Recognition
+        recognition: null,
+        isListening: false,
+        speechSupported: false,
+        interimTranscript: ''
     };
 
     // ========================================
@@ -64,7 +71,11 @@
         paywallUpgradeBtn: document.getElementById('paywallUpgradeBtn'),
         paywallCloseBtn: document.getElementById('paywallCloseBtn'),
         logoutBtn: document.getElementById('logoutBtn'),
-        accountBtn: document.getElementById('accountBtn')
+        accountBtn: document.getElementById('accountBtn'),
+        
+        // Speech elements (will be created dynamically)
+        micBtn: null,
+        subtitleOverlay: null
     };
 
     // ========================================
@@ -79,6 +90,9 @@
         // Load profile and usage
         await loadProfile();
         
+        // Initialize speech recognition
+        initSpeechRecognition();
+        
         // Bind events
         bindEvents();
         
@@ -86,6 +100,241 @@
         checkPaymentStatus();
     }
 
+    // ========================================
+    // Speech Recognition Setup
+    // ========================================
+    function initSpeechRecognition() {
+        // Check browser support
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        
+        if (!SpeechRecognition) {
+            console.warn('⚠️ Speech recognition not supported in this browser');
+            state.speechSupported = false;
+            return;
+        }
+        
+        state.speechSupported = true;
+        state.recognition = new SpeechRecognition();
+        
+        // Configure
+        state.recognition.continuous = true;
+        state.recognition.interimResults = true;
+        state.recognition.maxAlternatives = 1;
+        
+        // Event handlers
+        state.recognition.onstart = () => {
+            console.log('🎤 Speech recognition started');
+            state.isListening = true;
+            updateMicButton();
+        };
+        
+        state.recognition.onend = () => {
+            console.log('🎤 Speech recognition ended');
+            // Auto-restart if still supposed to be listening
+            if (state.isListening && state.connected) {
+                setTimeout(() => {
+                    try {
+                        state.recognition.start();
+                    } catch (e) {
+                        console.log('Restart failed, will try again');
+                    }
+                }, 100);
+            } else {
+                state.isListening = false;
+                updateMicButton();
+            }
+        };
+        
+        state.recognition.onerror = (event) => {
+            console.error('🎤 Speech error:', event.error);
+            
+            if (event.error === 'not-allowed') {
+                showNotification('Microphone access denied. Please allow microphone access.', 'error');
+                state.isListening = false;
+                updateMicButton();
+            } else if (event.error === 'no-speech') {
+                // This is normal, just restart
+                console.log('No speech detected, continuing...');
+            }
+        };
+        
+        state.recognition.onresult = (event) => {
+            let finalTranscript = '';
+            let interimTranscript = '';
+            
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript;
+                
+                if (event.results[i].isFinal) {
+                    finalTranscript += transcript;
+                } else {
+                    interimTranscript += transcript;
+                }
+            }
+            
+            // Show interim results in UI (what's being spoken)
+            if (interimTranscript) {
+                showInterimSubtitle(interimTranscript);
+            }
+            
+            // Send final results
+            if (finalTranscript.trim()) {
+                sendSpeechMessage(finalTranscript.trim());
+                hideInterimSubtitle();
+            }
+        };
+        
+        console.log('✅ Speech recognition initialized');
+    }
+    
+    function updateRecognitionLanguage() {
+        if (!state.recognition) return;
+        
+        // Map our language codes to BCP-47 language tags
+        const langMap = {
+            'en': 'en-US',
+            'es': 'es-ES',
+            'fr': 'fr-FR',
+            'de': 'de-DE',
+            'it': 'it-IT',
+            'pt': 'pt-PT',
+            'zh': 'zh-CN',
+            'ja': 'ja-JP',
+            'ko': 'ko-KR',
+            'ru': 'ru-RU',
+            'ar': 'ar-SA',
+            'hi': 'hi-IN',
+            'tr': 'tr-TR',
+            'nl': 'nl-NL',
+            'pl': 'pl-PL',
+            'vi': 'vi-VN',
+            'th': 'th-TH',
+            'fa': 'fa-IR'
+        };
+        
+        state.recognition.lang = langMap[state.myLanguage] || 'en-US';
+        console.log(`🌐 Speech recognition language set to: ${state.recognition.lang}`);
+    }
+    
+    function startListening() {
+        if (!state.speechSupported) {
+            showNotification('Speech recognition not supported in this browser. Try Chrome or Edge.', 'error');
+            return;
+        }
+        
+        if (!state.connected) {
+            showNotification('Join a room first to use voice', 'warning');
+            return;
+        }
+        
+        updateRecognitionLanguage();
+        
+        try {
+            state.recognition.start();
+            state.isListening = true;
+        } catch (e) {
+            // Already started, ignore
+            console.log('Recognition already started');
+        }
+    }
+    
+    function stopListening() {
+        if (state.recognition) {
+            state.isListening = false;
+            try {
+                state.recognition.stop();
+            } catch (e) {
+                // Already stopped
+            }
+        }
+        hideInterimSubtitle();
+        updateMicButton();
+    }
+    
+    function toggleListening() {
+        if (state.isListening) {
+            stopListening();
+        } else {
+            startListening();
+        }
+    }
+    
+    function sendSpeechMessage(text) {
+        if (!state.ws || state.ws.readyState !== WebSocket.OPEN) return;
+        
+        console.log('🗣️ Sending speech:', text);
+        
+        state.ws.send(JSON.stringify({
+            type: 'text',
+            text: text
+        }));
+    }
+    
+    function updateMicButton() {
+        if (!elements.micBtn) return;
+        
+        if (state.isListening) {
+            elements.micBtn.classList.add('listening');
+            elements.micBtn.innerHTML = '<span class="mic-icon">🎤</span><span class="mic-status">Listening...</span>';
+        } else {
+            elements.micBtn.classList.remove('listening');
+            elements.micBtn.innerHTML = '<span class="mic-icon">🎤</span><span class="mic-status">Start Voice</span>';
+        }
+    }
+
+    // ========================================
+    // Subtitle System
+    // ========================================
+    function showInterimSubtitle(text) {
+        if (!elements.subtitleOverlay) return;
+        
+        elements.subtitleOverlay.innerHTML = `
+            <div class="subtitle-text interim">
+                <span class="speaking-indicator">🎤</span> ${escapeHtml(text)}...
+            </div>
+        `;
+        elements.subtitleOverlay.style.display = 'block';
+    }
+    
+    function hideInterimSubtitle() {
+        // Don't hide completely, just remove interim
+        if (elements.subtitleOverlay) {
+            const interim = elements.subtitleOverlay.querySelector('.interim');
+            if (interim) interim.remove();
+        }
+    }
+    
+    function showSubtitle(sender, text, originalText, senderLang) {
+        if (!elements.subtitleOverlay) return;
+        
+        const langInfo = LANGUAGES[senderLang] || { name: senderLang, flag: '🌐' };
+        
+        // Create subtitle element
+        const subtitle = document.createElement('div');
+        subtitle.className = 'subtitle-text received';
+        subtitle.innerHTML = `
+            <div class="subtitle-sender">${escapeHtml(sender)} ${langInfo.flag}</div>
+            <div class="subtitle-main">${escapeHtml(text)}</div>
+            <div class="subtitle-original">${escapeHtml(originalText)}</div>
+        `;
+        
+        // Clear old subtitles and show new one
+        elements.subtitleOverlay.innerHTML = '';
+        elements.subtitleOverlay.appendChild(subtitle);
+        elements.subtitleOverlay.style.display = 'block';
+        
+        // Auto-hide after 8 seconds
+        setTimeout(() => {
+            if (subtitle.parentNode === elements.subtitleOverlay) {
+                subtitle.classList.add('fade-out');
+                setTimeout(() => subtitle.remove(), 500);
+            }
+        }, 8000);
+    }
+
+    // ========================================
+    // Profile & Usage
+    // ========================================
     async function loadProfile() {
         try {
             const response = await fetch(`${CONFIG.API_BASE}/api/profile/${state.user.id}`);
@@ -148,88 +397,79 @@
             }
         } catch (error) {
             console.error('Failed to open billing portal:', error);
-        }
-    }
-
-    function checkPaymentStatus() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const payment = urlParams.get('payment');
-        
-        if (payment === 'success') {
-            showNotification('🎉 Payment successful! Your subscription is now active.', 'success');
-            // Clear URL params
-            window.history.replaceState({}, document.title, 'app.html');
-            // Reload profile
-            loadProfile();
-        } else if (payment === 'cancelled') {
-            showNotification('Payment cancelled. You can try again anytime.', 'info');
-            window.history.replaceState({}, document.title, 'app.html');
+            showNotification('Failed to open billing portal', 'error');
         }
     }
 
     // ========================================
-    // Event Binding
+    // Event Bindings
     // ========================================
     function bindEvents() {
-        // Create room buttons
-        elements.createRoomBtn.addEventListener('click', createRoom);
-        elements.welcomeCreateBtn.addEventListener('click', createRoom);
+        // Room creation
+        elements.createRoomBtn?.addEventListener('click', createRoom);
+        elements.welcomeCreateBtn?.addEventListener('click', createRoom);
         
-        // Join room buttons
-        elements.joinRoomBtn.addEventListener('click', () => showJoinModal());
-        elements.welcomeJoinBtn.addEventListener('click', () => showJoinModal());
-        elements.closeJoinModal.addEventListener('click', () => hideJoinModal());
-        elements.confirmJoinBtn.addEventListener('click', joinRoom);
-        elements.joinRoomCode.addEventListener('keypress', (e) => {
+        // Room joining
+        elements.joinRoomBtn?.addEventListener('click', () => showJoinModal());
+        elements.welcomeJoinBtn?.addEventListener('click', () => showJoinModal());
+        elements.closeJoinModal?.addEventListener('click', hideJoinModal);
+        elements.confirmJoinBtn?.addEventListener('click', joinRoom);
+        
+        // Room code input - auto uppercase and submit on enter
+        elements.joinRoomCode?.addEventListener('input', (e) => {
+            e.target.value = e.target.value.toUpperCase();
+        });
+        elements.joinRoomCode?.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') joinRoom();
         });
         
-        // Room actions
-        elements.leaveRoomBtn.addEventListener('click', leaveRoom);
-        elements.copyCodeBtn.addEventListener('click', copyRoomCode);
+        // Language selection
+        elements.languageSelect?.addEventListener('change', (e) => {
+            state.myLanguage = e.target.value;
+            updateRecognitionLanguage();
+            console.log(`🌐 Language changed to: ${state.myLanguage}`);
+        });
+        
+        // In-room actions
+        elements.leaveRoomBtn?.addEventListener('click', leaveRoom);
+        elements.copyCodeBtn?.addEventListener('click', copyRoomCode);
         
         // Messaging
-        elements.sendBtn.addEventListener('click', sendMessage);
-        elements.messageInput.addEventListener('keypress', (e) => {
+        elements.sendBtn?.addEventListener('click', sendMessage);
+        elements.messageInput?.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 sendMessage();
             }
         });
         
-        // Language
-        elements.languageSelect.addEventListener('change', (e) => {
-            state.myLanguage = e.target.value;
-        });
-        
         // Paywall
-        elements.paywallUpgradeBtn.addEventListener('click', () => {
-            const selectedPlan = document.querySelector('.paywall-plan.selected');
-            const plan = selectedPlan ? selectedPlan.dataset.plan : 'professional';
-            window.location.href = `checkout.html?plan=${plan}`;
-        });
-        elements.paywallCloseBtn.addEventListener('click', hidePaywall);
+        elements.paywallUpgradeBtn?.addEventListener('click', () => goToCheckout());
+        elements.paywallCloseBtn?.addEventListener('click', hidePaywall);
         
-        // Plan selection in paywall
-        document.querySelectorAll('.paywall-plan').forEach(el => {
-            el.addEventListener('click', () => {
-                document.querySelectorAll('.paywall-plan').forEach(p => p.classList.remove('selected'));
-                el.classList.add('selected');
-            });
-        });
+        // Account
+        elements.logoutBtn?.addEventListener('click', logout);
+        elements.accountBtn?.addEventListener('click', () => openBillingPortal());
         
-        // Auth
-        elements.logoutBtn.addEventListener('click', logout);
-        elements.accountBtn.addEventListener('click', () => openBillingPortal());
+        // Upgrade button
+        elements.upgradeBtn?.addEventListener('click', () => goToCheckout());
+        
+        // Modal background click
+        elements.joinModal?.addEventListener('click', (e) => {
+            if (e.target === elements.joinModal) hideJoinModal();
+        });
+        elements.paywallModal?.addEventListener('click', (e) => {
+            if (e.target === elements.paywallModal) hidePaywall();
+        });
     }
 
     // ========================================
-    // Room Management
+    // Room Creation
     // ========================================
     async function createRoom() {
+        showLoading('Creating room...');
+        
         try {
-            showLoading('Creating room...');
-            
             const response = await fetch(`${CONFIG.API_BASE}/api/room/create`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -238,17 +478,11 @@
             
             const data = await response.json();
             
-            if (response.status === 402) {
-                // Payment required - show paywall
+            // Handle paywall responses
+            if (response.status === 402 || response.status === 429) {
                 hideLoading();
-                showPaywall(data.detail.code, data.detail.message);
-                return;
-            }
-            
-            if (response.status === 429) {
-                // Room limit reached
-                hideLoading();
-                showPaywall('ROOM_LIMIT', data.detail.message);
+                const detail = data.detail || data;
+                showPaywall(detail.code, detail.message);
                 return;
             }
             
@@ -258,6 +492,7 @@
             
             hideLoading();
             
+            // Store room info
             state.roomCode = data.room_code;
             state.sessionId = data.session_id;
             state.maxMinutes = data.max_minutes || 15;
@@ -271,6 +506,9 @@
         }
     }
 
+    // ========================================
+    // Room Joining
+    // ========================================
     function showJoinModal() {
         elements.joinModal.style.display = 'flex';
         elements.joinRoomCode.value = '';
@@ -283,15 +521,15 @@
 
     async function joinRoom() {
         const code = elements.joinRoomCode.value.trim().toUpperCase();
-        if (code.length !== 6) {
+        if (!code || code.length !== 6) {
             showNotification('Please enter a valid 6-character room code', 'error');
             return;
         }
         
+        hideJoinModal();
+        showLoading('Joining room...');
+        
         try {
-            hideJoinModal();
-            showLoading('Joining room...');
-            
             const response = await fetch(`${CONFIG.API_BASE}/api/room/join/${code}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -328,6 +566,9 @@
     }
 
     function disconnectRoom() {
+        // Stop speech recognition
+        stopListening();
+        
         if (state.ws) {
             state.ws.close();
             state.ws = null;
@@ -354,6 +595,12 @@
         elements.welcomeState.style.display = 'flex';
         elements.messagesContainer.innerHTML = '<div class="empty-messages"><p>💬 Messages will appear here</p></div>';
         elements.videoSection.innerHTML = '<div class="video-placeholder"><div class="video-placeholder-icon">📹</div><p>Loading video...</p></div>';
+        
+        // Remove mic button and subtitle overlay
+        elements.micBtn?.remove();
+        elements.subtitleOverlay?.remove();
+        elements.micBtn = null;
+        elements.subtitleOverlay = null;
         
         // Reload profile to update usage
         loadProfile();
@@ -411,18 +658,66 @@
         elements.roomState.style.display = 'block';
         elements.activeRoomCode.textContent = state.roomCode;
         
+        // Create video container with subtitle overlay
+        const videoContainer = document.createElement('div');
+        videoContainer.className = 'video-container';
+        videoContainer.innerHTML = `
+            <div class="subtitle-overlay" id="subtitleOverlay"></div>
+        `;
+        
         // Load video
         if (videoUrl) {
-            elements.videoSection.innerHTML = `
-                <iframe 
-                    src="${videoUrl}?t=${Date.now()}"
-                    allow="camera; microphone; fullscreen; display-capture; autoplay"
-                    allowfullscreen
-                ></iframe>
-            `;
+            const iframe = document.createElement('iframe');
+            iframe.src = `${videoUrl}?t=${Date.now()}`;
+            iframe.allow = 'camera; microphone; fullscreen; display-capture; autoplay';
+            iframe.allowFullscreen = true;
+            videoContainer.insertBefore(iframe, videoContainer.firstChild);
+        } else {
+            videoContainer.innerHTML = `
+                <div class="video-placeholder">
+                    <div class="video-placeholder-icon">📹</div>
+                    <p>Video unavailable</p>
+                </div>
+            ` + videoContainer.innerHTML;
         }
         
+        elements.videoSection.innerHTML = '';
+        elements.videoSection.appendChild(videoContainer);
+        
+        // Store subtitle overlay reference
+        elements.subtitleOverlay = document.getElementById('subtitleOverlay');
+        
+        // Add mic button
+        createMicButton();
+        
         elements.messageInput.focus();
+    }
+    
+    function createMicButton() {
+        // Create mic button container
+        const micContainer = document.createElement('div');
+        micContainer.className = 'mic-container';
+        micContainer.innerHTML = `
+            <button class="mic-btn" id="micBtn">
+                <span class="mic-icon">🎤</span>
+                <span class="mic-status">Start Voice</span>
+            </button>
+            <div class="mic-hint">Click to enable voice translation</div>
+        `;
+        
+        // Insert after video section
+        elements.videoSection.appendChild(micContainer);
+        
+        // Store reference and bind event
+        elements.micBtn = document.getElementById('micBtn');
+        elements.micBtn.addEventListener('click', toggleListening);
+        
+        // Show speech not supported warning
+        if (!state.speechSupported) {
+            micContainer.innerHTML += `
+                <div class="mic-warning">⚠️ Voice not supported in this browser. Use Chrome or Edge.</div>
+            `;
+        }
     }
 
     function startTimer() {
@@ -466,6 +761,8 @@
                 break;
             case 'translation':
                 addReceivedMessage(data);
+                // Also show as subtitle!
+                showSubtitle(data.sender, data.translated_text, data.original_text, data.sender_language);
                 break;
             case 'sent':
                 addSentMessage(data.original_text, data.recipients);
@@ -554,76 +851,107 @@
     // ========================================
     function showPaywall(code, message) {
         const titles = {
-            'TRIAL_USED': 'Trial Expired',
-            'SUBSCRIPTION_INACTIVE': 'Subscription Inactive',
-            'ROOM_LIMIT': 'Room Limit Reached',
-            'TIME_LIMIT': 'Session Ended'
+            'TRIAL_USED': '🎉 Trial Complete!',
+            'SUBSCRIPTION_INACTIVE': '⚠️ Subscription Inactive',
+            'ROOM_LIMIT': '📊 Room Limit Reached',
+            'TIME_LIMIT': '⏱️ Time Limit Reached'
         };
         
         elements.paywallTitle.textContent = titles[code] || 'Upgrade Required';
-        elements.paywallMessage.textContent = message;
+        elements.paywallMessage.textContent = message || 'Please subscribe to continue using Mamnoon.ai';
         elements.paywallModal.style.display = 'flex';
-        
-        // Pre-select professional plan
-        document.querySelectorAll('.paywall-plan').forEach(p => p.classList.remove('selected'));
-        document.querySelector('.paywall-plan[data-plan="professional"]').classList.add('selected');
     }
 
     function hidePaywall() {
         elements.paywallModal.style.display = 'none';
     }
 
+    function goToCheckout(tier = 'personal') {
+        window.location.href = `checkout.html?plan=${tier}`;
+    }
+
     // ========================================
-    // UI Helpers
+    // Payment Status
     // ========================================
-    function showLoading(text) {
-        // Simple loading - could be enhanced
-        elements.welcomeCreateBtn.disabled = true;
-        elements.welcomeCreateBtn.innerHTML = `<span class="spinner"></span> ${text}`;
-    }
-
-    function hideLoading() {
-        elements.welcomeCreateBtn.disabled = false;
-        elements.welcomeCreateBtn.innerHTML = '<span>Create Room</span>';
-    }
-
-    function showNotification(message, type = 'info') {
-        // Create notification element
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.textContent = message;
-        document.body.appendChild(notification);
+    function checkPaymentStatus() {
+        const params = new URLSearchParams(window.location.search);
         
-        // Animate in
-        setTimeout(() => notification.classList.add('show'), 10);
-        
-        // Remove after 4 seconds
-        setTimeout(() => {
-            notification.classList.remove('show');
-            setTimeout(() => notification.remove(), 300);
-        }, 4000);
+        if (params.get('payment') === 'success') {
+            const tier = params.get('tier') || 'personal';
+            showNotification(`🎉 Welcome to ${tier}! Your subscription is now active.`, 'success');
+            
+            // Clear URL params
+            window.history.replaceState({}, '', window.location.pathname);
+            
+            // Reload profile
+            loadProfile();
+        } else if (params.get('payment') === 'cancelled') {
+            showNotification('Payment was cancelled. You can try again anytime.', 'info');
+            window.history.replaceState({}, '', window.location.pathname);
+        }
     }
 
+    // ========================================
+    // Auth
+    // ========================================
     function logout() {
-        localStorage.removeItem('user');
-        localStorage.removeItem('session');
-        localStorage.removeItem('profile');
-        localStorage.removeItem('selectedPlan');
-        window.location.href = 'index.html';
+        if (confirm('Are you sure you want to log out?')) {
+            localStorage.removeItem('user');
+            localStorage.removeItem('session');
+            localStorage.removeItem('profile');
+            window.location.href = 'login.html';
+        }
     }
 
+    // ========================================
+    // Utilities
+    // ========================================
     function escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
     }
 
-    // ========================================
-    // Initialize on DOM Ready
-    // ========================================
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
+    function showNotification(message, type = 'info') {
+        // Remove existing
+        document.querySelectorAll('.notification').forEach(n => n.remove());
+        
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        // Trigger animation
+        setTimeout(() => notification.classList.add('show'), 10);
+        
+        // Auto-remove
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        }, 4000);
     }
+
+    function showLoading(message = 'Loading...') {
+        hideLoading();
+        const overlay = document.createElement('div');
+        overlay.id = 'loadingOverlay';
+        overlay.className = 'loading-overlay';
+        overlay.innerHTML = `
+            <div class="loading-content">
+                <div class="spinner"></div>
+                <p>${message}</p>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+    }
+
+    function hideLoading() {
+        document.getElementById('loadingOverlay')?.remove();
+    }
+
+    // ========================================
+    // Start App
+    // ========================================
+    init();
+
 })();
