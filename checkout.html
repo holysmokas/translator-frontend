@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout | Mamnoon.ai</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>">
+</head>
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card checkout-card">
+            <div class="auth-header">
+                <a href="index.html" class="auth-logo">
+                    <span class="logo-icon">🌍</span>
+                    <span class="logo-text">Mamnoon.ai</span>
+                </a>
+                <h1>Complete Your Subscription</h1>
+                <p>You're one step away from unlimited translation</p>
+            </div>
+
+            <div class="checkout-plan" id="planDetails">
+                <div class="plan-info">
+                    <h3 id="planTitle">Professional</h3>
+                    <p id="planDescription">For consultants and small teams</p>
+                </div>
+                <div class="plan-price">
+                    <span class="price" id="planPrice">$49</span>
+                    <span class="period">/month</span>
+                </div>
+            </div>
+
+            <ul class="checkout-features" id="planFeatures">
+                <li>✓ 30 rooms per month</li>
+                <li>✓ 3 hour sessions</li>
+                <li>✓ All 18+ languages</li>
+                <li>✓ Priority support</li>
+            </ul>
+
+            <button class="btn btn-primary btn-block btn-lg" id="checkoutBtn">
+                <span>Proceed to Payment</span>
+            </button>
+
+            <div class="checkout-skip">
+                <p>Want to try first? <a href="app.html">Use your free trial</a></p>
+            </div>
+
+            <div class="checkout-secure">
+                <span>🔒</span>
+                <span>Secure checkout powered by Stripe</span>
+            </div>
+
+            <div class="auth-error" id="errorMessage" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script>
+        const PLANS = {
+            personal: {
+                title: 'Personal',
+                description: 'For individuals and freelancers',
+                price: '$14.99',
+                features: [
+                    '✓ 10 rooms per month',
+                    '✓ 1 hour sessions',
+                    '✓ All 18+ languages',
+                    '✓ Email support'
+                ]
+            },
+            professional: {
+                title: 'Professional',
+                description: 'For consultants and small teams',
+                price: '$49',
+                features: [
+                    '✓ 30 rooms per month',
+                    '✓ 3 hour sessions',
+                    '✓ All 18+ languages',
+                    '✓ Priority support'
+                ]
+            },
+            enterprise: {
+                title: 'Enterprise',
+                description: 'For organizations and agencies',
+                price: '$499',
+                features: [
+                    '✓ Unlimited rooms',
+                    '✓ Unlimited session length',
+                    '✓ All 18+ languages',
+                    '✓ Dedicated support',
+                    '✓ API access'
+                ]
+            }
+        };
+
+        // Check if user is logged in
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user) {
+            window.location.href = 'login.html';
+        }
+
+        // Get plan from URL or localStorage
+        const urlParams = new URLSearchParams(window.location.search);
+        let plan = urlParams.get('plan') || localStorage.getItem('selectedPlan') || 'professional';
+
+        if (!PLANS[plan]) {
+            plan = 'professional';
+        }
+
+        // Display plan details
+        const planData = PLANS[plan];
+        document.getElementById('planTitle').textContent = planData.title;
+        document.getElementById('planDescription').textContent = planData.description;
+        document.getElementById('planPrice').textContent = planData.price;
+        document.getElementById('planFeatures').innerHTML = planData.features.map(f => `<li>${f}</li>`).join('');
+
+        // Checkout button
+        document.getElementById('checkoutBtn').addEventListener('click', async function() {
+            const btn = this;
+            const errorEl = document.getElementById('errorMessage');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Redirecting to Stripe...';
+            errorEl.style.display = 'none';
+
+            try {
+                const response = await fetch(`${CONFIG.API_BASE}/api/checkout/create`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: user.id,
+                        tier: plan
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.url) {
+                    // Redirect to Stripe Checkout
+                    window.location.href = data.url;
+                } else {
+                    throw new Error(data.detail || data.error || 'Failed to create checkout session');
+                }
+            } catch (error) {
+                errorEl.textContent = error.message;
+                errorEl.style.display = 'block';
+                btn.disabled = false;
+                btn.innerHTML = '<span>Proceed to Payment</span>';
+            }
+        });
+    </script>
+</body>
+</html>

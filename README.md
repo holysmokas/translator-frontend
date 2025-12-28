@@ -56,6 +56,3 @@ translator-frontend/
 ## License
 
 MIT
-# translator-frontend
-# translator-frontend
-# translator-frontend

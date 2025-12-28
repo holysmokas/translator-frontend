@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up | Mamnoon.ai</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>">
+</head>
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <a href="index.html" class="auth-logo">
+                    <span class="logo-icon">🌍</span>
+                    <span class="logo-text">Mamnoon.ai</span>
+                </a>
+                <h1>Create Your Account</h1>
+                <p>Start your free trial - 1 room, 15 minutes. No credit card required.</p>
+            </div>
+
+            <form id="signupForm" class="auth-form">
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" name="name" required placeholder="John Doe">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" required placeholder="you@company.com">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required placeholder="Min. 8 characters" minlength="8">
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required placeholder="Confirm your password">
+                </div>
+
+                <div id="selectedPlan" class="selected-plan" style="display: none;">
+                    <span class="plan-label">Selected Plan:</span>
+                    <span class="plan-name" id="planName"></span>
+                    <a href="index.html#pricing" class="plan-change">Change</a>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block btn-lg" id="submitBtn">
+                    <span>Create Account</span>
+                </button>
+
+                <div class="auth-error" id="errorMessage" style="display: none;"></div>
+                <div class="auth-success" id="successMessage" style="display: none;"></div>
+            </form>
+
+            <div class="auth-footer">
+                <p>Already have an account? <a href="login.html">Log in</a></p>
+            </div>
+
+            <div class="auth-terms">
+                <p>By signing up, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script>
+        // Get plan from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const plan = urlParams.get('plan');
+        
+        if (plan && ['personal', 'professional', 'enterprise'].includes(plan)) {
+            document.getElementById('selectedPlan').style.display = 'flex';
+            document.getElementById('planName').textContent = plan.charAt(0).toUpperCase() + plan.slice(1);
+            localStorage.setItem('selectedPlan', plan);
+        }
+
+        // Form submission
+        document.getElementById('signupForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            const errorEl = document.getElementById('errorMessage');
+            const successEl = document.getElementById('successMessage');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            // Reset messages
+            errorEl.style.display = 'none';
+            successEl.style.display = 'none';
+            
+            // Validate passwords match
+            if (password !== confirmPassword) {
+                errorEl.textContent = 'Passwords do not match';
+                errorEl.style.display = 'block';
+                return;
+            }
+            
+            // Disable button
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner"></span> Creating account...';
+            
+            try {
+                const response = await fetch(`${CONFIG.API_BASE}/api/auth/signup`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.status === 'success') {
+                    // Store user data
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    if (data.session) {
+                        localStorage.setItem('session', JSON.stringify(data.session));
+                    }
+                    
+                    successEl.textContent = 'Account created! Redirecting...';
+                    successEl.style.display = 'block';
+                    
+                    // Check if they selected a plan
+                    const selectedPlan = localStorage.getItem('selectedPlan');
+                    
+                    setTimeout(() => {
+                        if (selectedPlan) {
+                            // Go to checkout
+                            window.location.href = `checkout.html?plan=${selectedPlan}`;
+                        } else {
+                            // Go to app (trial)
+                            window.location.href = 'app.html';
+                        }
+                    }, 1500);
+                } else {
+                    throw new Error(data.detail || data.error || 'Signup failed');
+                }
+            } catch (error) {
+                errorEl.textContent = error.message;
+                errorEl.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span>Create Account</span>';
+            }
+        });
+    </script>
+</body>
+</html>

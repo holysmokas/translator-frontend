@@ -1,26 +1,13 @@
 // ========================================
-// Configuration - Change these for your deployment
+// Mamnoon.ai Configuration
 // ========================================
 
 const CONFIG = {
-    // Backend API URL (Railway, Render, or your own server)
     API_BASE: 'https://translation-server-production-d487.up.railway.app',
-    
-    // WebSocket URL (same as API but with wss://)
     WS_BASE: 'wss://translation-server-production-d487.up.railway.app',
-    
-    // App version
-    VERSION: '2.1.0',
-    
-    // Feature flags
-    FEATURES: {
-        VIDEO_ENABLED: true,
-        VOICE_ENABLED: false,  // Coming soon
-        AUTH_ENABLED: true
-    }
+    VERSION: '2.2.0'
 };
 
-// Language definitions
 const LANGUAGES = {
     'en': { name: 'English', flag: '🇺🇸' },
     'zh': { name: 'Chinese', flag: '🇨🇳' },
@@ -42,6 +29,5 @@ const LANGUAGES = {
     'fa': { name: 'Persian', flag: '🇮🇷' }
 };
 
-// Export for use in other files
 window.CONFIG = CONFIG;
 window.LANGUAGES = LANGUAGES;

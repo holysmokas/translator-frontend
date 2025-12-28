@@ -3,161 +3,359 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real-Time Translator | Speak Your Language, They Hear Theirs</title>
-    <meta name="description" content="Break language barriers instantly with real-time translation. Connect with anyone in their native language.">
+    <title>Mamnoon.ai | Real-Time Translation for Global Communication</title>
+    <meta name="description" content="Break language barriers instantly. Real-time video translation for businesses, professionals, and teams. 18+ languages supported.">
     <link rel="stylesheet" href="css/style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>">
 </head>
 <body>
-    <div class="bg-particles" id="particles"></div>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <span class="logo-icon">🌍</span>
+                <span class="logo-text">Mamnoon.ai</span>
+            </a>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#pricing">Pricing</a>
+                <a href="#how-it-works">How It Works</a>
+            </div>
+            <div class="nav-auth">
+                <a href="login.html" class="btn btn-ghost">Log In</a>
+                <a href="signup.html" class="btn btn-primary">Start Free Trial</a>
+            </div>
+            <button class="nav-mobile-toggle" id="mobileToggle">☰</button>
+        </div>
+    </nav>
 
-    <div class="container">
-        <header class="header">
-            <div class="header-content">
-                <h1>🌍 Real-Time Translator</h1>
-                <p class="tagline">Speak Your Language, They Hear Theirs</p>
-                <span class="version-badge">v2.1</span>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-bg"></div>
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-badge">🚀 Now with Video Integration</div>
+                <h1>Speak Your Language.<br><span class="gradient-text">They Hear Theirs.</span></h1>
+                <p class="hero-subtitle">Real-time translation for video calls. Connect with anyone in the world, in their native language. Perfect for international business, remote teams, and global communication.</p>
+                <div class="hero-cta">
+                    <a href="signup.html" class="btn btn-primary btn-lg">
+                        <span>Start Free Trial</span>
+                        <span class="btn-icon">→</span>
+                    </a>
+                    <a href="#how-it-works" class="btn btn-ghost btn-lg">See How It Works</a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <span class="stat-number">18+</span>
+                        <span class="stat-label">Languages</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">&lt;1s</span>
+                        <span class="stat-label">Latency</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">99.9%</span>
+                        <span class="stat-label">Accuracy</span>
+                    </div>
+                </div>
             </div>
-        </header>
-
-        <div class="status-bar">
-            <div>
-                <span class="status-badge status-disconnected" id="statusBadge">
-                    <span class="status-indicator"></span>
-                    Disconnected
-                </span>
-            </div>
-            <div id="languageBadge" style="display: none;">
-                <span class="status-badge language-badge">
-                    <span id="yourLanguageDisplay">English 🇺🇸</span>
-                </span>
-            </div>
-            <div id="participantCount" style="display: none;">
-                <span class="status-badge" style="background: #dbeafe; color: #1e40af;">
-                    👥 <span id="participantNumber">0</span>
-                </span>
+            <div class="hero-visual">
+                <div class="hero-demo">
+                    <div class="demo-window">
+                        <div class="demo-header">
+                            <div class="demo-dots">
+                                <span></span><span></span><span></span>
+                            </div>
+                            <span class="demo-title">Live Translation</span>
+                        </div>
+                        <div class="demo-content">
+                            <div class="demo-message sent">
+                                <div class="demo-avatar">🇺🇸</div>
+                                <div class="demo-bubble">
+                                    <p>Hello! How are you today?</p>
+                                </div>
+                            </div>
+                            <div class="demo-message received">
+                                <div class="demo-avatar">🇯🇵</div>
+                                <div class="demo-bubble">
+                                    <p class="original">こんにちは！お元気ですか？</p>
+                                    <p class="translated">→ Hello! How are you?</p>
+                                </div>
+                            </div>
+                            <div class="demo-message sent">
+                                <div class="demo-avatar">🇺🇸</div>
+                                <div class="demo-bubble">
+                                    <p>Let's discuss the quarterly report.</p>
+                                </div>
+                            </div>
+                            <div class="demo-message received">
+                                <div class="demo-avatar">🇯🇵</div>
+                                <div class="demo-bubble">
+                                    <p class="original">四半期レポートについて話しましょう。</p>
+                                    <p class="translated">→ Let's discuss the quarterly report.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+    </section>
 
-        <main class="content">
-            <!-- Welcome Screen -->
-            <div id="welcomeScreen" class="welcome-screen">
-                <div class="welcome-icon">🌐</div>
-                <h2>Break Language Barriers Instantly</h2>
-                <p>Connect with anyone in the world. Speak in your language, and they hear it in theirs. Real-time translation powered by AI.</p>
+    <!-- Logos Section -->
+    <section class="logos">
+        <div class="container">
+            <p class="logos-title">Trusted by professionals worldwide</p>
+            <div class="logos-grid">
+                <div class="logo-item">Global Enterprises</div>
+                <div class="logo-item">Remote Teams</div>
+                <div class="logo-item">Healthcare</div>
+                <div class="logo-item">Legal Firms</div>
+                <div class="logo-item">Education</div>
+            </div>
+        </div>
+    </section>
 
-                <div class="features">
-                    <div class="feature-card">
-                        <div class="feature-icon">🗣️</div>
-                        <h3>Any Language</h3>
-                        <p>18+ languages supported with bidirectional translation</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon">⚡</div>
-                        <h3>Real-Time</h3>
-                        <p>Instant translation as you speak or type</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon">🔒</div>
-                        <h3>Private Rooms</h3>
-                        <p>Secure conversations with room codes</p>
-                    </div>
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header">
+                <h2>Everything You Need for Global Communication</h2>
+                <p>Powerful features designed for professionals who need reliable, instant translation.</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Real-Time Translation</h3>
+                    <p>Instant translation as you speak. No delays, no waiting. Natural conversation flow maintained.</p>
                 </div>
-
-                <div class="form-section">
-                    <div class="action-selector">
-                        <div class="action-option active" data-action="create" id="createOption">
-                            <div class="action-option-icon">➕</div>
-                            <h3>Create Room</h3>
-                            <p>Start a new conversation</p>
-                        </div>
-                        <div class="action-option" data-action="join" id="joinOption">
-                            <div class="action-option-icon">🚪</div>
-                            <h3>Join Room</h3>
-                            <p>Enter an existing room</p>
-                        </div>
-                    </div>
-
-                    <div class="form-group" id="roomCodeGroup" style="display: none;">
-                        <label for="roomCodeInput">Room Code</label>
-                        <input type="text" id="roomCodeInput" placeholder="Enter 6-character code" maxlength="6" class="room-code-input">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="nameInput">Your Name</label>
-                        <input type="text" id="nameInput" placeholder="Enter your name" value="Guest">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="languageSelect">Your Language</label>
-                        <select id="languageSelect">
-                            <option value="en">🇺🇸 English</option>
-                            <option value="zh">🇨🇳 Chinese (Simplified)</option>
-                            <option value="es">🇪🇸 Spanish</option>
-                            <option value="fr">🇫🇷 French</option>
-                            <option value="de">🇩🇪 German</option>
-                            <option value="ja">🇯🇵 Japanese</option>
-                            <option value="ko">🇰🇷 Korean</option>
-                            <option value="pt">🇵🇹 Portuguese</option>
-                            <option value="it">🇮🇹 Italian</option>
-                            <option value="ru">🇷🇺 Russian</option>
-                            <option value="ar">🇸🇦 Arabic</option>
-                            <option value="hi">🇮🇳 Hindi</option>
-                            <option value="tr">🇹🇷 Turkish</option>
-                            <option value="nl">🇳🇱 Dutch</option>
-                            <option value="pl">🇵🇱 Polish</option>
-                            <option value="vi">🇻🇳 Vietnamese</option>
-                            <option value="th">🇹🇭 Thai</option>
-                            <option value="fa">🇮🇷 Persian (Farsi)</option>
-                        </select>
-                    </div>
-
-                    <button class="btn btn-primary" id="startBtn">
-                        <span>Start Conversation</span>
-                    </button>
+                <div class="feature-card">
+                    <div class="feature-icon">🎥</div>
+                    <h3>Integrated Video</h3>
+                    <p>Built-in video calling with translation overlay. See facial expressions while communicating across languages.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌐</div>
+                    <h3>18+ Languages</h3>
+                    <p>Support for major world languages including English, Chinese, Spanish, Japanese, Arabic, and more.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Private & Secure</h3>
+                    <p>End-to-end encryption. Your conversations stay private. Enterprise-grade security.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>High Accuracy</h3>
+                    <p>Powered by Azure Cognitive Services. Industry-leading translation accuracy for professional use.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3>Any Device</h3>
+                    <p>Works on desktop, tablet, and mobile. No app installation required. Just click and connect.</p>
                 </div>
             </div>
+        </div>
+    </section>
 
-            <!-- Chat Interface -->
-            <div id="chatInterface" class="chat-interface">
-                <div class="room-banner">
-                    <div class="room-code-label">Room Code</div>
-                    <div class="room-code-display" id="roomCodeDisplay">------</div>
-                    <div class="room-share-hint">Share this code to invite others</div>
-                    <button class="disconnect-btn" id="disconnectBtn">🚪 Disconnect</button>
-                </div>
-
-                <div class="video-container" id="videoContainer">
-                    <div class="video-placeholder">
-                        <div class="video-placeholder-content">
-                            <div class="video-placeholder-icon">📹</div>
-                            <h3>Video Chat</h3>
-                            <p id="videoStatus">Connecting to video...</p>
-                        </div>
+    <!-- How It Works -->
+    <section class="how-it-works" id="how-it-works">
+        <div class="container">
+            <div class="section-header">
+                <h2>Start Translating in 30 Seconds</h2>
+                <p>No complex setup. No downloads. Just instant communication.</p>
+            </div>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Create a Room</h3>
+                        <p>Click "Start" and get a unique 6-character room code to share with your conversation partner.</p>
                     </div>
                 </div>
-
-                <div class="input-section">
-                    <input type="text" id="messageInput" placeholder="Type your message in your language...">
-                    <button class="btn btn-primary" id="sendBtn"><span>Send</span></button>
-                    <button class="btn btn-icon btn-voice" id="voiceBtn" title="Voice message (coming soon)">🎤</button>
+                <div class="step-connector"></div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Choose Languages</h3>
+                        <p>Each participant selects their preferred language. The system handles the rest automatically.</p>
+                    </div>
                 </div>
-
-                <div class="messages-container" id="messagesContainer">
-                    <div class="empty-state">
-                        <div class="empty-state-icon">💬</div>
-                        <p>No messages yet. Start the conversation!</p>
+                <div class="step-connector"></div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Start Talking</h3>
+                        <p>Speak naturally. Your words are instantly translated and delivered to your partner in their language.</p>
                     </div>
                 </div>
             </div>
-        </main>
+        </div>
+    </section>
 
-        <footer class="footer">
-            <p>Powered by Azure Translator • Built with ❤️</p>
-        </footer>
-    </div>
+    <!-- Pricing Section -->
+    <section class="pricing" id="pricing">
+        <div class="container">
+            <div class="section-header">
+                <h2>Simple, Transparent Pricing</h2>
+                <p>Choose the plan that fits your needs. No hidden fees.</p>
+            </div>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <h3>Personal</h3>
+                        <p class="pricing-description">For individuals and freelancers</p>
+                    </div>
+                    <div class="pricing-price">
+                        <span class="price-amount">$14.99</span>
+                        <span class="price-period">/month</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>✓ 10 rooms per month</li>
+                        <li>✓ 1 hour sessions</li>
+                        <li>✓ All 18+ languages</li>
+                        <li>✓ Video integration</li>
+                        <li>✓ Email support</li>
+                    </ul>
+                    <a href="signup.html?plan=personal" class="btn btn-outline btn-block">Get Started</a>
+                </div>
+                <div class="pricing-card featured">
+                    <div class="pricing-badge">Most Popular</div>
+                    <div class="pricing-header">
+                        <h3>Professional</h3>
+                        <p class="pricing-description">For consultants and small teams</p>
+                    </div>
+                    <div class="pricing-price">
+                        <span class="price-amount">$49</span>
+                        <span class="price-period">/month</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>✓ 30 rooms per month</li>
+                        <li>✓ 3 hour sessions</li>
+                        <li>✓ All 18+ languages</li>
+                        <li>✓ Video integration</li>
+                        <li>✓ Priority support</li>
+                        <li>✓ Usage analytics</li>
+                    </ul>
+                    <a href="signup.html?plan=professional" class="btn btn-primary btn-block">Get Started</a>
+                </div>
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <h3>Enterprise</h3>
+                        <p class="pricing-description">For organizations and agencies</p>
+                    </div>
+                    <div class="pricing-price">
+                        <span class="price-amount">$499</span>
+                        <span class="price-period">/month</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>✓ Unlimited rooms</li>
+                        <li>✓ Unlimited session length</li>
+                        <li>✓ All 18+ languages</li>
+                        <li>✓ Video integration</li>
+                        <li>✓ Dedicated support</li>
+                        <li>✓ API access</li>
+                        <li>✓ Custom integrations</li>
+                    </ul>
+                    <a href="signup.html?plan=enterprise" class="btn btn-outline btn-block">Get Started</a>
+                </div>
+            </div>
+            <div class="pricing-trial">
+                <p>🎁 <strong>Try before you buy:</strong> Every new account gets a free trial - 1 room, 15 minutes. No credit card required.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Use Cases -->
+    <section class="use-cases">
+        <div class="container">
+            <div class="section-header">
+                <h2>Built for Every Industry</h2>
+                <p>See how professionals use Mamnoon.ai to break language barriers.</p>
+            </div>
+            <div class="use-cases-grid">
+                <div class="use-case">
+                    <div class="use-case-icon">💼</div>
+                    <h3>International Business</h3>
+                    <p>Close deals with clients worldwide. Negotiate contracts without language barriers.</p>
+                </div>
+                <div class="use-case">
+                    <div class="use-case-icon">🏥</div>
+                    <h3>Healthcare</h3>
+                    <p>Communicate with patients in their native language. Improve care outcomes.</p>
+                </div>
+                <div class="use-case">
+                    <div class="use-case-icon">⚖️</div>
+                    <h3>Legal Services</h3>
+                    <p>Conduct depositions and client meetings across languages with accuracy.</p>
+                </div>
+                <div class="use-case">
+                    <div class="use-case-icon">🎓</div>
+                    <h3>Education</h3>
+                    <p>Teach and learn across borders. Connect international students with educators.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Ready to Go Global?</h2>
+                <p>Start your free trial today. No credit card required.</p>
+                <a href="signup.html" class="btn btn-white btn-lg">
+                    <span>Start Free Trial</span>
+                    <span class="btn-icon">→</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="footer-logo">
+                        <span class="logo-icon">🌍</span>
+                        <span class="logo-text">Mamnoon.ai</span>
+                    </div>
+                    <p>Breaking language barriers with AI-powered real-time translation.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4>Product</h4>
+                        <a href="#features">Features</a>
+                        <a href="#pricing">Pricing</a>
+                        <a href="#how-it-works">How It Works</a>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Company</h4>
+                        <a href="#">About</a>
+                        <a href="#">Contact</a>
+                        <a href="#">Careers</a>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Legal</h4>
+                        <a href="#">Privacy Policy</a>
+                        <a href="#">Terms of Service</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Mamnoon.ai. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
 
     <script src="js/config.js"></script>
-    <script src="js/app.js"></script>
+    <script>
+        // Mobile nav toggle
+        document.getElementById('mobileToggle').addEventListener('click', function() {
+            document.querySelector('.nav-links').classList.toggle('active');
+            document.querySelector('.nav-auth').classList.toggle('active');
+        });
+    </script>
 </body>
 </html>
