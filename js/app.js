@@ -571,13 +571,21 @@
         }
         
         const html = sessions.slice(0, 5).map(session => {
-            const date = new Date(session.created_at);
+            const date = new Date(session.started_at || session.created_at);
             const timeAgo = getTimeAgo(date);
             const duration = session.duration_minutes ? `${session.duration_minutes} min` : 'In progress';
-            const status = session.status === 'active' ? '🟢' : '⚪';
+            const isActive = session.status === 'active';
+            const status = isActive ? '🟢' : '⚪';
+            
+            // Add end session button for active sessions
+            const endBtn = isActive ? `
+                <button class="end-session-btn" onclick="endStuckSession('${session.id}', '${session.room_code}')" title="End this session">
+                    ✕
+                </button>
+            ` : '';
             
             return `
-                <div class="history-item">
+                <div class="history-item ${isActive ? 'active' : ''}">
                     <div class="history-room">
                         <span class="history-status">${status}</span>
                         <span class="history-code">${session.room_code}</span>
@@ -585,6 +593,7 @@
                     <div class="history-meta">
                         <span class="history-time">${timeAgo}</span>
                         <span class="history-duration">${duration}</span>
+                        ${endBtn}
                     </div>
                 </div>
             `;
@@ -592,6 +601,32 @@
         
         elements.roomHistory.innerHTML = html;
     }
+
+    // End stuck session (kill switch)
+    window.endStuckSession = async function(sessionId, roomCode) {
+        if (!confirm(`End session ${roomCode}? This will free up your room slot.`)) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`${CONFIG.API_BASE}/api/session/end/${sessionId}`, {
+                method: 'POST'
+            });
+            
+            if (response.ok) {
+                showNotification(`Session ${roomCode} ended`, 'success');
+                // Reload history
+                await loadRoomHistory();
+                // Reload profile to update usage
+                await loadProfile();
+            } else {
+                const data = await response.json();
+                throw new Error(data.detail || 'Failed to end session');
+            }
+        } catch (error) {
+            showNotification(error.message, 'error');
+        }
+    };
 
     function getTimeAgo(date) {
         const seconds = Math.floor((new Date() - date) / 1000);

@@ -593,6 +593,35 @@ a:hover { color: var(--primary-dark); }
     font-size: 13px;
 }
 
+.history-item.active {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+    border-radius: 8px;
+    padding: 8px;
+    margin: -4px;
+}
+
+.end-session-btn {
+    background: rgba(239, 68, 68, 0.2);
+    border: none;
+    color: #ef4444;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 8px;
+    transition: all 0.2s;
+}
+
+.end-session-btn:hover {
+    background: #ef4444;
+    color: white;
+}
+
 /* ========================================
    Email Verification Message
    ======================================== */
