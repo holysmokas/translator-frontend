@@ -1001,15 +1001,23 @@ END:VCALENDAR`;
                 })
             });
             
+            const data = await response.json();
+            
             if (response.ok) {
-                elements.emailStatus.textContent = `✓ Invite sent to ${email}`;
-                elements.emailStatus.className = 'email-status success';
-                elements.inviteEmail.value = '';
+                if (data.copy_link) {
+                    // Email service not available - prompt to copy link
+                    elements.emailStatus.innerHTML = `📋 Share this link with <strong>${email}</strong>: <a href="#" onclick="document.getElementById('copyInviteLink').click(); return false;">Copy Link</a>`;
+                    elements.emailStatus.className = 'email-status success';
+                } else {
+                    elements.emailStatus.textContent = `✓ Invite sent to ${email}`;
+                    elements.emailStatus.className = 'email-status success';
+                    elements.inviteEmail.value = '';
+                }
             } else {
-                throw new Error('Failed to send');
+                throw new Error(data.detail || 'Failed to send');
             }
         } catch (error) {
-            elements.emailStatus.textContent = 'Failed to send. Try copying the link instead.';
+            elements.emailStatus.textContent = 'Failed to send. Copy the link instead.';
             elements.emailStatus.className = 'email-status error';
         }
         
