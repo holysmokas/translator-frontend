@@ -119,6 +119,55 @@
                 </div>
             </div>
 
+            <!-- Invite Modal -->
+            <div class="modal" id="inviteModal" style="display: none;">
+                <div class="modal-content invite-modal-content">
+                    <div class="modal-header">
+                        <h3>📨 Invite Someone</h3>
+                        <button class="modal-close" id="closeInviteModal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="invite-section">
+                            <label>Share this link</label>
+                            <div class="invite-link-box">
+                                <input type="text" id="inviteLink" readonly>
+                                <button class="btn btn-primary" id="copyInviteLink">Copy</button>
+                            </div>
+                        </div>
+                        
+                        <div class="invite-divider"><span>or</span></div>
+                        
+                        <div class="invite-section">
+                            <label>Room Code</label>
+                            <div class="invite-code-box">
+                                <span class="invite-code" id="inviteCode">------</span>
+                                <button class="btn btn-outline btn-sm" id="copyInviteCode">Copy Code</button>
+                            </div>
+                        </div>
+                        
+                        <div class="invite-divider"><span>schedule</span></div>
+                        
+                        <div class="invite-section">
+                            <label>Add to Calendar</label>
+                            <div class="calendar-buttons">
+                                <button class="btn btn-outline" id="downloadIcs">
+                                    📅 Download .ics
+                                </button>
+                                <button class="btn btn-outline" id="addGoogleCal">
+                                    <img src="https://www.google.com/favicon.ico" alt="" style="width:16px;height:16px;margin-right:6px;">
+                                    Google Calendar
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="invite-tip">
+                            <span class="tip-icon">💡</span>
+                            <span>Guests can join without signing up</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Active Room State -->
             <div class="app-state" id="roomState" style="display: none;">
                 <div class="room-header">
@@ -126,6 +175,7 @@
                         <span class="room-label">Room Code</span>
                         <span class="room-code" id="activeRoomCode">------</span>
                         <button class="copy-btn" id="copyCodeBtn" title="Copy code">📋</button>
+                        <button class="btn btn-primary btn-sm" id="inviteBtn">📨 Invite</button>
                     </div>
                     <div class="room-timer" id="roomTimer">
                         <span class="timer-icon">⏱️</span>

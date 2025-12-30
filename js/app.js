@@ -7,10 +7,13 @@
     'use strict';
 
     // ========================================
-    // Auth Check
+    // Auth Check (allow guests)
     // ========================================
+    const urlParams = new URLSearchParams(window.location.search);
+    const isGuestMode = urlParams.get('guest') === 'true';
+    
     const user = JSON.parse(localStorage.getItem('user'));
-    if (!user) {
+    if (!user && !isGuestMode) {
         window.location.href = 'login.html';
         return;
     }
@@ -19,7 +22,7 @@
     // State
     // ========================================
     const state = {
-        user: user,
+        user: user || { id: null, name: 'Guest', email: 'guest@mamnoon.ai', isGuest: true },
         profile: JSON.parse(localStorage.getItem('profile')) || {},
         ws: null,
         roomCode: null,
@@ -77,6 +80,17 @@
         accountBtn: document.getElementById('accountBtn'),
         roomHistory: document.getElementById('roomHistory'),
         
+        // Invite modal elements
+        inviteBtn: document.getElementById('inviteBtn'),
+        inviteModal: document.getElementById('inviteModal'),
+        closeInviteModal: document.getElementById('closeInviteModal'),
+        inviteLink: document.getElementById('inviteLink'),
+        copyInviteLink: document.getElementById('copyInviteLink'),
+        inviteCode: document.getElementById('inviteCode'),
+        copyInviteCode: document.getElementById('copyInviteCode'),
+        downloadIcs: document.getElementById('downloadIcs'),
+        addGoogleCal: document.getElementById('addGoogleCal'),
+        
         // Speech elements (will be created dynamically)
         micBtn: null,
         subtitleOverlay: null
@@ -87,6 +101,41 @@
     // ========================================
     async function init() {
         console.log('🌍 Mamnoon.ai App initialized');
+        
+        // Check for guest mode
+        const urlParams = new URLSearchParams(window.location.search);
+        const isGuest = urlParams.get('guest') === 'true';
+        
+        if (isGuest) {
+            // Guest mode - join room directly
+            const roomCode = urlParams.get('room');
+            const language = urlParams.get('lang') || 'en';
+            const guestName = decodeURIComponent(urlParams.get('name') || 'Guest');
+            
+            // Set up guest user
+            state.user = {
+                id: 'guest_' + Math.random().toString(36).substring(7),
+                name: guestName,
+                email: 'guest@mamnoon.ai',
+                isGuest: true
+            };
+            state.myLanguage = language;
+            
+            // Update UI for guest
+            elements.userName.textContent = guestName + ' (Guest)';
+            
+            // Hide elements not needed for guest
+            elements.upgradeBtn?.parentElement?.style && (elements.upgradeBtn.parentElement.style.display = 'none');
+            
+            // Join the room directly
+            if (roomCode) {
+                joinRoomAsGuest(roomCode, guestName, language);
+            }
+            
+            // Bind events
+            bindEvents();
+            return;
+        }
         
         // Display user info
         elements.userName.textContent = state.user.name || state.user.email.split('@')[0];
@@ -108,6 +157,45 @@
         
         // Check URL params for payment status
         checkPaymentStatus();
+    }
+    
+    async function joinRoomAsGuest(roomCode, name, language) {
+        showLoading('Joining room...');
+        
+        try {
+            const response = await fetch(`${CONFIG.API_BASE}/api/room/join/${roomCode}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_name: name,
+                    language: language
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.detail || 'Room not found');
+            }
+            
+            hideLoading();
+            
+            // Store room info
+            state.roomCode = roomCode.toUpperCase();
+            state.user.id = data.user_id;
+            state.maxMinutes = 60; // Guests get full session of host
+            
+            // Connect WebSocket
+            connectWebSocket(data.video_url);
+            
+        } catch (error) {
+            hideLoading();
+            showNotification(error.message, 'error');
+            // Redirect to join page after error
+            setTimeout(() => {
+                window.location.href = `join.html?code=${roomCode}`;
+            }, 2000);
+        }
     }
 
     // ========================================
@@ -583,6 +671,20 @@
         elements.paywallModal?.addEventListener('click', (e) => {
             if (e.target === elements.paywallModal) hidePaywall();
         });
+        
+        // Invite modal
+        elements.inviteBtn?.addEventListener('click', showInviteModal);
+        elements.closeInviteModal?.addEventListener('click', hideInviteModal);
+        elements.inviteModal?.addEventListener('click', (e) => {
+            if (e.target === elements.inviteModal) hideInviteModal();
+        });
+        elements.copyInviteLink?.addEventListener('click', copyInviteLink);
+        elements.copyInviteCode?.addEventListener('click', () => {
+            navigator.clipboard.writeText(state.roomCode);
+            showNotification('Room code copied!', 'success');
+        });
+        elements.downloadIcs?.addEventListener('click', downloadCalendarFile);
+        elements.addGoogleCal?.addEventListener('click', openGoogleCalendar);
     }
 
     // ========================================
@@ -735,6 +837,92 @@
         navigator.clipboard.writeText(state.roomCode).then(() => {
             showNotification('Room code copied!', 'success');
         });
+    }
+
+    // ========================================
+    // Invite Modal
+    // ========================================
+    function showInviteModal() {
+        const baseUrl = window.location.origin + window.location.pathname.replace('app.html', '');
+        const inviteUrl = `${baseUrl}join.html?code=${state.roomCode}`;
+        
+        elements.inviteLink.value = inviteUrl;
+        elements.inviteCode.textContent = state.roomCode;
+        elements.inviteModal.style.display = 'flex';
+    }
+
+    function hideInviteModal() {
+        elements.inviteModal.style.display = 'none';
+    }
+
+    function copyInviteLink() {
+        const link = elements.inviteLink.value;
+        navigator.clipboard.writeText(link).then(() => {
+            showNotification('Invite link copied!', 'success');
+            elements.copyInviteLink.textContent = 'Copied!';
+            setTimeout(() => {
+                elements.copyInviteLink.textContent = 'Copy';
+            }, 2000);
+        });
+    }
+
+    function downloadCalendarFile() {
+        const now = new Date();
+        const end = new Date(now.getTime() + state.maxMinutes * 60000);
+        
+        const formatDate = (date) => {
+            return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+        };
+        
+        const baseUrl = window.location.origin + window.location.pathname.replace('app.html', '');
+        const inviteUrl = `${baseUrl}join.html?code=${state.roomCode}`;
+        
+        const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Mamnoon.ai//Translation Room//EN
+BEGIN:VEVENT
+UID:${state.roomCode}@mamnoon.ai
+DTSTAMP:${formatDate(now)}
+DTSTART:${formatDate(now)}
+DTEND:${formatDate(end)}
+SUMMARY:Mamnoon.ai Translation Room
+DESCRIPTION:Join the real-time translation room:\\n\\nRoom Code: ${state.roomCode}\\n\\nClick to join: ${inviteUrl}\\n\\nNo signup required for guests.
+URL:${inviteUrl}
+LOCATION:${inviteUrl}
+STATUS:CONFIRMED
+END:VEVENT
+END:VCALENDAR`;
+
+        const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `mamnoon-room-${state.roomCode}.ics`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showNotification('Calendar file downloaded!', 'success');
+    }
+
+    function openGoogleCalendar() {
+        const now = new Date();
+        const end = new Date(now.getTime() + state.maxMinutes * 60000);
+        
+        const formatGoogleDate = (date) => {
+            return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+        };
+        
+        const baseUrl = window.location.origin + window.location.pathname.replace('app.html', '');
+        const inviteUrl = `${baseUrl}join.html?code=${state.roomCode}`;
+        
+        const title = encodeURIComponent('Mamnoon.ai Translation Room');
+        const details = encodeURIComponent(`Join the real-time translation room:\n\nRoom Code: ${state.roomCode}\n\nClick to join: ${inviteUrl}\n\nNo signup required for guests.`);
+        const location = encodeURIComponent(inviteUrl);
+        const dates = `${formatGoogleDate(now)}/${formatGoogleDate(end)}`;
+        
+        const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&location=${location}&dates=${dates}`;
+        
+        window.open(googleUrl, '_blank');
     }
 
     // ========================================
