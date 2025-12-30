@@ -39,6 +39,9 @@
         speechSupported: false,
         interimTranscript: '',
         
+        // Transcript
+        transcript: [],
+        
         // Notifications
         notificationsEnabled: false
     };
@@ -90,6 +93,10 @@
         copyInviteCode: document.getElementById('copyInviteCode'),
         downloadIcs: document.getElementById('downloadIcs'),
         addGoogleCal: document.getElementById('addGoogleCal'),
+        inviteEmail: document.getElementById('inviteEmail'),
+        sendEmailInvite: document.getElementById('sendEmailInvite'),
+        emailStatus: document.getElementById('emailStatus'),
+        downloadTranscript: document.getElementById('downloadTranscript'),
         
         // Speech elements (will be created dynamically)
         micBtn: null,
@@ -685,6 +692,11 @@
         });
         elements.downloadIcs?.addEventListener('click', downloadCalendarFile);
         elements.addGoogleCal?.addEventListener('click', openGoogleCalendar);
+        elements.sendEmailInvite?.addEventListener('click', sendEmailInvite);
+        elements.inviteEmail?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendEmailInvite();
+        });
+        elements.downloadTranscript?.addEventListener('click', downloadTranscript);
     }
 
     // ========================================
@@ -816,6 +828,7 @@
         state.roomCode = null;
         state.sessionId = null;
         state.connected = false;
+        state.transcript = []; // Clear transcript
         
         // Reset UI
         elements.roomState.style.display = 'none';
@@ -923,6 +936,117 @@ END:VCALENDAR`;
         const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&location=${location}&dates=${dates}`;
         
         window.open(googleUrl, '_blank');
+    }
+
+    async function sendEmailInvite() {
+        const email = elements.inviteEmail.value.trim();
+        
+        if (!email || !email.includes('@')) {
+            elements.emailStatus.textContent = 'Please enter a valid email';
+            elements.emailStatus.className = 'email-status error';
+            return;
+        }
+        
+        elements.emailStatus.textContent = 'Sending...';
+        elements.emailStatus.className = 'email-status sending';
+        elements.sendEmailInvite.disabled = true;
+        
+        try {
+            const baseUrl = window.location.origin + window.location.pathname.replace('app.html', '');
+            const inviteUrl = `${baseUrl}join.html?code=${state.roomCode}`;
+            
+            const response = await fetch(`${CONFIG.API_BASE}/api/invite/send`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    to_email: email,
+                    room_code: state.roomCode,
+                    host_name: state.user.name || 'Someone',
+                    invite_url: inviteUrl
+                })
+            });
+            
+            if (response.ok) {
+                elements.emailStatus.textContent = `✓ Invite sent to ${email}`;
+                elements.emailStatus.className = 'email-status success';
+                elements.inviteEmail.value = '';
+            } else {
+                throw new Error('Failed to send');
+            }
+        } catch (error) {
+            elements.emailStatus.textContent = 'Failed to send. Try copying the link instead.';
+            elements.emailStatus.className = 'email-status error';
+        }
+        
+        elements.sendEmailInvite.disabled = false;
+    }
+
+    // ========================================
+    // Transcript
+    // ========================================
+    function addToTranscript(entry) {
+        state.transcript.push({
+            timestamp: new Date().toISOString(),
+            ...entry
+        });
+    }
+
+    function downloadTranscript() {
+        if (state.transcript.length === 0) {
+            showNotification('No messages to download yet', 'info');
+            return;
+        }
+        
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('en-US', { 
+            year: 'numeric', month: 'long', day: 'numeric' 
+        });
+        const timeStr = now.toLocaleTimeString('en-US', { 
+            hour: '2-digit', minute: '2-digit' 
+        });
+        
+        let content = `MAMNOON.AI TRANSLATION TRANSCRIPT
+================================
+Room: ${state.roomCode}
+Date: ${dateStr}
+Time: ${timeStr}
+Participants: ${state.user.name}
+================================
+
+`;
+
+        state.transcript.forEach(entry => {
+            const time = new Date(entry.timestamp).toLocaleTimeString('en-US', {
+                hour: '2-digit', minute: '2-digit', second: '2-digit'
+            });
+            
+            if (entry.type === 'system') {
+                content += `[${time}] --- ${entry.message} ---\n\n`;
+            } else if (entry.type === 'sent') {
+                content += `[${time}] ${state.user.name} (${entry.language?.toUpperCase() || 'EN'}):\n`;
+                content += `  "${entry.text}"\n\n`;
+            } else if (entry.type === 'received') {
+                content += `[${time}] ${entry.sender} (${entry.senderLanguage?.toUpperCase() || '??'}):\n`;
+                content += `  Original: "${entry.originalText}"\n`;
+                content += `  Translated: "${entry.translatedText}"\n\n`;
+            }
+        });
+
+        content += `
+================================
+End of Transcript
+Generated by Mamnoon.ai
+================================`;
+
+        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `transcript-${state.roomCode}-${now.toISOString().split('T')[0]}.txt`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showNotification('Transcript downloaded!', 'success');
     }
 
     // ========================================
@@ -1071,6 +1195,7 @@ END:VCALENDAR`;
         switch (data.type) {
             case 'system':
                 addSystemMessage(data.message);
+                addToTranscript({ type: 'system', message: data.message });
                 // Send notification if someone joined
                 if (data.message.includes('joined')) {
                     sendNotification('Mamnoon.ai', data.message);
@@ -1078,11 +1203,23 @@ END:VCALENDAR`;
                 break;
             case 'translation':
                 addReceivedMessage(data);
+                addToTranscript({ 
+                    type: 'received', 
+                    sender: data.sender,
+                    senderLanguage: data.sender_language,
+                    originalText: data.original_text,
+                    translatedText: data.translated_text
+                });
                 // Also show as subtitle!
                 showSubtitle(data.sender, data.translated_text, data.original_text, data.sender_language);
                 break;
             case 'sent':
                 addSentMessage(data.original_text, data.recipients);
+                addToTranscript({ 
+                    type: 'sent', 
+                    text: data.original_text,
+                    language: state.myLanguage
+                });
                 break;
             case 'limit_reached':
                 showNotification(data.message, 'warning');

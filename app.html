@@ -160,6 +160,17 @@
                             </div>
                         </div>
                         
+                        <div class="invite-divider"><span>send invite</span></div>
+                        
+                        <div class="invite-section">
+                            <label>Email Invite</label>
+                            <div class="email-invite-form">
+                                <input type="email" id="inviteEmail" placeholder="colleague@company.com">
+                                <button class="btn btn-primary" id="sendEmailInvite">Send</button>
+                            </div>
+                            <div class="email-status" id="emailStatus"></div>
+                        </div>
+                        
                         <div class="invite-tip">
                             <span class="tip-icon">💡</span>
                             <span>Guests can join without signing up</span>
@@ -182,6 +193,7 @@
                         <span class="timer-value" id="timerValue">15:00</span>
                         <span class="timer-label">remaining</span>
                     </div>
+                    <button class="btn btn-outline btn-sm" id="downloadTranscript" title="Download transcript">📝 Transcript</button>
                     <button class="btn btn-danger btn-sm" id="leaveRoomBtn">Leave Room</button>
                 </div>
 

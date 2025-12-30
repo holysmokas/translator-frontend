@@ -763,3 +763,41 @@ a:hover { color: var(--primary-dark); }
 .invite-tip .tip-icon {
     font-size: 16px;
 }
+
+.email-invite-form {
+    display: flex;
+    gap: 8px;
+}
+
+.email-invite-form input {
+    flex: 1;
+    padding: 12px;
+    background: var(--gray-800);
+    border: 1px solid var(--gray-700);
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+}
+
+.email-invite-form input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.email-status {
+    margin-top: 8px;
+    font-size: 13px;
+    min-height: 20px;
+}
+
+.email-status.success {
+    color: var(--success);
+}
+
+.email-status.error {
+    color: #ef4444;
+}
+
+.email-status.sending {
+    color: var(--gray-400);
+}
