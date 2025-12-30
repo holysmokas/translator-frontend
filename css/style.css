@@ -592,3 +592,72 @@ a:hover { color: var(--primary-dark); }
     color: var(--gray-500);
     font-size: 13px;
 }
+
+/* ========================================
+   Email Verification Message
+   ======================================== */
+
+.verification-message {
+    text-align: center;
+    padding: 24px;
+}
+
+.verification-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.verification-message h3 {
+    font-size: 24px;
+    margin-bottom: 12px;
+    color: var(--gray-100);
+}
+
+.verification-message p {
+    color: var(--gray-400);
+    margin-bottom: 8px;
+    line-height: 1.6;
+}
+
+.verification-message strong {
+    color: var(--primary-light);
+}
+
+.auth-success {
+    background: var(--gray-800);
+    border: 1px solid var(--gray-700);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-top: 16px;
+}
+
+.auth-error {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    margin-top: 16px;
+    font-size: 14px;
+}
+
+.verification-warning {
+    text-align: left;
+}
+
+.verification-warning strong {
+    display: block;
+    margin-bottom: 8px;
+    color: #f59e0b;
+}
+
+.verification-warning p {
+    margin: 4px 0;
+    color: var(--gray-300);
+}
+
+.verification-warning .resend-hint {
+    font-size: 12px;
+    color: var(--gray-500);
+    margin-top: 8px;
+}

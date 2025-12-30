@@ -1,3 +1,7 @@
+// ========================================
+// Mamnoon.ai Configuration
+// ========================================
+
 const CONFIG = {
     API_BASE: 'https://translation-server-production-d487.up.railway.app',
     WS_BASE: 'wss://translation-server-production-d487.up.railway.app',
@@ -22,31 +26,7 @@ const LANGUAGES = {
     'pl': { name: 'Polish', flag: '🇵🇱' },
     'vi': { name: 'Vietnamese', flag: '🇻🇳' },
     'th': { name: 'Thai', flag: '🇹🇭' },
-    'fa': { name: 'Persian', flag: '🇮🇷' },
-    'da': { name: 'Danish', flag: '🇩🇰' },
-    'sv': { name: 'Swedish', flag: '🇸🇪' },
-    'nb': { name: 'Norwegian', flag: '🇳🇴' },
-    'fi': { name: 'Finnish', flag: '🇫🇮' },
-    'el': { name: 'Greek', flag: '🇬🇷' },
-    'cs': { name: 'Czech', flag: '🇨🇿' },
-    'ro': { name: 'Romanian', flag: '🇷🇴' },
-    'hu': { name: 'Hungarian', flag: '🇭🇺' },
-    'bg': { name: 'Bulgarian', flag: '🇧🇬' },
-    'uk': { name: 'Ukrainian', flag: '🇺🇦' },
-    'hr': { name: 'Croatian', flag: '🇭🇷' },
-    'sk': { name: 'Slovak', flag: '🇸🇰' },
-    'id': { name: 'Indonesian', flag: '🇮🇩' },
-    'ht': { name: 'Haitian Creole', flag: '🇭🇹' },
-    'ms': { name: 'Malay', flag: '🇲🇾' },
-    'fil': { name: 'Filipino', flag: '🇵🇭' },
-    'bn': { name: 'Bengali', flag: '🇧🇩' },
-    'ta': { name: 'Tamil', flag: '🇮🇳' },
-    'te': { name: 'Telugu', flag: '🇮🇳' },
-    'ur': { name: 'Urdu', flag: '🇵🇰' },
-    'he': { name: 'Hebrew', flag: '🇮🇱' },
-    'km': { name: 'Khmer', flag: '🇰🇭' },
-    'lo': { name: 'Lao', flag: '🇱🇦' },
-    'my': { name: 'Burmese', flag: '🇲🇲' }
+    'fa': { name: 'Persian', flag: '🇮🇷' }
 };
 
 window.CONFIG = CONFIG;

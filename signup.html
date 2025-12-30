@@ -111,27 +111,22 @@
                 const data = await response.json();
                 
                 if (response.ok && data.status === 'success') {
-                    // Store user data
-                    localStorage.setItem('user', JSON.stringify(data.user));
-                    if (data.session) {
-                        localStorage.setItem('session', JSON.stringify(data.session));
-                    }
-                    
-                    successEl.textContent = 'Account created! Redirecting...';
+                    // Don't store user data yet - they need to verify email first
+                    // Show verification message
+                    successEl.innerHTML = `
+                        <div class="verification-message">
+                            <div class="verification-icon">📧</div>
+                            <h3>Check your email!</h3>
+                            <p>We've sent a verification link to <strong>${email}</strong></p>
+                            <p>Click the link in the email to verify your account, then come back to log in.</p>
+                            <a href="login.html" class="btn btn-outline" style="margin-top: 16px;">Go to Login</a>
+                        </div>
+                    `;
                     successEl.style.display = 'block';
                     
-                    // Check if they selected a plan
-                    const selectedPlan = localStorage.getItem('selectedPlan');
-                    
-                    setTimeout(() => {
-                        if (selectedPlan) {
-                            // Go to checkout
-                            window.location.href = `checkout.html?plan=${selectedPlan}`;
-                        } else {
-                            // Go to app (trial)
-                            window.location.href = 'app.html';
-                        }
-                    }, 1500);
+                    // Hide the form
+                    document.getElementById('signupForm').querySelector('.form-group').parentElement.style.display = 'none';
+                    submitBtn.style.display = 'none';
                 } else {
                     throw new Error(data.detail || data.error || 'Signup failed');
                 }
