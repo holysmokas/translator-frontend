@@ -996,7 +996,7 @@
     }
 
     function goToCheckout(tier = 'personal') {
-        window.location.href = `checkout.html?plan=${tier}`;
+        window.location.href = 'pricing.html';
     }
 
     // ========================================

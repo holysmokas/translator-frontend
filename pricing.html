@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choose Your Plan | Mamnoon.ai</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>">
+    <style>
+        .pricing-page {
+            min-height: 100vh;
+            background: var(--gray-950);
+        }
+        
+        .pricing-nav {
+            background: var(--gray-900);
+            border-bottom: 1px solid var(--gray-800);
+            padding: 16px 0;
+        }
+        
+        .pricing-nav .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+        
+        .pricing-nav .nav-links {
+            display: flex;
+            gap: 16px;
+        }
+        
+        .pricing-nav .nav-links a {
+            color: var(--gray-400);
+            text-decoration: none;
+            font-size: 14px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        
+        .pricing-nav .nav-links a:hover {
+            color: white;
+            background: var(--gray-800);
+        }
+        
+        .pricing-content {
+            padding: 60px 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .pricing-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        
+        .pricing-header h1 {
+            font-size: 36px;
+            margin-bottom: 12px;
+            color: white;
+        }
+        
+        .pricing-header p {
+            color: var(--gray-400);
+            font-size: 18px;
+        }
+        
+        .current-plan-badge {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        
+        .pricing-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+        
+        @media (max-width: 900px) {
+            .pricing-cards {
+                grid-template-columns: 1fr;
+                max-width: 400px;
+                margin: 0 auto 40px;
+            }
+        }
+        
+        .plan-card {
+            background: var(--gray-900);
+            border: 1px solid var(--gray-800);
+            border-radius: 16px;
+            padding: 32px;
+            position: relative;
+            transition: all 0.3s;
+        }
+        
+        .plan-card:hover {
+            border-color: var(--gray-700);
+            transform: translateY(-4px);
+        }
+        
+        .plan-card.featured {
+            border-color: var(--primary);
+            background: linear-gradient(to bottom, rgba(99, 102, 241, 0.1), var(--gray-900));
+        }
+        
+        .plan-card.current {
+            border-color: var(--success);
+        }
+        
+        .plan-badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .plan-badge.current-badge {
+            background: var(--success);
+        }
+        
+        .plan-name {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: white;
+        }
+        
+        .plan-description {
+            color: var(--gray-400);
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+        
+        .plan-price {
+            margin-bottom: 24px;
+        }
+        
+        .plan-price .amount {
+            font-size: 48px;
+            font-weight: 700;
+            color: white;
+        }
+        
+        .plan-price .period {
+            color: var(--gray-500);
+            font-size: 16px;
+        }
+        
+        .plan-features {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 32px 0;
+        }
+        
+        .plan-features li {
+            padding: 10px 0;
+            color: var(--gray-300);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--gray-800);
+        }
+        
+        .plan-features li:last-child {
+            border-bottom: none;
+        }
+        
+        .plan-features .check {
+            color: var(--success);
+        }
+        
+        .plan-btn {
+            width: 100%;
+        }
+        
+        .plan-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .trial-note {
+            text-align: center;
+            padding: 24px;
+            background: var(--gray-900);
+            border-radius: 12px;
+            border: 1px solid var(--gray-800);
+        }
+        
+        .trial-note p {
+            color: var(--gray-400);
+            margin: 0;
+        }
+        
+        .trial-note strong {
+            color: white;
+        }
+    </style>
+</head>
+<body class="pricing-page">
+    <!-- Navigation -->
+    <nav class="pricing-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <span class="logo-icon">🌍</span>
+                <span class="logo-text">Mamnoon.ai</span>
+            </a>
+            <div class="nav-links">
+                <a href="app.html">← Back to Dashboard</a>
+                <a href="index.html">Home</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Pricing Content -->
+    <div class="pricing-content">
+        <div class="pricing-header">
+            <div class="current-plan-badge" id="currentPlanBadge">Current Plan: Free Trial</div>
+            <h1>Choose Your Plan</h1>
+            <p>Upgrade to unlock premium Azure Speech recognition in 42 languages</p>
+        </div>
+
+        <div class="pricing-cards">
+            <!-- Personal Plan -->
+            <div class="plan-card" id="personalCard">
+                <h3 class="plan-name">Personal</h3>
+                <p class="plan-description">For individuals and freelancers</p>
+                <div class="plan-price">
+                    <span class="amount">$29.99</span>
+                    <span class="period">/month</span>
+                </div>
+                <ul class="plan-features">
+                    <li><span class="check">✓</span> 10 hours/month translation</li>
+                    <li><span class="check">✓</span> 42 languages supported</li>
+                    <li><span class="check">✓</span> Premium Azure Speech</li>
+                    <li><span class="check">✓</span> Video calling included</li>
+                    <li><span class="check">✓</span> Email support</li>
+                </ul>
+                <button class="btn btn-outline btn-lg plan-btn" data-plan="personal">
+                    Select Personal
+                </button>
+            </div>
+
+            <!-- Professional Plan -->
+            <div class="plan-card featured" id="professionalCard">
+                <div class="plan-badge">Most Popular</div>
+                <h3 class="plan-name">Professional</h3>
+                <p class="plan-description">For consultants and small teams</p>
+                <div class="plan-price">
+                    <span class="amount">$99</span>
+                    <span class="period">/month</span>
+                </div>
+                <ul class="plan-features">
+                    <li><span class="check">✓</span> 50 hours/month translation</li>
+                    <li><span class="check">✓</span> 42 languages supported</li>
+                    <li><span class="check">✓</span> Premium Azure Speech</li>
+                    <li><span class="check">✓</span> Video calling included</li>
+                    <li><span class="check">✓</span> Priority support</li>
+                    <li><span class="check">✓</span> Team collaboration</li>
+                </ul>
+                <button class="btn btn-primary btn-lg plan-btn" data-plan="professional">
+                    Select Professional
+                </button>
+            </div>
+
+            <!-- Enterprise Plan -->
+            <div class="plan-card" id="enterpriseCard">
+                <h3 class="plan-name">Enterprise</h3>
+                <p class="plan-description">For organizations and agencies</p>
+                <div class="plan-price">
+                    <span class="amount">$799</span>
+                    <span class="period">/month</span>
+                </div>
+                <ul class="plan-features">
+                    <li><span class="check">✓</span> Unlimited translation hours</li>
+                    <li><span class="check">✓</span> 42 languages supported</li>
+                    <li><span class="check">✓</span> Enterprise Azure Speech</li>
+                    <li><span class="check">✓</span> Video calling included</li>
+                    <li><span class="check">✓</span> Dedicated support</li>
+                    <li><span class="check">✓</span> API access</li>
+                    <li><span class="check">✓</span> Custom integrations</li>
+                </ul>
+                <button class="btn btn-outline btn-lg plan-btn" data-plan="enterprise">
+                    Select Enterprise
+                </button>
+            </div>
+        </div>
+
+        <div class="trial-note">
+            <p>🎁 <strong>Free Trial:</strong> You get 15 minutes of translation to try before you subscribe. No credit card required.</p>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script>
+        // Check if user is logged in
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user) {
+            window.location.href = 'login.html';
+        }
+
+        // Get current plan from profile
+        const profile = JSON.parse(localStorage.getItem('profile')) || {};
+        const currentTier = profile.tier || 'trial';
+
+        // Update current plan badge
+        const tierLabels = {
+            'trial': 'Free Trial',
+            'personal': 'Personal',
+            'professional': 'Professional',
+            'enterprise': 'Enterprise'
+        };
+        document.getElementById('currentPlanBadge').textContent = `Current Plan: ${tierLabels[currentTier] || currentTier}`;
+
+        // Mark current plan card
+        if (currentTier !== 'trial') {
+            const currentCard = document.getElementById(`${currentTier}Card`);
+            if (currentCard) {
+                currentCard.classList.add('current');
+                const badge = document.createElement('div');
+                badge.className = 'plan-badge current-badge';
+                badge.textContent = 'Your Current Plan';
+                currentCard.appendChild(badge);
+                
+                // Update button
+                const btn = currentCard.querySelector('.plan-btn');
+                btn.textContent = 'Current Plan';
+                btn.classList.add('disabled');
+                btn.disabled = true;
+            }
+        }
+
+        // Handle plan selection
+        document.querySelectorAll('.plan-btn').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                if (this.disabled) return;
+                
+                const plan = this.dataset.plan;
+                
+                this.disabled = true;
+                this.innerHTML = '<span class="spinner"></span> Redirecting...';
+                
+                try {
+                    const response = await fetch(`${CONFIG.API_BASE}/api/checkout/create`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            user_id: user.id,
+                            tier: plan
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.url) {
+                        window.location.href = data.url;
+                    } else {
+                        throw new Error(data.detail || data.error || 'Failed to create checkout');
+                    }
+                } catch (error) {
+                    alert(error.message);
+                    this.disabled = false;
+                    this.innerHTML = `Select ${plan.charAt(0).toUpperCase() + plan.slice(1)}`;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
