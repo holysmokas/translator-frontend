@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account | Mamnoon.ai</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>">
+    <style>
+        .account-page {
+            min-height: 100vh;
+            background: var(--gray-950);
+        }
+        
+        .account-nav {
+            background: var(--gray-900);
+            border-bottom: 1px solid var(--gray-800);
+            padding: 16px 0;
+        }
+        
+        .account-nav .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+        
+        .account-nav .nav-links {
+            display: flex;
+            gap: 16px;
+        }
+        
+        .account-nav .nav-links a {
+            color: var(--gray-400);
+            text-decoration: none;
+            font-size: 14px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        
+        .account-nav .nav-links a:hover {
+            color: white;
+            background: var(--gray-800);
+        }
+        
+        .account-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+        
+        .account-header {
+            margin-bottom: 40px;
+        }
+        
+        .account-header h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+            color: white;
+        }
+        
+        .account-header p {
+            color: var(--gray-400);
+        }
+        
+        .account-section {
+            background: var(--gray-900);
+            border: 1px solid var(--gray-800);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--gray-800);
+        }
+        
+        .section-header h2 {
+            font-size: 18px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-header .icon {
+            font-size: 20px;
+        }
+        
+        /* Profile Section */
+        .profile-info {
+            display: grid;
+            gap: 16px;
+        }
+        
+        .profile-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--gray-800);
+        }
+        
+        .profile-row:last-child {
+            border-bottom: none;
+        }
+        
+        .profile-label {
+            color: var(--gray-400);
+            font-size: 14px;
+        }
+        
+        .profile-value {
+            color: white;
+            font-weight: 500;
+        }
+        
+        .profile-value.editable {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .edit-btn {
+            background: none;
+            border: none;
+            color: var(--primary-light);
+            cursor: pointer;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .edit-btn:hover {
+            background: var(--gray-800);
+        }
+        
+        /* Subscription Section */
+        .subscription-card {
+            background: var(--gray-800);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .subscription-tier {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .tier-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+        }
+        
+        .tier-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .tier-badge.active {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+        
+        .tier-badge.inactive {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        
+        .tier-badge.trial {
+            background: rgba(99, 102, 241, 0.2);
+            color: var(--primary-light);
+        }
+        
+        .subscription-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .detail-item {
+            background: var(--gray-900);
+            padding: 16px;
+            border-radius: 8px;
+        }
+        
+        .detail-label {
+            color: var(--gray-400);
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+        
+        .detail-value {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .subscription-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        /* Usage Section */
+        .usage-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+        
+        @media (max-width: 600px) {
+            .usage-grid {
+                grid-template-columns: 1fr;
+            }
+            .subscription-details {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .usage-item {
+            background: var(--gray-800);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .usage-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 4px;
+        }
+        
+        .usage-label {
+            color: var(--gray-400);
+            font-size: 13px;
+        }
+        
+        .usage-bar {
+            height: 6px;
+            background: var(--gray-700);
+            border-radius: 3px;
+            margin-top: 12px;
+            overflow: hidden;
+        }
+        
+        .usage-bar-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+        
+        .usage-bar-fill.warning {
+            background: #f59e0b;
+        }
+        
+        .usage-bar-fill.danger {
+            background: #ef4444;
+        }
+        
+        /* Danger Zone */
+        .danger-zone {
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+        
+        .danger-zone .section-header {
+            border-bottom-color: rgba(239, 68, 68, 0.2);
+        }
+        
+        .danger-zone h2 {
+            color: #ef4444;
+        }
+        
+        .danger-text {
+            color: var(--gray-400);
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal-box {
+            background: var(--gray-900);
+            border: 1px solid var(--gray-800);
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 400px;
+            width: 90%;
+        }
+        
+        .modal-box h3 {
+            font-size: 20px;
+            margin-bottom: 12px;
+            color: white;
+        }
+        
+        .modal-box p {
+            color: var(--gray-400);
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-group label {
+            display: block;
+            color: var(--gray-300);
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            background: var(--gray-800);
+            border: 1px solid var(--gray-700);
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+    </style>
+</head>
+<body class="account-page">
+    <!-- Navigation -->
+    <nav class="account-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <span class="logo-icon">🌍</span>
+                <span class="logo-text">Mamnoon.ai</span>
+            </a>
+            <div class="nav-links">
+                <a href="app.html">← Back to Dashboard</a>
+                <a href="index.html">Home</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="account-container">
+        <div class="account-header">
+            <h1>Account Settings</h1>
+            <p>Manage your profile, subscription, and preferences</p>
+        </div>
+
+        <!-- Profile Section -->
+        <div class="account-section">
+            <div class="section-header">
+                <h2><span class="icon">👤</span> Profile</h2>
+            </div>
+            <div class="profile-info">
+                <div class="profile-row">
+                    <span class="profile-label">Full Name</span>
+                    <span class="profile-value editable">
+                        <span id="profileName">Loading...</span>
+                        <button class="edit-btn" onclick="editName()">Edit</button>
+                    </span>
+                </div>
+                <div class="profile-row">
+                    <span class="profile-label">Email</span>
+                    <span class="profile-value" id="profileEmail">Loading...</span>
+                </div>
+                <div class="profile-row">
+                    <span class="profile-label">Member Since</span>
+                    <span class="profile-value" id="profileCreated">Loading...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Subscription Section -->
+        <div class="account-section">
+            <div class="section-header">
+                <h2><span class="icon">💳</span> Subscription</h2>
+            </div>
+            
+            <div class="subscription-card">
+                <div class="subscription-tier">
+                    <span class="tier-name" id="tierName">Free Trial</span>
+                    <span class="tier-badge trial" id="tierBadge">Trial</span>
+                </div>
+                
+                <div class="subscription-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Price</div>
+                        <div class="detail-value" id="tierPrice">$0/month</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Next Billing</div>
+                        <div class="detail-value" id="nextBilling">-</div>
+                    </div>
+                </div>
+                
+                <div class="subscription-actions">
+                    <button class="btn btn-primary" id="upgradeBtn" onclick="goToPricing()">Upgrade Plan</button>
+                    <button class="btn btn-outline" id="manageBtn" onclick="openBillingPortal()" style="display: none;">Manage Subscription</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Usage Section -->
+        <div class="account-section">
+            <div class="section-header">
+                <h2><span class="icon">📊</span> Usage This Month</h2>
+            </div>
+            
+            <div class="usage-grid">
+                <div class="usage-item">
+                    <div class="usage-value" id="hoursUsed">0</div>
+                    <div class="usage-label">Hours Used</div>
+                    <div class="usage-bar">
+                        <div class="usage-bar-fill" id="hoursBar" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="usage-item">
+                    <div class="usage-value" id="roomsCreated">0</div>
+                    <div class="usage-label">Rooms Created</div>
+                    <div class="usage-bar">
+                        <div class="usage-bar-fill" id="roomsBar" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="usage-item">
+                    <div class="usage-value" id="sessionsCount">0</div>
+                    <div class="usage-label">Total Sessions</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="account-section danger-zone" id="dangerZone" style="display: none;">
+            <div class="section-header">
+                <h2><span class="icon">⚠️</span> Danger Zone</h2>
+            </div>
+            <p class="danger-text">Cancel your subscription. You'll continue to have access until the end of your billing period.</p>
+            <button class="btn btn-danger" onclick="confirmCancel()">Cancel Subscription</button>
+        </div>
+
+        <!-- Logout -->
+        <div class="account-section">
+            <button class="btn btn-outline btn-block" onclick="logout()">Log Out</button>
+        </div>
+    </div>
+
+    <!-- Edit Name Modal -->
+    <div class="modal-overlay" id="editNameModal">
+        <div class="modal-box">
+            <h3>Edit Name</h3>
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="newNameInput" placeholder="Your name">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" onclick="closeModal('editNameModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveName()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cancel Subscription Modal -->
+    <div class="modal-overlay" id="cancelModal">
+        <div class="modal-box">
+            <h3>Cancel Subscription?</h3>
+            <p>Are you sure you want to cancel? You'll lose access to premium features at the end of your billing period.</p>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" onclick="closeModal('cancelModal')">Keep Subscription</button>
+                <button class="btn btn-danger" onclick="cancelSubscription()">Yes, Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script>
+        // Check auth
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user) {
+            window.location.href = 'login.html';
+        }
+
+        // State
+        let profile = null;
+        let usage = null;
+        let limits = null;
+
+        // Tier config
+        const TIERS = {
+            trial: { name: 'Free Trial', price: '$0', badge: 'trial' },
+            personal: { name: 'Personal', price: '$29.99/month', badge: 'active' },
+            professional: { name: 'Professional', price: '$99/month', badge: 'active' },
+            enterprise: { name: 'Enterprise', price: '$799/month', badge: 'active' }
+        };
+
+        // Load account data
+        async function loadAccount() {
+            try {
+                const response = await fetch(`${CONFIG.API_BASE}/api/profile/${user.id}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    profile = data.profile;
+                    usage = data.usage;
+                    limits = data.limits;
+                    
+                    updateUI();
+                }
+            } catch (error) {
+                console.error('Failed to load account:', error);
+            }
+        }
+
+        function updateUI() {
+            // Profile
+            document.getElementById('profileName').textContent = profile.full_name || user.name || 'Not set';
+            document.getElementById('profileEmail').textContent = profile.email || user.email;
+            document.getElementById('profileCreated').textContent = formatDate(profile.created_at);
+            
+            // Subscription
+            const tier = profile.tier || 'trial';
+            const tierConfig = TIERS[tier] || TIERS.trial;
+            
+            document.getElementById('tierName').textContent = tierConfig.name;
+            document.getElementById('tierPrice').textContent = tierConfig.price;
+            
+            const badge = document.getElementById('tierBadge');
+            badge.textContent = profile.subscription_status === 'active' ? 'Active' : (tier === 'trial' ? 'Trial' : 'Inactive');
+            badge.className = `tier-badge ${tierConfig.badge}`;
+            
+            // Next billing
+            if (profile.subscription_period_end) {
+                document.getElementById('nextBilling').textContent = formatDate(profile.subscription_period_end);
+            } else {
+                document.getElementById('nextBilling').textContent = '-';
+            }
+            
+            // Show/hide buttons based on tier
+            if (tier === 'trial') {
+                document.getElementById('upgradeBtn').style.display = 'block';
+                document.getElementById('manageBtn').style.display = 'none';
+                document.getElementById('dangerZone').style.display = 'none';
+            } else {
+                document.getElementById('upgradeBtn').textContent = 'Change Plan';
+                document.getElementById('manageBtn').style.display = 'block';
+                document.getElementById('dangerZone').style.display = 'block';
+            }
+            
+            // Usage
+            const hoursUsed = usage ? (usage.total_minutes || 0) / 60 : 0;
+            const roomsCreated = usage ? (usage.rooms_created || 0) : 0;
+            
+            document.getElementById('hoursUsed').textContent = hoursUsed.toFixed(1);
+            document.getElementById('roomsCreated').textContent = roomsCreated;
+            document.getElementById('sessionsCount').textContent = roomsCreated;
+            
+            // Usage bars
+            if (limits) {
+                const hoursLimit = limits.max_session_minutes ? limits.max_session_minutes / 60 * (limits.rooms_per_month || 1) : 10;
+                const roomsLimit = limits.rooms_per_month || 1;
+                
+                updateUsageBar('hoursBar', hoursUsed, hoursLimit);
+                updateUsageBar('roomsBar', roomsCreated, roomsLimit);
+            }
+        }
+
+        function updateUsageBar(id, used, limit) {
+            const bar = document.getElementById(id);
+            if (limit === -1) {
+                bar.style.width = '10%';
+                bar.className = 'usage-bar-fill';
+            } else {
+                const percent = Math.min((used / limit) * 100, 100);
+                bar.style.width = percent + '%';
+                
+                if (percent >= 90) {
+                    bar.className = 'usage-bar-fill danger';
+                } else if (percent >= 70) {
+                    bar.className = 'usage-bar-fill warning';
+                } else {
+                    bar.className = 'usage-bar-fill';
+                }
+            }
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+        }
+
+        // Actions
+        function goToPricing() {
+            window.location.href = 'pricing.html';
+        }
+
+        async function openBillingPortal() {
+            try {
+                const response = await fetch(`${CONFIG.API_BASE}/api/billing/portal?user_id=${user.id}`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.url) {
+                    window.location.href = data.url;
+                } else {
+                    alert('Failed to open billing portal');
+                }
+            } catch (error) {
+                alert('Failed to open billing portal');
+            }
+        }
+
+        function editName() {
+            document.getElementById('newNameInput').value = profile?.full_name || '';
+            document.getElementById('editNameModal').classList.add('active');
+        }
+
+        async function saveName() {
+            const newName = document.getElementById('newNameInput').value.trim();
+            if (!newName) return;
+            
+            try {
+                const response = await fetch(`${CONFIG.API_BASE}/api/profile/${user.id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ full_name: newName })
+                });
+                
+                if (response.ok) {
+                    profile.full_name = newName;
+                    document.getElementById('profileName').textContent = newName;
+                    
+                    // Update localStorage
+                    user.name = newName;
+                    localStorage.setItem('user', JSON.stringify(user));
+                    
+                    closeModal('editNameModal');
+                } else {
+                    alert('Failed to update name');
+                }
+            } catch (error) {
+                alert('Failed to update name');
+            }
+        }
+
+        function confirmCancel() {
+            document.getElementById('cancelModal').classList.add('active');
+        }
+
+        async function cancelSubscription() {
+            try {
+                // This will be handled by Stripe billing portal
+                // For now, redirect to billing portal where they can cancel
+                closeModal('cancelModal');
+                await openBillingPortal();
+            } catch (error) {
+                alert('Failed to cancel subscription');
+            }
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to log out?')) {
+                localStorage.removeItem('user');
+                localStorage.removeItem('session');
+                localStorage.removeItem('profile');
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Close modals on background click
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
+
+        // Init
+        loadAccount();
+    </script>
+</body>
+</html>

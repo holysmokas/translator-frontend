@@ -571,7 +571,7 @@
         
         // Account
         elements.logoutBtn?.addEventListener('click', logout);
-        elements.accountBtn?.addEventListener('click', () => openBillingPortal());
+        elements.accountBtn?.addEventListener('click', () => window.location.href = 'account.html');
         
         // Upgrade button
         elements.upgradeBtn?.addEventListener('click', () => goToCheckout());
