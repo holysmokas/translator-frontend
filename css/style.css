@@ -830,3 +830,130 @@ a:hover { color: var(--primary-dark); }
 .email-status.sending {
     color: var(--gray-400);
 }
+
+/* Quick Start Divider */
+.quick-start-divider {
+    display: flex;
+    align-items: center;
+    margin: 24px 0 16px;
+    color: var(--gray-500);
+    font-size: 12px;
+}
+
+.quick-start-divider::before,
+.quick-start-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--gray-800);
+}
+
+.quick-start-divider span {
+    padding: 0 16px;
+}
+
+/* Pending Invites */
+.pending-invites-section {
+    margin-top: 32px;
+    padding: 20px;
+    background: var(--gray-900);
+    border-radius: 12px;
+    border: 1px solid var(--gray-800);
+}
+
+.pending-invites-section h3 {
+    font-size: 14px;
+    color: var(--gray-300);
+    margin-bottom: 16px;
+}
+
+.pending-invite-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--gray-800);
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.pending-invite-item:last-child {
+    margin-bottom: 0;
+}
+
+.pending-invite-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.pending-invite-code {
+    font-family: monospace;
+    font-weight: 600;
+    color: var(--primary-light);
+    font-size: 16px;
+}
+
+.pending-invite-time {
+    color: var(--gray-500);
+    font-size: 12px;
+}
+
+.pending-invite-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* Invite Ready Badge */
+.invite-ready-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    border-radius: 10px;
+    color: #22c55e;
+    font-weight: 500;
+    margin-bottom: 24px;
+}
+
+.invite-ready-badge .badge-icon {
+    font-size: 18px;
+}
+
+/* Start Room Section */
+.start-room-section {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--gray-800);
+}
+
+.start-room-hint {
+    text-align: center;
+    color: var(--gray-500);
+    font-size: 12px;
+    margin-top: 12px;
+}
+
+.btn-success {
+    background: #22c55e;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #16a34a;
+}
+
+.btn-ghost {
+    background: transparent;
+    color: var(--gray-400);
+    border: 1px dashed var(--gray-700);
+}
+
+.btn-ghost:hover {
+    background: var(--gray-800);
+    color: white;
+    border-color: var(--gray-600);
+}

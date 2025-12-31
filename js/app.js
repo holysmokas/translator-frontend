@@ -43,7 +43,12 @@
         transcript: [],
         
         // Notifications
-        notificationsEnabled: false
+        notificationsEnabled: false,
+        
+        // Pending invites
+        pendingInvites: [],
+        pendingRoomCode: null,
+        pendingMaxMinutes: 60
     };
 
     // ========================================
@@ -57,7 +62,8 @@
         upgradeBtn: document.getElementById('upgradeBtn'),
         createRoomBtn: document.getElementById('createRoomBtn'),
         joinRoomBtn: document.getElementById('joinRoomBtn'),
-        welcomeCreateBtn: document.getElementById('welcomeCreateBtn'),
+        createInviteBtn: document.getElementById('createInviteBtn'),
+        quickStartBtn: document.getElementById('quickStartBtn'),
         welcomeJoinBtn: document.getElementById('welcomeJoinBtn'),
         languageSelect: document.getElementById('languageSelect'),
         welcomeState: document.getElementById('welcomeState'),
@@ -83,7 +89,23 @@
         accountBtn: document.getElementById('accountBtn'),
         roomHistory: document.getElementById('roomHistory'),
         
-        // Invite modal elements
+        // Pre-invite modal elements
+        preInviteModal: document.getElementById('preInviteModal'),
+        closePreInviteModal: document.getElementById('closePreInviteModal'),
+        preInviteLink: document.getElementById('preInviteLink'),
+        copyPreInviteLink: document.getElementById('copyPreInviteLink'),
+        preInviteCode: document.getElementById('preInviteCode'),
+        copyPreInviteCode: document.getElementById('copyPreInviteCode'),
+        preDownloadIcs: document.getElementById('preDownloadIcs'),
+        preAddGoogleCal: document.getElementById('preAddGoogleCal'),
+        preInviteEmail: document.getElementById('preInviteEmail'),
+        preSendEmailInvite: document.getElementById('preSendEmailInvite'),
+        preEmailStatus: document.getElementById('preEmailStatus'),
+        startReservedRoom: document.getElementById('startReservedRoom'),
+        pendingInvitesSection: document.getElementById('pendingInvitesSection'),
+        pendingInvitesList: document.getElementById('pendingInvitesList'),
+        
+        // Active room invite modal elements
         inviteBtn: document.getElementById('inviteBtn'),
         inviteModal: document.getElementById('inviteModal'),
         closeInviteModal: document.getElementById('closeInviteModal'),
@@ -152,6 +174,9 @@
         
         // Load room history
         await loadRoomHistory();
+        
+        // Load pending invites
+        await loadPendingInvites();
         
         // Initialize speech recognition
         initSpeechRecognition();
@@ -657,9 +682,10 @@
     // Event Bindings
     // ========================================
     function bindEvents() {
-        // Room creation
+        // Room creation - new flow
+        elements.createInviteBtn?.addEventListener('click', createInvite);
+        elements.quickStartBtn?.addEventListener('click', createRoom);
         elements.createRoomBtn?.addEventListener('click', createRoom);
-        elements.welcomeCreateBtn?.addEventListener('click', createRoom);
         
         // Room joining
         elements.joinRoomBtn?.addEventListener('click', () => showJoinModal());
@@ -714,7 +740,25 @@
             if (e.target === elements.paywallModal) hidePaywall();
         });
         
-        // Invite modal
+        // Pre-invite modal
+        elements.closePreInviteModal?.addEventListener('click', hidePreInviteModal);
+        elements.preInviteModal?.addEventListener('click', (e) => {
+            if (e.target === elements.preInviteModal) hidePreInviteModal();
+        });
+        elements.copyPreInviteLink?.addEventListener('click', () => copyPreInviteLink());
+        elements.copyPreInviteCode?.addEventListener('click', () => {
+            navigator.clipboard.writeText(state.pendingRoomCode);
+            showNotification('Room code copied!', 'success');
+        });
+        elements.preDownloadIcs?.addEventListener('click', () => downloadCalendarFile(state.pendingRoomCode));
+        elements.preAddGoogleCal?.addEventListener('click', () => openGoogleCalendar(state.pendingRoomCode));
+        elements.preSendEmailInvite?.addEventListener('click', () => sendPreInviteEmail());
+        elements.preInviteEmail?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendPreInviteEmail();
+        });
+        elements.startReservedRoom?.addEventListener('click', startReservedRoom);
+        
+        // Active room invite modal
         elements.inviteBtn?.addEventListener('click', showInviteModal);
         elements.closeInviteModal?.addEventListener('click', hideInviteModal);
         elements.inviteModal?.addEventListener('click', (e) => {
@@ -725,8 +769,8 @@
             navigator.clipboard.writeText(state.roomCode);
             showNotification('Room code copied!', 'success');
         });
-        elements.downloadIcs?.addEventListener('click', downloadCalendarFile);
-        elements.addGoogleCal?.addEventListener('click', openGoogleCalendar);
+        elements.downloadIcs?.addEventListener('click', () => downloadCalendarFile(state.roomCode));
+        elements.addGoogleCal?.addEventListener('click', () => openGoogleCalendar(state.roomCode));
         elements.sendEmailInvite?.addEventListener('click', sendEmailInvite);
         elements.inviteEmail?.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') sendEmailInvite();
@@ -735,7 +779,227 @@
     }
 
     // ========================================
-    // Room Creation
+    // Pre-Invite Flow (Create invite before starting)
+    // ========================================
+    async function createInvite() {
+        showLoading('Reserving room...');
+        
+        try {
+            const response = await fetch(`${CONFIG.API_BASE}/api/room/reserve`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: state.user.id })
+            });
+            
+            const data = await response.json();
+            
+            if (response.status === 402 || response.status === 429) {
+                hideLoading();
+                const detail = data.detail || data;
+                showPaywall(detail.code, detail.message);
+                return;
+            }
+            
+            if (!response.ok) {
+                throw new Error(data.detail?.message || data.detail || 'Failed to reserve room');
+            }
+            
+            hideLoading();
+            
+            // Store pending room info
+            state.pendingRoomCode = data.room_code;
+            state.pendingMaxMinutes = data.max_minutes || 60;
+            
+            // Show pre-invite modal
+            showPreInviteModal();
+            
+            // Refresh pending invites list
+            loadPendingInvites();
+            
+        } catch (error) {
+            hideLoading();
+            showNotification(error.message, 'error');
+        }
+    }
+
+    function showPreInviteModal() {
+        const baseUrl = window.location.origin + window.location.pathname.replace('app.html', '');
+        const inviteUrl = `${baseUrl}join.html?code=${state.pendingRoomCode}`;
+        
+        elements.preInviteLink.value = inviteUrl;
+        elements.preInviteCode.textContent = state.pendingRoomCode;
+        elements.preEmailStatus.textContent = '';
+        elements.preInviteEmail.value = '';
+        elements.preInviteModal.style.display = 'flex';
+    }
+
+    function hidePreInviteModal() {
+        elements.preInviteModal.style.display = 'none';
+    }
+
+    function copyPreInviteLink() {
+        const link = elements.preInviteLink.value;
+        navigator.clipboard.writeText(link).then(() => {
+            showNotification('Invite link copied!', 'success');
+            elements.copyPreInviteLink.textContent = 'Copied!';
+            setTimeout(() => {
+                elements.copyPreInviteLink.textContent = 'Copy';
+            }, 2000);
+        });
+    }
+
+    async function sendPreInviteEmail() {
+        const email = elements.preInviteEmail.value.trim();
+        
+        if (!email || !email.includes('@')) {
+            elements.preEmailStatus.textContent = 'Please enter a valid email';
+            elements.preEmailStatus.className = 'email-status error';
+            return;
+        }
+        
+        elements.preEmailStatus.textContent = 'Sending...';
+        elements.preEmailStatus.className = 'email-status sending';
+        elements.preSendEmailInvite.disabled = true;
+        
+        try {
+            const baseUrl = window.location.origin + window.location.pathname.replace('app.html', '');
+            const inviteUrl = `${baseUrl}join.html?code=${state.pendingRoomCode}`;
+            
+            const response = await fetch(`${CONFIG.API_BASE}/api/invite/send`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    to_email: email,
+                    room_code: state.pendingRoomCode,
+                    host_name: state.user.name || 'Someone',
+                    invite_url: inviteUrl
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                if (data.copy_link) {
+                    elements.preEmailStatus.innerHTML = `📋 Share link with <strong>${email}</strong>: <a href="#" onclick="document.getElementById('copyPreInviteLink').click(); return false;">Copy Link</a>`;
+                } else {
+                    elements.preEmailStatus.textContent = `✓ Invite sent to ${email}`;
+                    elements.preInviteEmail.value = '';
+                }
+                elements.preEmailStatus.className = 'email-status success';
+            } else {
+                throw new Error(data.detail || 'Failed to send');
+            }
+        } catch (error) {
+            elements.preEmailStatus.textContent = 'Failed to send. Copy the link instead.';
+            elements.preEmailStatus.className = 'email-status error';
+        }
+        
+        elements.preSendEmailInvite.disabled = false;
+    }
+
+    async function startReservedRoom() {
+        showLoading('Starting room...');
+        
+        try {
+            const response = await fetch(`${CONFIG.API_BASE}/api/room/start/${state.pendingRoomCode}?user_id=${state.user.id}`, {
+                method: 'POST'
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.detail || 'Failed to start room');
+            }
+            
+            hideLoading();
+            hidePreInviteModal();
+            
+            // Store room info
+            state.roomCode = data.room_code;
+            state.sessionId = data.session_id;
+            state.maxMinutes = data.max_minutes || 60;
+            state.pendingRoomCode = null;
+            
+            // Request notification permission
+            requestNotificationPermission();
+            
+            // Connect WebSocket
+            connectWebSocket(data.video_url);
+            
+            // Refresh pending invites
+            loadPendingInvites();
+            
+        } catch (error) {
+            hideLoading();
+            showNotification(error.message, 'error');
+        }
+    }
+
+    async function loadPendingInvites() {
+        if (state.user.isGuest) return;
+        
+        try {
+            const response = await fetch(`${CONFIG.API_BASE}/api/room/pending/${state.user.id}`);
+            const data = await response.json();
+            
+            state.pendingInvites = data.pending || [];
+            displayPendingInvites();
+        } catch (error) {
+            console.error('Failed to load pending invites:', error);
+        }
+    }
+
+    function displayPendingInvites() {
+        if (!state.pendingInvites || state.pendingInvites.length === 0) {
+            elements.pendingInvitesSection.style.display = 'none';
+            return;
+        }
+        
+        elements.pendingInvitesSection.style.display = 'block';
+        
+        const html = state.pendingInvites.map(invite => {
+            const created = new Date(invite.created_at);
+            const timeAgo = getTimeAgo(created);
+            
+            return `
+                <div class="pending-invite-item">
+                    <div class="pending-invite-info">
+                        <span class="pending-invite-code">${invite.room_code}</span>
+                        <span class="pending-invite-time">${timeAgo}</span>
+                    </div>
+                    <div class="pending-invite-actions">
+                        <button class="btn btn-primary btn-sm" onclick="startPendingRoom('${invite.room_code}')">Start</button>
+                        <button class="btn btn-ghost btn-sm" onclick="cancelPendingInvite('${invite.room_code}')">Cancel</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        elements.pendingInvitesList.innerHTML = html;
+    }
+
+    // Global functions for pending invites
+    window.startPendingRoom = async function(roomCode) {
+        state.pendingRoomCode = roomCode;
+        await startReservedRoom();
+    };
+
+    window.cancelPendingInvite = async function(roomCode) {
+        if (!confirm('Cancel this invite?')) return;
+        
+        try {
+            await fetch(`${CONFIG.API_BASE}/api/room/pending/${roomCode}?user_id=${state.user.id}`, {
+                method: 'DELETE'
+            });
+            showNotification('Invite cancelled', 'success');
+            loadPendingInvites();
+        } catch (error) {
+            showNotification('Failed to cancel', 'error');
+        }
+    };
+
+    // ========================================
+    // Room Creation (Quick Start)
     // ========================================
     async function createRoom() {
         // Request notification permission
@@ -914,27 +1178,30 @@
         });
     }
 
-    function downloadCalendarFile() {
+    function downloadCalendarFile(roomCode = null) {
+        const code = roomCode || state.roomCode;
+        const maxMins = roomCode ? (state.pendingMaxMinutes || 60) : state.maxMinutes;
+        
         const now = new Date();
-        const end = new Date(now.getTime() + state.maxMinutes * 60000);
+        const end = new Date(now.getTime() + maxMins * 60000);
         
         const formatDate = (date) => {
             return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
         };
         
         const baseUrl = window.location.origin + window.location.pathname.replace('app.html', '');
-        const inviteUrl = `${baseUrl}join.html?code=${state.roomCode}`;
+        const inviteUrl = `${baseUrl}join.html?code=${code}`;
         
         const icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Mamnoon.ai//Translation Room//EN
 BEGIN:VEVENT
-UID:${state.roomCode}@mamnoon.ai
+UID:${code}@mamnoon.ai
 DTSTAMP:${formatDate(now)}
 DTSTART:${formatDate(now)}
 DTEND:${formatDate(end)}
 SUMMARY:Mamnoon.ai Translation Room
-DESCRIPTION:Join the real-time translation room:\\n\\nRoom Code: ${state.roomCode}\\n\\nClick to join: ${inviteUrl}\\n\\nNo signup required for guests.
+DESCRIPTION:Join the real-time translation room:\\n\\nRoom Code: ${code}\\n\\nClick to join: ${inviteUrl}\\n\\nNo signup required for guests.
 URL:${inviteUrl}
 LOCATION:${inviteUrl}
 STATUS:CONFIRMED
@@ -944,7 +1211,7 @@ END:VCALENDAR`;
         const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = `mamnoon-room-${state.roomCode}.ics`;
+        link.download = `mamnoon-room-${code}.ics`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -952,19 +1219,22 @@ END:VCALENDAR`;
         showNotification('Calendar file downloaded!', 'success');
     }
 
-    function openGoogleCalendar() {
+    function openGoogleCalendar(roomCode = null) {
+        const code = roomCode || state.roomCode;
+        const maxMins = roomCode ? (state.pendingMaxMinutes || 60) : state.maxMinutes;
+        
         const now = new Date();
-        const end = new Date(now.getTime() + state.maxMinutes * 60000);
+        const end = new Date(now.getTime() + maxMins * 60000);
         
         const formatGoogleDate = (date) => {
             return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
         };
         
         const baseUrl = window.location.origin + window.location.pathname.replace('app.html', '');
-        const inviteUrl = `${baseUrl}join.html?code=${state.roomCode}`;
+        const inviteUrl = `${baseUrl}join.html?code=${code}`;
         
         const title = encodeURIComponent('Mamnoon.ai Translation Room');
-        const details = encodeURIComponent(`Join the real-time translation room:\n\nRoom Code: ${state.roomCode}\n\nClick to join: ${inviteUrl}\n\nNo signup required for guests.`);
+        const details = encodeURIComponent(`Join the real-time translation room:\n\nRoom Code: ${code}\n\nClick to join: ${inviteUrl}\n\nNo signup required for guests.`);
         const location = encodeURIComponent(inviteUrl);
         const dates = `${formatGoogleDate(now)}/${formatGoogleDate(end)}`;
         

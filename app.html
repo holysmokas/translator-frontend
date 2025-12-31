@@ -90,14 +90,104 @@
                 <div class="welcome-content">
                     <div class="welcome-icon">🌍</div>
                     <h2>Ready to Translate</h2>
-                    <p>Create a new room or join an existing one to start real-time translation.</p>
+                    <p>Create an invite to share, or join an existing room.</p>
                     <div class="welcome-actions">
-                        <button class="btn btn-primary btn-lg" id="welcomeCreateBtn">
-                            <span>Create Room</span>
+                        <button class="btn btn-primary btn-lg" id="createInviteBtn">
+                            <span>📨 Create Invite</span>
                         </button>
                         <button class="btn btn-outline btn-lg" id="welcomeJoinBtn">
                             <span>Join Room</span>
                         </button>
+                    </div>
+                    <div class="quick-start-divider">
+                        <span>or start immediately</span>
+                    </div>
+                    <button class="btn btn-ghost" id="quickStartBtn">
+                        ⚡ Quick Start (no invite)
+                    </button>
+                </div>
+                
+                <!-- Pending Invites Section -->
+                <div class="pending-invites-section" id="pendingInvitesSection" style="display: none;">
+                    <h3>📋 Pending Invites</h3>
+                    <div class="pending-invites-list" id="pendingInvitesList"></div>
+                </div>
+                
+                <!-- Room History Section -->
+                <div class="room-history-section">
+                    <h3>Recent Rooms</h3>
+                    <div class="room-history" id="roomHistory">
+                        <div class="history-loading">Loading...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pre-Session Invite Modal -->
+            <div class="modal" id="preInviteModal" style="display: none;">
+                <div class="modal-content invite-modal-content">
+                    <div class="modal-header">
+                        <h3>📨 Create & Share Invite</h3>
+                        <button class="modal-close" id="closePreInviteModal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="invite-ready-badge">
+                            <span class="badge-icon">✓</span>
+                            <span>Room Reserved - Share this invite!</span>
+                        </div>
+                        
+                        <div class="invite-section">
+                            <label>Share this link</label>
+                            <div class="invite-link-box">
+                                <input type="text" id="preInviteLink" readonly>
+                                <button class="btn btn-primary" id="copyPreInviteLink">Copy</button>
+                            </div>
+                        </div>
+                        
+                        <div class="invite-divider"><span>or</span></div>
+                        
+                        <div class="invite-section">
+                            <label>Room Code</label>
+                            <div class="invite-code-box">
+                                <span class="invite-code" id="preInviteCode">------</span>
+                                <button class="btn btn-outline btn-sm" id="copyPreInviteCode">Copy</button>
+                            </div>
+                        </div>
+                        
+                        <div class="invite-divider"><span>schedule</span></div>
+                        
+                        <div class="invite-section">
+                            <label>Add to Calendar</label>
+                            <div class="calendar-buttons">
+                                <button class="btn btn-outline" id="preDownloadIcs">📅 Download .ics</button>
+                                <button class="btn btn-outline" id="preAddGoogleCal">
+                                    <img src="https://www.google.com/favicon.ico" alt="" style="width:16px;height:16px;margin-right:6px;">
+                                    Google Calendar
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="invite-divider"><span>send invite</span></div>
+                        
+                        <div class="invite-section">
+                            <label>Email Invite</label>
+                            <div class="email-invite-form">
+                                <input type="email" id="preInviteEmail" placeholder="colleague@company.com">
+                                <button class="btn btn-primary" id="preSendEmailInvite">Send</button>
+                            </div>
+                            <div class="email-status" id="preEmailStatus"></div>
+                        </div>
+                        
+                        <div class="invite-tip">
+                            <span class="tip-icon">💡</span>
+                            <span>Room activates when you click Start. Guests wait in lobby until then.</span>
+                        </div>
+                        
+                        <div class="start-room-section">
+                            <button class="btn btn-success btn-lg btn-block" id="startReservedRoom">
+                                🚀 Start Room Now
+                            </button>
+                            <p class="start-room-hint">Or close and start later from Pending Invites</p>
+                        </div>
                     </div>
                 </div>
             </div>
