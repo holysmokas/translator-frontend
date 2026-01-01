@@ -276,8 +276,7 @@
         // Check URL params for payment status
         checkPaymentStatus();
         
-        // Check if we should auto-start personal room
-        const urlParams = new URLSearchParams(window.location.search);
+        // Check if we should auto-start personal room (urlParams already declared above)
         if (urlParams.get('start_personal') === 'true' && state.hasPersonalRoom) {
             // Clear URL param
             window.history.replaceState({}, '', window.location.pathname);
