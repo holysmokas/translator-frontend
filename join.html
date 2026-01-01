@@ -191,6 +191,152 @@
             color: var(--primary-light);
             text-decoration: none;
         }
+        
+        /* Waiting Lobby */
+        .waiting-lobby {
+            text-align: center;
+        }
+        
+        .waiting-animation {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+        }
+        
+        .waiting-icon {
+            font-size: 40px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+        }
+        
+        .pulse-ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: pulse 2s ease-out infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(0.8);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+        
+        .waiting-lobby h2 {
+            color: white;
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+        
+        .waiting-lobby p {
+            color: var(--gray-400);
+            margin-bottom: 24px;
+        }
+        
+        .host-info {
+            background: var(--gray-800);
+            padding: 12px 20px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            color: var(--gray-300);
+        }
+        
+        .host-info span:last-child {
+            color: white;
+            font-weight: 500;
+        }
+        
+        .room-code-badge {
+            display: inline-block;
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            color: var(--primary-light);
+            margin-bottom: 24px;
+        }
+        
+        .room-code-badge span {
+            font-weight: 600;
+            font-family: monospace;
+            letter-spacing: 2px;
+        }
+        
+        .waiting-form {
+            text-align: left;
+            margin-bottom: 24px;
+        }
+        
+        .waiting-form .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .waiting-form label {
+            display: block;
+            font-size: 13px;
+            color: var(--gray-400);
+            margin-bottom: 6px;
+        }
+        
+        .waiting-form input,
+        .waiting-form select {
+            width: 100%;
+            padding: 12px;
+            background: var(--gray-800);
+            border: 1px solid var(--gray-700);
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+        }
+        
+        .waiting-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px;
+            background: var(--gray-800);
+            border-radius: 10px;
+            font-size: 13px;
+            color: var(--gray-400);
+        }
+        
+        .waiting-status .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #f59e0b;
+            border-radius: 50%;
+            animation: blink 1.5s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        
+        .waiting-status.host-joined {
+            background: rgba(34, 197, 94, 0.15);
+            color: #22c55e;
+        }
+        
+        .waiting-status.host-joined .status-dot {
+            background: #22c55e;
+            animation: none;
+        }
     </style>
 </head>
 <body class="join-page">
@@ -296,6 +442,54 @@
         </div>
     </div>
 
+    <!-- Waiting Lobby Card -->
+    <div class="join-card waiting-lobby" id="waitingCard" style="display: none;">
+        <div class="waiting-animation">
+            <div class="waiting-icon">⏳</div>
+            <div class="pulse-ring"></div>
+        </div>
+        <h2>Waiting for Host</h2>
+        <p id="waitingMessage">The host hasn't started the meeting yet. You'll join automatically when they arrive.</p>
+        <div class="host-info">
+            <span>Host: </span>
+            <span id="waitingHostName">---</span>
+        </div>
+        <div class="room-code-badge">
+            Room: <span id="waitingRoomCode">------</span>
+        </div>
+        <div class="waiting-form">
+            <div class="form-group">
+                <label for="waitingName">Your Name</label>
+                <input type="text" id="waitingName" placeholder="Enter your name" required>
+            </div>
+            <div class="form-group">
+                <label for="waitingLanguage">Your Language</label>
+                <select id="waitingLanguage" required>
+                    <option value="en">🇺🇸 English</option>
+                    <option value="es">🇪🇸 Spanish</option>
+                    <option value="zh">🇨🇳 Chinese</option>
+                    <option value="fr">🇫🇷 French</option>
+                    <option value="de">🇩🇪 German</option>
+                    <option value="ja">🇯🇵 Japanese</option>
+                    <option value="ko">🇰🇷 Korean</option>
+                    <option value="ar">🇸🇦 Arabic</option>
+                    <option value="pt">🇧🇷 Portuguese</option>
+                    <option value="ru">🇷🇺 Russian</option>
+                    <option value="hi">🇮🇳 Hindi</option>
+                    <option value="it">🇮🇹 Italian</option>
+                    <option value="nl">🇳🇱 Dutch</option>
+                    <option value="tr">🇹🇷 Turkish</option>
+                    <option value="fa">🇮🇷 Persian</option>
+                    <option value="da">🇩🇰 Danish</option>
+                </select>
+            </div>
+        </div>
+        <div class="waiting-status" id="waitingStatus">
+            <span class="status-dot"></span>
+            <span>Checking for host...</span>
+        </div>
+    </div>
+
     <script src="js/config.js"></script>
     <script>
         // Get room code from URL
@@ -313,11 +507,12 @@
         
         const joinCard = document.getElementById('joinCard');
         const notFoundCard = document.getElementById('notFoundCard');
+        const waitingCard = document.getElementById('waitingCard');
         const errorMessage = document.getElementById('errorMessage');
         
         // Check if room exists
         async function checkRoom() {
-            if (!roomCode || roomCode.length !== 6) {
+            if (!roomCode || roomCode.length < 4) {
                 showNotFound();
                 return;
             }
@@ -326,19 +521,36 @@
             document.getElementById('roomHost').textContent = 'Verifying room...';
             
             try {
-                const response = await fetch(`${CONFIG.API_BASE}/api/room/join/${roomCode}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        user_name: 'checking',
-                        language: 'en'
-                    })
-                });
+                // First check if this is a personal room
+                const personalCheck = await fetch(`${CONFIG.API_BASE}/api/personal-room/check/${roomCode}`);
+                const personalData = await personalCheck.json();
                 
-                if (response.ok) {
-                    document.getElementById('roomHost').textContent = 'Room is active • Ready to join';
+                if (personalData.exists) {
+                    // It's a personal room
+                    if (personalData.host_present) {
+                        // Host is there, show regular join form
+                        document.getElementById('roomHost').textContent = `${personalData.host_name}'s room • Ready to join`;
+                    } else {
+                        // Host not there, show waiting lobby
+                        showWaitingLobby(personalData.host_name, roomCode);
+                        return;
+                    }
                 } else {
-                    showNotFound();
+                    // Not a personal room, try regular room check
+                    const response = await fetch(`${CONFIG.API_BASE}/api/room/join/${roomCode}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            user_name: 'checking',
+                            language: 'en'
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        document.getElementById('roomHost').textContent = 'Room is active • Ready to join';
+                    } else {
+                        showNotFound();
+                    }
                 }
             } catch (error) {
                 showNotFound();
@@ -348,6 +560,83 @@
         function showNotFound() {
             joinCard.style.display = 'none';
             notFoundCard.style.display = 'block';
+            waitingCard.style.display = 'none';
+        }
+        
+        function showWaitingLobby(hostName, code) {
+            joinCard.style.display = 'none';
+            notFoundCard.style.display = 'none';
+            waitingCard.style.display = 'block';
+            
+            document.getElementById('waitingHostName').textContent = hostName;
+            document.getElementById('waitingRoomCode').textContent = code;
+            
+            // Start polling for host
+            startPolling(code);
+        }
+        
+        let pollingInterval = null;
+        
+        function startPolling(code) {
+            // Check every 5 seconds if host has joined
+            pollingInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`${CONFIG.API_BASE}/api/personal-room/check/${code}`);
+                    const data = await response.json();
+                    
+                    if (data.host_present) {
+                        clearInterval(pollingInterval);
+                        
+                        // Update status
+                        const statusDiv = document.getElementById('waitingStatus');
+                        statusDiv.className = 'waiting-status host-joined';
+                        statusDiv.innerHTML = '<span class="status-dot"></span><span>Host has joined! Connecting...</span>';
+                        
+                        // Auto-join after a short delay
+                        setTimeout(() => {
+                            autoJoinRoom(code);
+                        }, 1500);
+                    }
+                } catch (error) {
+                    console.error('Polling error:', error);
+                }
+            }, 5000);
+        }
+        
+        async function autoJoinRoom(code) {
+            const name = document.getElementById('waitingName').value.trim() || 'Guest';
+            const language = document.getElementById('waitingLanguage').value || 'en';
+            
+            try {
+                const response = await fetch(`${CONFIG.API_BASE}/api/room/join/${code}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_name: name,
+                        language: language
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const guestSession = {
+                        id: data.user_id,
+                        name: name,
+                        isGuest: true
+                    };
+                    sessionStorage.setItem('guestUser', JSON.stringify(guestSession));
+                    sessionStorage.setItem('guestRoom', JSON.stringify({
+                        code: code,
+                        language: language,
+                        videoUrl: data.video_url
+                    }));
+                    
+                    window.location.href = `app.html?guest=true&room=${code}&name=${encodeURIComponent(name)}&lang=${language}`;
+                }
+            } catch (error) {
+                console.error('Auto-join failed:', error);
+            }
         }
         
         function showError(message) {

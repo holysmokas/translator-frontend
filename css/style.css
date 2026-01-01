@@ -1135,3 +1135,50 @@ a:hover { color: var(--primary-dark); }
 .btn-danger:hover {
     background: #dc2626;
 }
+
+/* Personal Room Card on Dashboard */
+.personal-room-card-dashboard {
+    margin-top: 24px;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.1));
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: 16px;
+}
+
+.personal-room-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.personal-room-header .icon {
+    font-size: 20px;
+}
+
+.personal-room-header h3 {
+    font-size: 16px;
+    color: white;
+    margin: 0;
+}
+
+.personal-room-link {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.personal-room-link input {
+    flex: 1;
+    padding: 10px 12px;
+    background: var(--gray-900);
+    border: 1px solid var(--gray-700);
+    border-radius: 8px;
+    color: white;
+    font-size: 12px;
+    font-family: monospace;
+}
+
+.personal-room-card-dashboard .btn-success {
+    width: 100%;
+}

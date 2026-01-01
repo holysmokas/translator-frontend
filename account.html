@@ -398,6 +398,115 @@
         .toast-info {
             background: var(--primary);
         }
+        
+        /* Personal Room Section */
+        .personal-room-card {
+            background: var(--gray-800);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        
+        .room-link-display {
+            margin-bottom: 16px;
+        }
+        
+        .room-link-display label {
+            display: block;
+            font-size: 12px;
+            color: var(--gray-400);
+            margin-bottom: 8px;
+        }
+        
+        .room-link-box {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .room-link-box input {
+            flex: 1;
+            padding: 12px;
+            background: var(--gray-900);
+            border: 1px solid var(--gray-700);
+            border-radius: 8px;
+            color: white;
+            font-family: monospace;
+            font-size: 13px;
+        }
+        
+        .room-code-display {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            padding: 12px;
+            background: var(--gray-900);
+            border-radius: 8px;
+        }
+        
+        .room-code-label {
+            color: var(--gray-400);
+            font-size: 13px;
+        }
+        
+        .room-code-value {
+            font-family: monospace;
+            font-weight: 600;
+            color: var(--primary-light);
+            font-size: 18px;
+            letter-spacing: 2px;
+        }
+        
+        .personal-room-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        
+        .status-dot.active {
+            background: #22c55e;
+            box-shadow: 0 0 8px #22c55e;
+        }
+        
+        .status-dot.inactive {
+            background: var(--gray-600);
+        }
+        
+        .status-text {
+            font-size: 13px;
+            color: var(--gray-400);
+        }
+        
+        .personal-room-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .personal-room-tips {
+            margin-top: 16px;
+            padding: 12px;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 8px;
+            border-left: 3px solid var(--primary);
+        }
+        
+        .personal-room-tips p {
+            margin: 0;
+            font-size: 13px;
+            color: var(--gray-300);
+        }
+        
+        .upgrade-message, .feature-description {
+            color: var(--gray-400);
+            margin-bottom: 16px;
+        }
     </style>
 </head>
 <body class="account-page">
@@ -499,6 +608,53 @@
                 <div class="usage-item">
                     <div class="usage-value" id="sessionsCount">0</div>
                     <div class="usage-label">Total Sessions</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Personal Meeting Room -->
+        <div class="account-section" id="personalRoomSection">
+            <div class="section-header">
+                <h2><span class="icon">🔗</span> Personal Meeting Room</h2>
+            </div>
+            
+            <!-- Upgrade required state -->
+            <div id="personalRoomUpgrade" style="display: none;">
+                <p class="upgrade-message">Get your own permanent meeting link with a paid plan. Same URL every time - perfect for recurring meetings.</p>
+                <a href="pricing.html" class="btn btn-primary">Upgrade to Unlock</a>
+            </div>
+            
+            <!-- No room yet state -->
+            <div id="personalRoomCreate" style="display: none;">
+                <p class="feature-description">Create your personal meeting room - a permanent link you can share with anyone, anytime.</p>
+                <button class="btn btn-primary" onclick="createPersonalRoom()">Create My Meeting Room</button>
+            </div>
+            
+            <!-- Has room state -->
+            <div id="personalRoomActive" style="display: none;">
+                <div class="personal-room-card">
+                    <div class="room-link-display">
+                        <label>Your Meeting Link</label>
+                        <div class="room-link-box">
+                            <input type="text" id="personalRoomLink" readonly>
+                            <button class="btn btn-outline btn-sm" onclick="copyPersonalRoomLink()">Copy</button>
+                        </div>
+                    </div>
+                    <div class="room-code-display">
+                        <span class="room-code-label">Room Code:</span>
+                        <span class="room-code-value" id="personalRoomCode">------</span>
+                    </div>
+                    <div class="personal-room-status" id="personalRoomStatus">
+                        <span class="status-dot inactive"></span>
+                        <span class="status-text">Not active</span>
+                    </div>
+                    <div class="personal-room-actions">
+                        <a href="app.html?start_personal=true" class="btn btn-primary">Start Room</a>
+                        <button class="btn btn-ghost btn-sm" onclick="regeneratePersonalRoom()">Regenerate Link</button>
+                    </div>
+                </div>
+                <div class="personal-room-tips">
+                    <p>💡 Share this link in your email signature or calendar invites. Guests will wait in a lobby until you join.</p>
                 </div>
             </div>
         </div>
@@ -647,6 +803,9 @@
                 updateUsageBar('hoursBar', hoursUsed, hoursLimit);
                 updateUsageBar('roomsBar', roomsCreated, roomsLimit);
             }
+            
+            // Load personal room info
+            loadPersonalRoom();
         }
 
         function updateUsageBar(id, used, limit) {
@@ -666,6 +825,124 @@
                     bar.className = 'usage-bar-fill';
                 }
             }
+        }
+
+        // Personal Room Functions
+        async function loadPersonalRoom() {
+            try {
+                const response = await fetch(`${CONFIG.API_BASE}/api/personal-room/${user.id}`);
+                const data = await response.json();
+                
+                const upgradeDiv = document.getElementById('personalRoomUpgrade');
+                const createDiv = document.getElementById('personalRoomCreate');
+                const activeDiv = document.getElementById('personalRoomActive');
+                
+                // Hide all first
+                upgradeDiv.style.display = 'none';
+                createDiv.style.display = 'none';
+                activeDiv.style.display = 'none';
+                
+                if (data.upgrade_required) {
+                    upgradeDiv.style.display = 'block';
+                } else if (!data.has_personal_room) {
+                    createDiv.style.display = 'block';
+                } else {
+                    activeDiv.style.display = 'block';
+                    
+                    const baseUrl = window.location.origin + window.location.pathname.replace('account.html', '');
+                    const roomLink = `${baseUrl}join.html?code=${data.room_code}`;
+                    
+                    document.getElementById('personalRoomLink').value = roomLink;
+                    document.getElementById('personalRoomCode').textContent = data.room_code;
+                    
+                    // Update status
+                    const statusDiv = document.getElementById('personalRoomStatus');
+                    if (data.is_active) {
+                        statusDiv.innerHTML = `
+                            <span class="status-dot active"></span>
+                            <span class="status-text">Active (${data.participant_count} participant${data.participant_count !== 1 ? 's' : ''})</span>
+                        `;
+                    } else {
+                        statusDiv.innerHTML = `
+                            <span class="status-dot inactive"></span>
+                            <span class="status-text">Not active</span>
+                        `;
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load personal room:', error);
+            }
+        }
+
+        async function createPersonalRoom() {
+            try {
+                const response = await fetch(`${CONFIG.API_BASE}/api/personal-room/create/${user.id}`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showToast('Personal meeting room created!', 'success');
+                    loadPersonalRoom();
+                } else {
+                    showToast(data.detail?.message || 'Failed to create room', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to create room', 'error');
+            }
+        }
+
+        async function regeneratePersonalRoom() {
+            const confirmed = await showConfirmDialog(
+                'Regenerate Link?',
+                'This will create a new room code. Your old link will stop working.',
+                '🔄'
+            );
+            
+            if (!confirmed) return;
+            
+            await createPersonalRoom();
+        }
+
+        function copyPersonalRoomLink() {
+            const input = document.getElementById('personalRoomLink');
+            navigator.clipboard.writeText(input.value).then(() => {
+                showToast('Link copied!', 'success');
+            });
+        }
+
+        // Simple confirm dialog
+        function showConfirmDialog(title, message, icon = '⚠️') {
+            return new Promise((resolve) => {
+                const overlay = document.createElement('div');
+                overlay.className = 'modal-overlay active';
+                overlay.innerHTML = `
+                    <div class="modal-box">
+                        <h3>${icon} ${title}</h3>
+                        <p>${message}</p>
+                        <div class="modal-actions">
+                            <button class="btn btn-ghost" id="confirmNo">Cancel</button>
+                            <button class="btn btn-danger" id="confirmYes">Confirm</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(overlay);
+                
+                overlay.querySelector('#confirmNo').onclick = () => {
+                    overlay.remove();
+                    resolve(false);
+                };
+                overlay.querySelector('#confirmYes').onclick = () => {
+                    overlay.remove();
+                    resolve(true);
+                };
+                overlay.onclick = (e) => {
+                    if (e.target === overlay) {
+                        overlay.remove();
+                        resolve(false);
+                    }
+                };
+            });
         }
 
         function formatDate(dateStr) {

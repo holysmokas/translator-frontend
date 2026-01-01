@@ -48,7 +48,11 @@
         // Pending invites
         pendingInvites: [],
         pendingRoomCode: null,
-        pendingMaxMinutes: 60
+        pendingMaxMinutes: 60,
+        
+        // Personal room
+        personalRoomCode: null,
+        hasPersonalRoom: false
     };
 
     // ========================================
@@ -116,6 +120,12 @@
         shareTelegram: document.getElementById('shareTelegram'),
         shareEmail: document.getElementById('shareEmail'),
         directEmailSection: document.getElementById('directEmailSection'),
+        
+        // Personal room elements
+        personalRoomCard: document.getElementById('personalRoomCard'),
+        dashboardPersonalLink: document.getElementById('dashboardPersonalLink'),
+        copyDashboardLink: document.getElementById('copyDashboardLink'),
+        startPersonalRoom: document.getElementById('startPersonalRoom'),
         
         // Active room invite modal elements
         inviteBtn: document.getElementById('inviteBtn'),
@@ -234,6 +244,9 @@
         // Load pending invites
         await loadPendingInvites();
         
+        // Load personal room
+        await loadPersonalRoom();
+        
         // Initialize speech recognition
         initSpeechRecognition();
         
@@ -245,6 +258,15 @@
         
         // Check URL params for payment status
         checkPaymentStatus();
+        
+        // Check if we should auto-start personal room
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('start_personal') === 'true' && state.hasPersonalRoom) {
+            // Clear URL param
+            window.history.replaceState({}, '', window.location.pathname);
+            // Start personal room
+            startPersonalRoomSession();
+        }
     }
     
     async function joinRoomAsGuest(roomCode, name, language) {
@@ -794,6 +816,16 @@
         // Upgrade button
         elements.upgradeBtn?.addEventListener('click', () => goToCheckout());
         
+        // Personal room
+        elements.startPersonalRoom?.addEventListener('click', startPersonalRoomSession);
+        elements.copyDashboardLink?.addEventListener('click', () => {
+            const link = elements.dashboardPersonalLink?.value;
+            if (link) {
+                navigator.clipboard.writeText(link);
+                showNotification('Link copied!', 'success');
+            }
+        });
+        
         // Modal background click
         elements.joinModal?.addEventListener('click', (e) => {
             if (e.target === elements.joinModal) hideJoinModal();
@@ -1176,6 +1208,74 @@
             showNotification('Failed to cancel', 'error');
         }
     };
+
+    // ========================================
+    // Personal Room Functions
+    // ========================================
+    async function loadPersonalRoom() {
+        if (state.user.isGuest) return;
+        
+        try {
+            const response = await fetch(`${CONFIG.API_BASE}/api/personal-room/${state.user.id}`);
+            const data = await response.json();
+            
+            if (data.has_personal_room) {
+                state.hasPersonalRoom = true;
+                state.personalRoomCode = data.room_code;
+                
+                // Show personal room card
+                const baseUrl = window.location.origin + window.location.pathname.replace('app.html', '');
+                const roomLink = `${baseUrl}join.html?code=${data.room_code}`;
+                
+                elements.dashboardPersonalLink.value = roomLink;
+                elements.personalRoomCard.style.display = 'block';
+            } else {
+                state.hasPersonalRoom = false;
+                elements.personalRoomCard.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Failed to load personal room:', error);
+            elements.personalRoomCard.style.display = 'none';
+        }
+    }
+
+    async function startPersonalRoomSession() {
+        if (!state.personalRoomCode) {
+            showNotification('No personal room configured', 'error');
+            return;
+        }
+        
+        showLoading('Starting your room...');
+        
+        try {
+            const response = await fetch(`${CONFIG.API_BASE}/api/personal-room/start/${state.user.id}`, {
+                method: 'POST'
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.detail?.message || data.detail || 'Failed to start room');
+            }
+            
+            hideLoading();
+            
+            // Store room info
+            state.roomCode = data.room_code;
+            state.sessionId = data.session_id;
+            state.maxMinutes = data.max_minutes || 60;
+            
+            // Request notification permission
+            requestNotificationPermission();
+            
+            // Connect WebSocket
+            connectWebSocket(data.video_url);
+            
+        } catch (error) {
+            hideLoading();
+            showNotification(error.message, 'error');
+        }
+    }
 
     // ========================================
     // Room Creation (Quick Start)
