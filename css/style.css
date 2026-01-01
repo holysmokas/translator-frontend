@@ -957,3 +957,136 @@ a:hover { color: var(--primary-dark); }
     color: white;
     border-color: var(--gray-600);
 }
+
+/* Enhanced Invite Modal */
+.invite-modal-large {
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* Schedule Inputs */
+.schedule-inputs {
+    display: flex;
+    gap: 12px;
+}
+
+.schedule-input {
+    flex: 1;
+    padding: 10px 12px;
+    background: var(--gray-800);
+    border: 1px solid var(--gray-700);
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+}
+
+.schedule-input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.timezone-display {
+    font-size: 12px;
+    color: var(--gray-500);
+    margin-top: 6px;
+}
+
+/* Personal Message Input */
+.invite-message-input {
+    width: 100%;
+    padding: 12px;
+    background: var(--gray-800);
+    border: 1px solid var(--gray-700);
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    resize: none;
+    font-family: inherit;
+}
+
+.invite-message-input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.invite-message-input::placeholder {
+    color: var(--gray-500);
+}
+
+.char-count {
+    text-align: right;
+    font-size: 11px;
+    color: var(--gray-500);
+    margin-top: 4px;
+}
+
+/* Share Buttons */
+.share-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.share-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 12px 16px;
+    border: 1px solid var(--gray-700);
+    border-radius: 10px;
+    background: var(--gray-800);
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex: 1;
+    min-width: 70px;
+}
+
+.share-btn:hover {
+    transform: translateY(-2px);
+}
+
+.share-btn span {
+    font-size: 11px;
+}
+
+.share-btn.whatsapp:hover {
+    background: #25D366;
+    border-color: #25D366;
+}
+
+.share-btn.sms:hover {
+    background: #5856D6;
+    border-color: #5856D6;
+}
+
+.share-btn.telegram:hover {
+    background: #0088cc;
+    border-color: #0088cc;
+}
+
+.share-btn.email:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+/* Room Code Section */
+.room-code-section {
+    background: var(--gray-800);
+    padding: 12px 16px;
+    border-radius: 10px;
+    margin-top: 8px;
+}
+
+.room-code-section .invite-code-box {
+    background: transparent;
+    padding: 0;
+}
+
+.room-code-label {
+    color: var(--gray-400);
+    font-size: 13px;
+    margin-right: 8px;
+}

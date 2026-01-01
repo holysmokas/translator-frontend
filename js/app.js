@@ -104,6 +104,18 @@
         startReservedRoom: document.getElementById('startReservedRoom'),
         pendingInvitesSection: document.getElementById('pendingInvitesSection'),
         pendingInvitesList: document.getElementById('pendingInvitesList'),
+        // New schedule & message elements
+        inviteDate: document.getElementById('inviteDate'),
+        inviteTime: document.getElementById('inviteTime'),
+        timezoneDisplay: document.getElementById('timezoneDisplay'),
+        inviteMessage: document.getElementById('inviteMessage'),
+        messageCharCount: document.getElementById('messageCharCount'),
+        // Share buttons
+        shareWhatsApp: document.getElementById('shareWhatsApp'),
+        shareSMS: document.getElementById('shareSMS'),
+        shareTelegram: document.getElementById('shareTelegram'),
+        shareEmail: document.getElementById('shareEmail'),
+        directEmailSection: document.getElementById('directEmailSection'),
         
         // Active room invite modal elements
         inviteBtn: document.getElementById('inviteBtn'),
@@ -758,6 +770,20 @@
         });
         elements.startReservedRoom?.addEventListener('click', startReservedRoom);
         
+        // Message character count
+        elements.inviteMessage?.addEventListener('input', (e) => {
+            elements.messageCharCount.textContent = e.target.value.length;
+        });
+        
+        // Share buttons
+        elements.shareWhatsApp?.addEventListener('click', () => shareVia('whatsapp'));
+        elements.shareSMS?.addEventListener('click', () => shareVia('sms'));
+        elements.shareTelegram?.addEventListener('click', () => shareVia('telegram'));
+        elements.shareEmail?.addEventListener('click', () => {
+            elements.directEmailSection.style.display = 'block';
+            elements.preInviteEmail.focus();
+        });
+        
         // Active room invite modal
         elements.inviteBtn?.addEventListener('click', showInviteModal);
         elements.closeInviteModal?.addEventListener('click', hideInviteModal);
@@ -830,11 +856,95 @@
         elements.preInviteCode.textContent = state.pendingRoomCode;
         elements.preEmailStatus.textContent = '';
         elements.preInviteEmail.value = '';
+        elements.inviteMessage.value = '';
+        elements.messageCharCount.textContent = '0';
+        elements.directEmailSection.style.display = 'none';
+        
+        // Set default date/time to now + 15 mins
+        const now = new Date();
+        now.setMinutes(now.getMinutes() + 15);
+        elements.inviteDate.value = now.toISOString().split('T')[0];
+        elements.inviteTime.value = now.toTimeString().slice(0, 5);
+        
+        // Show timezone
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        elements.timezoneDisplay.textContent = `Timezone: ${tz}`;
+        
         elements.preInviteModal.style.display = 'flex';
     }
 
     function hidePreInviteModal() {
         elements.preInviteModal.style.display = 'none';
+    }
+    
+    function getScheduledDateTime() {
+        const date = elements.inviteDate?.value;
+        const time = elements.inviteTime?.value;
+        
+        if (date && time) {
+            return new Date(`${date}T${time}`);
+        }
+        return new Date(); // Now if not scheduled
+    }
+    
+    function getInviteMessage() {
+        return elements.inviteMessage?.value?.trim() || '';
+    }
+    
+    function buildShareText() {
+        const roomCode = state.pendingRoomCode;
+        const baseUrl = window.location.origin + window.location.pathname.replace('app.html', '');
+        const inviteUrl = `${baseUrl}join.html?code=${roomCode}`;
+        const message = getInviteMessage();
+        const scheduled = getScheduledDateTime();
+        const hostName = state.user?.name || 'Someone';
+        
+        let text = message ? `${message}\n\n` : `${hostName} invited you to a translation room!\n\n`;
+        
+        // Add scheduled time if set
+        const dateVal = elements.inviteDate?.value;
+        const timeVal = elements.inviteTime?.value;
+        if (dateVal && timeVal) {
+            const options = { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' };
+            text += `📅 ${scheduled.toLocaleDateString('en-US', options)}\n\n`;
+        }
+        
+        text += `🔗 Join here: ${inviteUrl}\n`;
+        text += `📝 Room Code: ${roomCode}\n\n`;
+        text += `No signup required!`;
+        
+        return text;
+    }
+    
+    function shareVia(platform) {
+        const text = buildShareText();
+        const baseUrl = window.location.origin + window.location.pathname.replace('app.html', '');
+        const inviteUrl = `${baseUrl}join.html?code=${state.pendingRoomCode}`;
+        const encodedText = encodeURIComponent(text);
+        const encodedUrl = encodeURIComponent(inviteUrl);
+        
+        let shareUrl = '';
+        
+        switch (platform) {
+            case 'whatsapp':
+                shareUrl = `https://wa.me/?text=${encodedText}`;
+                break;
+            case 'sms':
+                // Works on mobile, opens default SMS app
+                shareUrl = `sms:?body=${encodedText}`;
+                break;
+            case 'telegram':
+                shareUrl = `https://t.me/share/url?url=${encodedUrl}&text=${encodeURIComponent(text.replace(inviteUrl, '').trim())}`;
+                break;
+            case 'email':
+                const subject = encodeURIComponent(`${state.user?.name || 'Someone'} invited you to Mamnoon.ai`);
+                shareUrl = `mailto:?subject=${subject}&body=${encodedText}`;
+                break;
+        }
+        
+        if (shareUrl) {
+            window.open(shareUrl, '_blank');
+        }
     }
 
     function copyPreInviteLink() {
@@ -864,6 +974,8 @@
         try {
             const baseUrl = window.location.origin + window.location.pathname.replace('app.html', '');
             const inviteUrl = `${baseUrl}join.html?code=${state.pendingRoomCode}`;
+            const message = getInviteMessage();
+            const scheduledDate = getScheduledDateTime();
             
             const response = await fetch(`${CONFIG.API_BASE}/api/invite/send`, {
                 method: 'POST',
@@ -872,7 +984,9 @@
                     to_email: email,
                     room_code: state.pendingRoomCode,
                     host_name: state.user.name || 'Someone',
-                    invite_url: inviteUrl
+                    invite_url: inviteUrl,
+                    message: message || null,
+                    scheduled_time: scheduledDate.toISOString()
                 })
             });
             
@@ -1181,9 +1295,12 @@
     function downloadCalendarFile(roomCode = null) {
         const code = roomCode || state.roomCode;
         const maxMins = roomCode ? (state.pendingMaxMinutes || 60) : state.maxMinutes;
+        const message = getInviteMessage();
         
-        const now = new Date();
-        const end = new Date(now.getTime() + maxMins * 60000);
+        // Use scheduled time if available, otherwise now
+        const isPending = roomCode === state.pendingRoomCode;
+        const start = isPending ? getScheduledDateTime() : new Date();
+        const end = new Date(start.getTime() + maxMins * 60000);
         
         const formatDate = (date) => {
             return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
@@ -1192,16 +1309,19 @@
         const baseUrl = window.location.origin + window.location.pathname.replace('app.html', '');
         const inviteUrl = `${baseUrl}join.html?code=${code}`;
         
+        let description = message ? `${message}\\n\\n` : '';
+        description += `Join the real-time translation room:\\n\\nRoom Code: ${code}\\n\\nClick to join: ${inviteUrl}\\n\\nNo signup required for guests.`;
+        
         const icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Mamnoon.ai//Translation Room//EN
 BEGIN:VEVENT
 UID:${code}@mamnoon.ai
-DTSTAMP:${formatDate(now)}
-DTSTART:${formatDate(now)}
+DTSTAMP:${formatDate(new Date())}
+DTSTART:${formatDate(start)}
 DTEND:${formatDate(end)}
 SUMMARY:Mamnoon.ai Translation Room
-DESCRIPTION:Join the real-time translation room:\\n\\nRoom Code: ${code}\\n\\nClick to join: ${inviteUrl}\\n\\nNo signup required for guests.
+DESCRIPTION:${description}
 URL:${inviteUrl}
 LOCATION:${inviteUrl}
 STATUS:CONFIRMED
@@ -1222,9 +1342,12 @@ END:VCALENDAR`;
     function openGoogleCalendar(roomCode = null) {
         const code = roomCode || state.roomCode;
         const maxMins = roomCode ? (state.pendingMaxMinutes || 60) : state.maxMinutes;
+        const message = getInviteMessage();
         
-        const now = new Date();
-        const end = new Date(now.getTime() + maxMins * 60000);
+        // Use scheduled time if available, otherwise now
+        const isPending = roomCode === state.pendingRoomCode;
+        const start = isPending ? getScheduledDateTime() : new Date();
+        const end = new Date(start.getTime() + maxMins * 60000);
         
         const formatGoogleDate = (date) => {
             return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
@@ -1233,12 +1356,15 @@ END:VCALENDAR`;
         const baseUrl = window.location.origin + window.location.pathname.replace('app.html', '');
         const inviteUrl = `${baseUrl}join.html?code=${code}`;
         
-        const title = encodeURIComponent('Mamnoon.ai Translation Room');
-        const details = encodeURIComponent(`Join the real-time translation room:\n\nRoom Code: ${code}\n\nClick to join: ${inviteUrl}\n\nNo signup required for guests.`);
-        const location = encodeURIComponent(inviteUrl);
-        const dates = `${formatGoogleDate(now)}/${formatGoogleDate(end)}`;
+        let details = message ? `${message}\n\n` : '';
+        details += `Join the real-time translation room:\n\nRoom Code: ${code}\n\nClick to join: ${inviteUrl}\n\nNo signup required for guests.`;
         
-        const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&location=${location}&dates=${dates}`;
+        const title = encodeURIComponent('Mamnoon.ai Translation Room');
+        const encodedDetails = encodeURIComponent(details);
+        const location = encodeURIComponent(inviteUrl);
+        const dates = `${formatGoogleDate(start)}/${formatGoogleDate(end)}`;
+        
+        const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${encodedDetails}&location=${location}&dates=${dates}`;
         
         window.open(googleUrl, '_blank');
     }
