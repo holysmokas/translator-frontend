@@ -366,6 +366,38 @@
             outline: none;
             border-color: var(--primary);
         }
+        
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 14px 24px;
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+            z-index: 10000;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+        
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .toast-success {
+            background: #22c55e;
+        }
+        
+        .toast-error {
+            background: #ef4444;
+        }
+        
+        .toast-info {
+            background: var(--primary);
+        }
     </style>
 </head>
 <body class="account-page">
@@ -513,6 +545,18 @@
         </div>
     </div>
 
+    <!-- Logout Confirmation Modal -->
+    <div class="modal-overlay" id="logoutModal">
+        <div class="modal-box">
+            <h3>👋 Log Out?</h3>
+            <p>You will need to sign in again to use Mamnoon.ai.</p>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" onclick="closeModal('logoutModal')">Stay</button>
+                <button class="btn btn-primary" onclick="confirmLogout()">Log Out</button>
+            </div>
+        </div>
+    </div>
+
     <script src="js/config.js"></script>
     <script>
         // Check auth
@@ -649,10 +693,10 @@
                 if (data.url) {
                     window.location.href = data.url;
                 } else {
-                    alert('Failed to open billing portal');
+                    showToast('Failed to open billing portal', 'error');
                 }
             } catch (error) {
-                alert('Failed to open billing portal');
+                showToast('Failed to open billing portal', 'error');
             }
         }
 
@@ -681,11 +725,12 @@
                     localStorage.setItem('user', JSON.stringify(user));
                     
                     closeModal('editNameModal');
+                    showToast('Name updated successfully', 'success');
                 } else {
-                    alert('Failed to update name');
+                    showToast('Failed to update name', 'error');
                 }
             } catch (error) {
-                alert('Failed to update name');
+                showToast('Failed to update name', 'error');
             }
         }
 
@@ -700,7 +745,7 @@
                 closeModal('cancelModal');
                 await openBillingPortal();
             } catch (error) {
-                alert('Failed to cancel subscription');
+                showToast('Failed to cancel subscription', 'error');
             }
         }
 
@@ -708,13 +753,33 @@
             document.getElementById(id).classList.remove('active');
         }
 
-        function logout() {
-            if (confirm('Are you sure you want to log out?')) {
-                localStorage.removeItem('user');
-                localStorage.removeItem('session');
-                localStorage.removeItem('profile');
-                window.location.href = 'login.html';
-            }
+        async function logout() {
+            // Show confirmation modal
+            document.getElementById('logoutModal').classList.add('active');
+        }
+        
+        function confirmLogout() {
+            localStorage.removeItem('user');
+            localStorage.removeItem('session');
+            localStorage.removeItem('profile');
+            window.location.href = 'login.html';
+        }
+        
+        function showToast(message, type = 'info') {
+            // Remove existing toasts
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+            
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
         }
 
         // Close modals on background click

@@ -383,6 +383,19 @@
                     <button class="btn btn-ghost" id="paywallCloseBtn">Maybe Later</button>
                 </div>
             </div>
+
+            <!-- Custom Confirm Modal -->
+            <div class="modal confirm-modal" id="confirmModal" style="display: none;">
+                <div class="modal-content confirm-modal-content">
+                    <div class="confirm-icon" id="confirmIcon">⚠️</div>
+                    <h3 id="confirmTitle">Are you sure?</h3>
+                    <p id="confirmMessage">This action cannot be undone.</p>
+                    <div class="confirm-buttons">
+                        <button class="btn btn-outline" id="confirmCancel">Cancel</button>
+                        <button class="btn btn-danger" id="confirmOk">Confirm</button>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 

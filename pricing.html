@@ -374,7 +374,13 @@
                         throw new Error(data.detail || data.error || 'Failed to create checkout');
                     }
                 } catch (error) {
-                    alert(error.message);
+                    // Show inline error
+                    const errorDiv = document.createElement('div');
+                    errorDiv.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#ef4444;color:white;padding:14px 24px;border-radius:10px;z-index:1000;';
+                    errorDiv.textContent = error.message;
+                    document.body.appendChild(errorDiv);
+                    setTimeout(() => errorDiv.remove(), 3000);
+                    
                     this.disabled = false;
                     this.innerHTML = `Select ${plan.charAt(0).toUpperCase() + plan.slice(1)}`;
                 }
