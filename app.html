@@ -396,6 +396,25 @@
                         
                         <!-- Participants Panel -->
                         <div class="sidebar-panel active" id="participantsPanel">
+                            <!-- Host Controls (shown only to host) -->
+                            <div class="host-controls-panel" id="hostControlsPanel" style="display: none;">
+                                <div class="host-controls-header">
+                                    <span class="icon">👑</span>
+                                    <span>Host Controls</span>
+                                </div>
+                                <div class="host-controls-buttons">
+                                    <button class="host-control-btn" onclick="muteAllParticipants()">
+                                        🔇 <span>Mute All</span>
+                                    </button>
+                                    <button class="host-control-btn" id="lockRoomBtn" onclick="toggleRoomLock()">
+                                        🔓 <span>Lock Room</span>
+                                    </button>
+                                    <button class="host-control-btn danger" onclick="endMeetingForAll()">
+                                        🚪 <span>End for All</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
                             <div class="participants-list" id="participantsList">
                                 <!-- Populated dynamically -->
                             </div>

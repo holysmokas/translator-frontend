@@ -321,6 +321,24 @@ a:hover { color: var(--primary-dark); }
 .participant-status span.muted { opacity: 1; color: var(--danger); }
 .participant-status span.speaking-indicator { color: #22c55e; animation: pulse-speak 1s infinite; }
 
+/* Participant Controls (host only) */
+.participant-controls { display: flex; gap: 4px; margin-left: 8px; }
+.participant-control-btn { width: 28px; height: 28px; border-radius: 6px; border: none; background: var(--gray-100); cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+.participant-control-btn:hover { background: var(--gray-200); }
+.participant-control-btn.danger { background: #fee2e2; color: #dc2626; }
+.participant-control-btn.danger:hover { background: #fecaca; }
+
+/* Host Controls Panel */
+.host-controls-panel { background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.05)); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 10px; margin: 12px; padding: 12px; }
+.host-controls-header { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: var(--primary); margin-bottom: 10px; text-transform: uppercase; }
+.host-controls-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.host-control-btn { display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: white; border: 1px solid var(--gray-200); border-radius: 8px; font-size: 12px; cursor: pointer; transition: all 0.2s; }
+.host-control-btn:hover { background: var(--gray-50); border-color: var(--gray-300); }
+.host-control-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+.host-control-btn.danger { color: #dc2626; border-color: #fecaca; }
+.host-control-btn.danger:hover { background: #fee2e2; }
+.host-control-btn span { font-size: 11px; }
+
 @keyframes pulse-speak {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
