@@ -123,11 +123,12 @@ a:hover { color: var(--primary-dark); }
 
 /* Pricing */
 .pricing { padding: 100px 0; }
-.pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; max-width: 1000px; margin: 0 auto; }
+.pricing-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; max-width: 1200px; margin: 0 auto; }
 .pricing-card { background: white; border: 2px solid var(--gray-200); border-radius: var(--radius-lg); padding: 40px 32px; position: relative; transition: all 0.3s; }
 .pricing-card:hover { border-color: var(--primary); }
 .pricing-card.featured { border-color: var(--primary); transform: scale(1.05); }
-.pricing-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 6px 16px; border-radius: 50px; font-size: 12px; font-weight: 700; }
+.pricing-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 6px 16px; border-radius: 50px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.pricing-badge.enterprise { background: linear-gradient(135deg, #059669, #10b981); }
 .pricing-header h3 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
 .pricing-description { color: var(--gray-500); font-size: 14px; margin-bottom: 24px; }
 .pricing-price { margin-bottom: 24px; }
@@ -411,6 +412,10 @@ a:hover { color: var(--primary-dark); }
     .hero-cta { justify-content: center; }
     .hero-stats { justify-content: center; }
     .features-grid { grid-template-columns: repeat(2, 1fr); }
+    .pricing-grid { grid-template-columns: repeat(2, 1fr); max-width: 800px; }
+}
+
+@media (max-width: 600px) {
     .pricing-grid { grid-template-columns: 1fr; max-width: 400px; }
     .pricing-card.featured { transform: none; }
     .use-cases-grid { grid-template-columns: repeat(2, 1fr); }

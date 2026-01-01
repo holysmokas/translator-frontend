@@ -57,43 +57,59 @@
     <script src="js/config.js"></script>
     <script>
         const PLANS = {
-            personal: {
-                title: 'Personal',
-                description: 'For individuals and freelancers',
-                price: '$29.99',
+            starter: {
+                title: 'Starter',
+                description: 'For freelancers and individuals',
+                price: '$59',
                 features: [
-                    '✓ 10 hours/month translation',
+                    '✓ 15 rooms/month',
+                    '✓ 60 min sessions',
+                    '✓ 2 participants per room',
                     '✓ 42 languages supported',
-                    '✓ Premium Azure Speech recognition',
                     '✓ Video calling included',
                     '✓ Email support'
                 ]
             },
             professional: {
                 title: 'Professional',
-                description: 'For consultants and small teams',
-                price: '$99',
+                description: 'For HR, legal & healthcare professionals',
+                price: '$179',
                 features: [
-                    '✓ 50 hours/month translation',
-                    '✓ 42 languages supported',
-                    '✓ Premium Azure Speech recognition',
-                    '✓ Video calling included',
-                    '✓ Priority support',
-                    '✓ Team collaboration'
+                    '✓ 50 rooms/month',
+                    '✓ 2 hour sessions',
+                    '✓ 10 participants per room',
+                    '✓ Personal meeting room',
+                    '✓ Host controls',
+                    '✓ Session transcripts',
+                    '✓ Priority support'
+                ]
+            },
+            business: {
+                title: 'Business',
+                description: 'For teams and growing companies',
+                price: '$499',
+                features: [
+                    '✓ 150 rooms/month',
+                    '✓ 4 hour sessions',
+                    '✓ 10 participants per room',
+                    '✓ 5 team members included',
+                    '✓ Admin dashboard',
+                    '✓ Usage analytics',
+                    '✓ Phone support'
                 ]
             },
             enterprise: {
                 title: 'Enterprise',
-                description: 'For organizations and agencies',
-                price: '$799',
+                description: 'For large organizations & government',
+                price: '$1,199',
                 features: [
-                    '✓ Unlimited translation hours',
-                    '✓ 42 languages supported',
-                    '✓ Enterprise Azure Speech',
-                    '✓ Video calling included',
-                    '✓ Dedicated support',
+                    '✓ Unlimited rooms',
+                    '✓ Unlimited session length',
+                    '✓ Unlimited participants',
+                    '✓ SSO/SAML integration',
                     '✓ Custom integrations',
-                    '✓ API access'
+                    '✓ SLA guarantee',
+                    '✓ Dedicated success manager'
                 ]
             }
         };
