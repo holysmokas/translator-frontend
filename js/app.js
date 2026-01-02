@@ -120,10 +120,7 @@
         messageCharCount: document.getElementById('messageCharCount'),
         // Share buttons
         shareWhatsApp: document.getElementById('shareWhatsApp'),
-        shareSMS: document.getElementById('shareSMS'),
         shareTelegram: document.getElementById('shareTelegram'),
-        shareEmail: document.getElementById('shareEmail'),
-        directEmailSection: document.getElementById('directEmailSection'),
         
         // Personal room elements
         personalRoomCard: document.getElementById('personalRoomCard'),
@@ -912,12 +909,7 @@
         
         // Share buttons
         elements.shareWhatsApp?.addEventListener('click', () => shareVia('whatsapp'));
-        elements.shareSMS?.addEventListener('click', () => shareVia('sms'));
         elements.shareTelegram?.addEventListener('click', () => shareVia('telegram'));
-        elements.shareEmail?.addEventListener('click', () => {
-            elements.directEmailSection.style.display = 'block';
-            elements.preInviteEmail.focus();
-        });
         
         // Active room invite modal
         elements.inviteBtn?.addEventListener('click', showInviteModal);
@@ -1010,7 +1002,6 @@
         elements.preInviteEmail.value = '';
         elements.inviteMessage.value = '';
         elements.messageCharCount.textContent = '0';
-        elements.directEmailSection.style.display = 'none';
         
         // Set default date/time to now + 15 mins
         const now = new Date();
@@ -1103,10 +1094,6 @@
         const link = elements.preInviteLink.value;
         navigator.clipboard.writeText(link).then(() => {
             showNotification('Invite link copied!', 'success');
-            elements.copyPreInviteLink.textContent = 'Copied!';
-            setTimeout(() => {
-                elements.copyPreInviteLink.textContent = 'Copy';
-            }, 2000);
         });
     }
 
