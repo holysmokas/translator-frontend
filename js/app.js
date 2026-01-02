@@ -1128,6 +1128,10 @@
     }
 
     async function startReservedRoom() {
+        // Clear previous session data
+        state.participants.clear();
+        state.transcript = [];
+        
         showLoading('Starting room...');
         
         try {
@@ -1272,6 +1276,10 @@
             return;
         }
         
+        // Clear previous session data
+        state.participants.clear();
+        state.transcript = [];
+        
         showLoading('Starting your room...');
         
         try {
@@ -1310,6 +1318,10 @@
     async function createRoom() {
         // Request notification permission
         requestNotificationPermission();
+        
+        // Clear previous session data
+        state.participants.clear();
+        state.transcript = [];
         
         showLoading('Creating room...');
         
