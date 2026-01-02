@@ -5,7 +5,13 @@
 const CONFIG = {
     API_BASE: 'https://translation-server-production-d487.up.railway.app',
     WS_BASE: 'wss://translation-server-production-d487.up.railway.app',
-    VERSION: '2.2.0'
+    VERSION: '2.3.0',
+    
+    // EmailJS Configuration
+    // Sign up at https://www.emailjs.com/ to get these values
+    EMAILJS_PUBLIC_KEY: '_Q-BX_wJPt3QBMn0D',      // Replace with your EmailJS public key
+    EMAILJS_SERVICE_ID: 'service_7pyh79o',      // Replace with your EmailJS service ID
+    EMAILJS_TEMPLATE_ID: 'template_n645yrf'     // Replace with your EmailJS template ID
 };
 
 const LANGUAGES = {

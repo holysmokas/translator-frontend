@@ -109,7 +109,6 @@
         preInviteEmail: document.getElementById('preInviteEmail'),
         preSendEmailInvite: document.getElementById('preSendEmailInvite'),
         preEmailStatus: document.getElementById('preEmailStatus'),
-        startReservedRoom: document.getElementById('startReservedRoom'),
         pendingInvitesSection: document.getElementById('pendingInvitesSection'),
         pendingInvitesList: document.getElementById('pendingInvitesList'),
         // New schedule & message elements
@@ -900,7 +899,6 @@
         elements.preInviteEmail?.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') sendPreInviteEmail();
         });
-        elements.startReservedRoom?.addEventListener('click', startReservedRoom);
         
         // Message character count
         elements.inviteMessage?.addEventListener('input', (e) => {
@@ -1106,6 +1104,13 @@
             return;
         }
         
+        // Check if EmailJS is configured
+        if (!CONFIG.EMAILJS_PUBLIC_KEY || CONFIG.EMAILJS_PUBLIC_KEY === 'YOUR_PUBLIC_KEY') {
+            elements.preEmailStatus.innerHTML = '⚠️ Email not configured. <a href="#" onclick="document.getElementById(\'copyPreInviteLink\').click(); return false;">Copy link</a> to share manually.';
+            elements.preEmailStatus.className = 'email-status error';
+            return;
+        }
+        
         elements.preEmailStatus.textContent = 'Sending...';
         elements.preEmailStatus.className = 'email-status sending';
         elements.preSendEmailInvite.disabled = true;
@@ -1115,35 +1120,44 @@
             const inviteUrl = `${baseUrl}join.html?code=${state.pendingRoomCode}`;
             const message = getInviteMessage();
             const scheduledDate = getScheduledDateTime();
+            const hostName = state.user.name || state.user.email?.split('@')[0] || 'Someone';
             
-            const response = await fetch(`${CONFIG.API_BASE}/api/invite/send`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    to_email: email,
-                    room_code: state.pendingRoomCode,
-                    host_name: state.user.name || 'Someone',
-                    invite_url: inviteUrl,
-                    message: message || null,
-                    scheduled_time: scheduledDate.toISOString()
-                })
-            });
+            // Format scheduled time nicely
+            const dateOptions = { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' };
+            const formattedDate = scheduledDate.toLocaleDateString('en-US', dateOptions);
             
-            const data = await response.json();
-            
-            if (response.ok) {
-                if (data.copy_link) {
-                    elements.preEmailStatus.innerHTML = `📋 Share link with <strong>${email}</strong>: <a href="#" onclick="document.getElementById('copyPreInviteLink').click(); return false;">Copy Link</a>`;
-                } else {
-                    elements.preEmailStatus.textContent = `✓ Invite sent to ${email}`;
-                    elements.preInviteEmail.value = '';
-                }
-                elements.preEmailStatus.className = 'email-status success';
-            } else {
-                throw new Error(data.detail || 'Failed to send');
+            // Initialize EmailJS (if not already done)
+            if (typeof emailjs !== 'undefined' && !window.emailjsInitialized) {
+                emailjs.init(CONFIG.EMAILJS_PUBLIC_KEY);
+                window.emailjsInitialized = true;
             }
+            
+            // Send email via EmailJS
+            const templateParams = {
+                to_email: email,
+                to_name: email.split('@')[0],
+                from_name: hostName,
+                room_code: state.pendingRoomCode,
+                invite_url: inviteUrl,
+                scheduled_time: formattedDate,
+                message: message || `${hostName} has invited you to a real-time translation room.`
+            };
+            
+            await emailjs.send(
+                CONFIG.EMAILJS_SERVICE_ID,
+                CONFIG.EMAILJS_TEMPLATE_ID,
+                templateParams
+            );
+            
+            elements.preEmailStatus.textContent = `✓ Invite sent to ${email}`;
+            elements.preEmailStatus.className = 'email-status success';
+            elements.preInviteEmail.value = '';
+            
+            showNotification(`Invite sent to ${email}`, 'success');
+            
         } catch (error) {
-            elements.preEmailStatus.textContent = 'Failed to send. Copy the link instead.';
+            console.error('EmailJS error:', error);
+            elements.preEmailStatus.innerHTML = 'Failed to send. <a href="#" onclick="document.getElementById(\'copyPreInviteLink\').click(); return false;">Copy link</a> to share manually.';
             elements.preEmailStatus.className = 'email-status error';
         }
         

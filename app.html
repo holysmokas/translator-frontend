@@ -6,6 +6,8 @@
     <title>Translator | Mamnoon.ai</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>">
+    <!-- EmailJS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body class="app-page">
     <!-- App Navigation -->
@@ -248,18 +250,6 @@
                         
                         <!-- Hidden link input for copy functionality -->
                         <input type="hidden" id="preInviteLink">
-                        
-                        <div class="invite-tip">
-                            <span class="tip-icon">💡</span>
-                            <span>Room activates when you click Start. Guests can join without signing up.</span>
-                        </div>
-                        
-                        <div class="start-room-section">
-                            <button class="btn btn-success btn-lg btn-block" id="startReservedRoom">
-                                🚀 Start Room Now
-                            </button>
-                            <p class="start-room-hint">Or close and start later from Pending Invites</p>
-                        </div>
                     </div>
                 </div>
             </div>
