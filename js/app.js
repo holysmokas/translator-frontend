@@ -325,90 +325,142 @@
     }
 
     // ========================================
-    // Speech Recognition Setup
+    // Speech Recognition Setup (Azure Speech SDK)
+    // Works on ALL browsers!
     // ========================================
-    function initSpeechRecognition() {
-        // Check browser support
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    async function initSpeechRecognition() {
+        // Azure Speech works on all browsers - always supported
+        state.speechSupported = true;
+        state.azureSpeechToken = null;
+        state.azureSpeechRegion = null;
+        state.recognizer = null;
         
-        if (!SpeechRecognition) {
-            console.warn('⚠️ Speech recognition not supported in this browser');
-            state.speechSupported = false;
-            return;
+        console.log('✅ Azure Speech recognition ready (works on all browsers)');
+    }
+    
+    async function getAzureSpeechToken() {
+        try {
+            const response = await fetch(`${CONFIG.API_BASE}/api/speech/token`);
+            if (!response.ok) {
+                throw new Error('Failed to get speech token');
+            }
+            const data = await response.json();
+            state.azureSpeechToken = data.token;
+            state.azureSpeechRegion = data.region;
+            return true;
+        } catch (error) {
+            console.error('❌ Failed to get Azure speech token:', error);
+            showNotification('Speech service unavailable', 'error');
+            return false;
+        }
+    }
+    
+    async function startAzureRecognition() {
+        // Get fresh token
+        if (!await getAzureSpeechToken()) {
+            return false;
         }
         
-        state.speechSupported = true;
-        state.recognition = new SpeechRecognition();
-        
-        // Configure
-        state.recognition.continuous = true;
-        state.recognition.interimResults = true;
-        state.recognition.maxAlternatives = 1;
-        
-        // Event handlers
-        state.recognition.onstart = () => {
-            console.log('🎤 Speech recognition started');
+        try {
+            // Create speech config with token
+            const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(
+                state.azureSpeechToken,
+                state.azureSpeechRegion
+            );
+            
+            // Set recognition language
+            const langMap = {
+                'en': 'en-US', 'es': 'es-ES', 'fr': 'fr-FR', 'de': 'de-DE',
+                'it': 'it-IT', 'pt': 'pt-PT', 'pt-BR': 'pt-BR', 'zh': 'zh-CN',
+                'zh-TW': 'zh-TW', 'ja': 'ja-JP', 'ko': 'ko-KR', 'ru': 'ru-RU',
+                'ar': 'ar-SA', 'hi': 'hi-IN', 'bn': 'bn-IN', 'pa': 'pa-IN',
+                'ta': 'ta-IN', 'te': 'te-IN', 'mr': 'mr-IN', 'gu': 'gu-IN',
+                'ur': 'ur-PK', 'tr': 'tr-TR', 'nl': 'nl-NL', 'pl': 'pl-PL',
+                'uk': 'uk-UA', 'cs': 'cs-CZ', 'sk': 'sk-SK', 'hu': 'hu-HU',
+                'ro': 'ro-RO', 'bg': 'bg-BG', 'hr': 'hr-HR', 'sr': 'sr-RS',
+                'sl': 'sl-SI', 'el': 'el-GR', 'he': 'he-IL', 'vi': 'vi-VN',
+                'th': 'th-TH', 'id': 'id-ID', 'ms': 'ms-MY', 'tl': 'fil-PH',
+                'fa': 'fa-IR', 'sw': 'sw-KE', 'af': 'af-ZA', 'da': 'da-DK',
+                'sv': 'sv-SE', 'no': 'nb-NO', 'fi': 'fi-FI', 'et': 'et-EE',
+                'lv': 'lv-LV', 'lt': 'lt-LT', 'ca': 'ca-ES', 'eu': 'eu-ES',
+                'gl': 'gl-ES'
+            };
+            speechConfig.speechRecognitionLanguage = langMap[state.myLanguage] || 'en-US';
+            
+            // Create audio config from microphone
+            const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+            
+            // Create recognizer
+            state.recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+            
+            // Handle interim results (while speaking)
+            state.recognizer.recognizing = (s, e) => {
+                if (e.result.reason === SpeechSDK.ResultReason.RecognizingSpeech) {
+                    showInterimSubtitle(e.result.text);
+                }
+            };
+            
+            // Handle final results
+            state.recognizer.recognized = (s, e) => {
+                if (e.result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
+                    const text = e.result.text.trim();
+                    if (text) {
+                        console.log('🎤 Recognized:', text);
+                        sendSpeechMessage(text);
+                        hideInterimSubtitle();
+                    }
+                } else if (e.result.reason === SpeechSDK.ResultReason.NoMatch) {
+                    console.log('⚠️ No speech recognized');
+                }
+            };
+            
+            // Handle errors
+            state.recognizer.canceled = (s, e) => {
+                console.error('❌ Speech canceled:', e.reason);
+                if (e.reason === SpeechSDK.CancellationReason.Error) {
+                    console.error('Error details:', e.errorDetails);
+                    showNotification('Speech recognition error. Please try again.', 'error');
+                }
+                stopListening();
+            };
+            
+            // Handle session stopped
+            state.recognizer.sessionStopped = (s, e) => {
+                console.log('🎤 Session stopped');
+                // Auto-restart if still supposed to be listening
+                if (state.isListening && state.connected) {
+                    setTimeout(() => startAzureRecognition(), 500);
+                }
+            };
+            
+            // Start continuous recognition
+            await state.recognizer.startContinuousRecognitionAsync();
+            
+            console.log('🎤 Azure Speech recognition started');
             state.isListening = true;
             updateMicButton();
-        };
-        
-        state.recognition.onend = () => {
-            console.log('🎤 Speech recognition ended');
-            // Auto-restart if still supposed to be listening
-            if (state.isListening && state.connected) {
-                setTimeout(() => {
-                    try {
-                        state.recognition.start();
-                    } catch (e) {
-                        console.log('Restart failed, will try again');
-                    }
-                }, 100);
-            } else {
-                state.isListening = false;
-                updateMicButton();
-            }
-        };
-        
-        state.recognition.onerror = (event) => {
-            console.error('🎤 Speech error:', event.error);
+            return true;
             
-            if (event.error === 'not-allowed') {
-                showNotification('Microphone access denied. Please allow microphone access.', 'error');
-                state.isListening = false;
-                updateMicButton();
-            } else if (event.error === 'no-speech') {
-                // This is normal, just restart
-                console.log('No speech detected, continuing...');
+        } catch (error) {
+            console.error('❌ Failed to start Azure speech:', error);
+            showNotification('Failed to start voice recognition', 'error');
+            return false;
+        }
+    }
+    
+    async function stopAzureRecognition() {
+        if (state.recognizer) {
+            try {
+                await state.recognizer.stopContinuousRecognitionAsync();
+                state.recognizer.close();
+                state.recognizer = null;
+            } catch (e) {
+                console.log('Stop recognition error:', e);
             }
-        };
-        
-        state.recognition.onresult = (event) => {
-            let finalTranscript = '';
-            let interimTranscript = '';
-            
-            for (let i = event.resultIndex; i < event.results.length; i++) {
-                const transcript = event.results[i][0].transcript;
-                
-                if (event.results[i].isFinal) {
-                    finalTranscript += transcript;
-                } else {
-                    interimTranscript += transcript;
-                }
-            }
-            
-            // Show interim results in UI (what's being spoken)
-            if (interimTranscript) {
-                showInterimSubtitle(interimTranscript);
-            }
-            
-            // Send final results
-            if (finalTranscript.trim()) {
-                sendSpeechMessage(finalTranscript.trim());
-                hideInterimSubtitle();
-            }
-        };
-        
-        console.log('✅ Speech recognition initialized');
+        }
+        state.isListening = false;
+        hideInterimSubtitle();
+        updateMicButton();
     }
 
     // ========================================
@@ -469,76 +521,58 @@
         }
     }
     
-    function updateRecognitionLanguage() {
-        if (!state.recognition) return;
-        
-        // Map our language codes to BCP-47 language tags
-        const langMap = {
-            'en': 'en-US',
-            'es': 'es-ES',
-            'fr': 'fr-FR',
-            'de': 'de-DE',
-            'it': 'it-IT',
-            'pt': 'pt-PT',
-            'zh': 'zh-CN',
-            'ja': 'ja-JP',
-            'ko': 'ko-KR',
-            'ru': 'ru-RU',
-            'ar': 'ar-SA',
-            'hi': 'hi-IN',
-            'tr': 'tr-TR',
-            'nl': 'nl-NL',
-            'pl': 'pl-PL',
-            'vi': 'vi-VN',
-            'th': 'th-TH',
-            'fa': 'fa-IR'
-        };
-        
-        state.recognition.lang = langMap[state.myLanguage] || 'en-US';
-        console.log(`🌐 Speech recognition language set to: ${state.recognition.lang}`);
-    }
-    
-    function startListening() {
-        if (!state.speechSupported) {
-            showNotification('Speech recognition not supported in this browser. Try Chrome or Edge.', 'error');
-            return;
-        }
-        
+    async function startListening() {
         if (!state.connected) {
             showNotification('Join a room first to use voice', 'warning');
             return;
         }
         
-        updateRecognitionLanguage();
-        
-        try {
-            state.recognition.start();
-            state.isListening = true;
-        } catch (e) {
-            // Already started, ignore
-            console.log('Recognition already started');
-        }
-    }
-    
-    function stopListening() {
-        if (state.recognition) {
-            state.isListening = false;
-            try {
-                state.recognition.stop();
-            } catch (e) {
-                // Already stopped
-            }
-        }
-        hideInterimSubtitle();
-        updateMicButton();
-    }
-    
-    function toggleListening() {
         if (state.isListening) {
-            stopListening();
-        } else {
-            startListening();
+            return;
         }
+        
+        showNotification('Starting voice recognition...', 'info');
+        
+        // Check if Azure Speech SDK is loaded
+        if (typeof SpeechSDK === 'undefined') {
+            showNotification('Loading speech engine...', 'info');
+            await loadAzureSpeechSDK();
+        }
+        
+        await startAzureRecognition();
+    }
+    
+    async function stopListening() {
+        await stopAzureRecognition();
+    }
+    
+    async function toggleListening() {
+        if (state.isListening) {
+            await stopListening();
+        } else {
+            await startListening();
+        }
+    }
+    
+    // Load Azure Speech SDK dynamically
+    function loadAzureSpeechSDK() {
+        return new Promise((resolve, reject) => {
+            if (typeof SpeechSDK !== 'undefined') {
+                resolve();
+                return;
+            }
+            
+            const script = document.createElement('script');
+            script.src = 'https://aka.ms/csspeech/jsbrowserpackageraw';
+            script.onload = () => {
+                console.log('✅ Azure Speech SDK loaded');
+                resolve();
+            };
+            script.onerror = () => {
+                reject(new Error('Failed to load Azure Speech SDK'));
+            };
+            document.head.appendChild(script);
+        });
     }
     
     function sendSpeechMessage(text) {
@@ -807,8 +841,8 @@
         // Language selection
         elements.languageSelect?.addEventListener('change', (e) => {
             state.myLanguage = e.target.value;
-            updateRecognitionLanguage();
             console.log(`🌐 Language changed to: ${state.myLanguage}`);
+            // Note: For Azure Speech, language change takes effect on next voice session
         });
         
         // In-room actions
