@@ -236,6 +236,20 @@ a:hover { color: var(--primary-dark); }
 .sidebar-btn:hover { background: var(--gray-100); }
 .sidebar-btn-icon { font-size: 20px; }
 .language-select { width: 100%; padding: 12px; border: 2px solid var(--gray-200); border-radius: var(--radius); font-size: 15px; }
+.language-select-large { 
+    width: 100%; 
+    padding: 16px; 
+    border: 2px solid var(--gray-300); 
+    border-radius: var(--radius); 
+    font-size: 18px; 
+    background: white;
+    cursor: pointer;
+    margin-bottom: 16px;
+}
+.language-select-large:focus {
+    border-color: var(--primary);
+    outline: none;
+}
 
 .app-main { padding: 32px; }
 .app-state { height: 100%; }

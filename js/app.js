@@ -62,7 +62,10 @@
         activeSession: null,
         
         // Participants tracking
-        participants: new Map() // id -> {name, language, isMuted, isSpeaking}
+        participants: new Map(), // id -> {name, language, isMuted, isSpeaking}
+        
+        // Pending action for language selection flow
+        pendingAction: null // 'createInvite', 'quickStart', 'joinRoom'
     };
 
     // ========================================
@@ -115,6 +118,12 @@
         logoutBtn: document.getElementById('logoutBtn'),
         accountBtn: document.getElementById('accountBtn'),
         roomHistory: document.getElementById('roomHistory'),
+        
+        // Language selection modal
+        languageModal: document.getElementById('languageModal'),
+        closeLanguageModal: document.getElementById('closeLanguageModal'),
+        languageModalSelect: document.getElementById('languageModalSelect'),
+        confirmLanguageBtn: document.getElementById('confirmLanguageBtn'),
         
         // Pre-invite modal elements
         preInviteModal: document.getElementById('preInviteModal'),
@@ -876,10 +885,17 @@
             });
         });
         
-        // Room creation - new flow
-        elements.createInviteBtn?.addEventListener('click', createInvite);
-        elements.quickStartBtn?.addEventListener('click', createRoom);
-        elements.createRoomBtn?.addEventListener('click', createRoom);
+        // Room creation - now shows language selection first
+        elements.createInviteBtn?.addEventListener('click', () => promptLanguageThen('createInvite'));
+        elements.quickStartBtn?.addEventListener('click', () => promptLanguageThen('quickStart'));
+        elements.createRoomBtn?.addEventListener('click', () => promptLanguageThen('quickStart'));
+        
+        // Language modal
+        elements.closeLanguageModal?.addEventListener('click', hideLanguageModal);
+        elements.languageModal?.addEventListener('click', (e) => {
+            if (e.target === elements.languageModal) hideLanguageModal();
+        });
+        elements.confirmLanguageBtn?.addEventListener('click', confirmLanguageSelection);
         
         // Return to active session
         elements.returnToRoomBtn?.addEventListener('click', () => {
@@ -892,9 +908,9 @@
         elements.createPersonalRoomBtn?.addEventListener('click', createPersonalRoom);
         elements.createPersonalRoomMain?.addEventListener('click', createPersonalRoom);
         
-        // Room joining
-        elements.joinRoomBtn?.addEventListener('click', () => showJoinModal());
-        elements.welcomeJoinBtn?.addEventListener('click', () => showJoinModal());
+        // Room joining - also prompt for language first
+        elements.joinRoomBtn?.addEventListener('click', () => promptLanguageThen('joinRoom'));
+        elements.welcomeJoinBtn?.addEventListener('click', () => promptLanguageThen('joinRoom'));
         elements.closeJoinModal?.addEventListener('click', hideJoinModal);
         elements.confirmJoinBtn?.addEventListener('click', joinRoom);
         
@@ -956,10 +972,10 @@
             if (e.target === elements.paywallModal) hidePaywall();
         });
         
-        // Pre-invite modal
-        elements.closePreInviteModal?.addEventListener('click', hidePreInviteModal);
+        // Pre-invite modal - close/cancel should delete the pending invite
+        elements.closePreInviteModal?.addEventListener('click', cancelAndCloseInviteModal);
         elements.preInviteModal?.addEventListener('click', (e) => {
-            if (e.target === elements.preInviteModal) hidePreInviteModal();
+            if (e.target === elements.preInviteModal) cancelAndCloseInviteModal();
         });
         elements.copyPreInviteLink?.addEventListener('click', () => copyPreInviteLink());
         elements.copyPreInviteCode?.addEventListener('click', () => {
@@ -1102,6 +1118,67 @@
         elements.preInviteModal.style.display = 'none';
     }
     
+    // Cancel and close invite modal - deletes the pending room reservation
+    async function cancelAndCloseInviteModal() {
+        if (state.pendingRoomCode) {
+            // Delete the pending reservation
+            try {
+                await fetch(`${CONFIG.API_BASE}/api/room/pending/${state.pendingRoomCode}?user_id=${state.user.id}`, {
+                    method: 'DELETE'
+                });
+            } catch (error) {
+                console.log('Failed to cancel reservation:', error);
+            }
+            state.pendingRoomCode = null;
+        }
+        hidePreInviteModal();
+        loadPendingInvites();
+    }
+    
+    // ========================================
+    // Language Selection Flow
+    // ========================================
+    function promptLanguageThen(action) {
+        state.pendingAction = action;
+        // Set current language in modal
+        if (elements.languageModalSelect) {
+            elements.languageModalSelect.value = state.myLanguage || 'en';
+        }
+        elements.languageModal.style.display = 'flex';
+    }
+    
+    function hideLanguageModal() {
+        elements.languageModal.style.display = 'none';
+        state.pendingAction = null;
+    }
+    
+    function confirmLanguageSelection() {
+        // Save selected language
+        const selectedLanguage = elements.languageModalSelect?.value || 'en';
+        state.myLanguage = selectedLanguage;
+        
+        // Update sidebar selector too
+        if (elements.languageSelect) {
+            elements.languageSelect.value = selectedLanguage;
+        }
+        
+        hideLanguageModal();
+        
+        // Execute the pending action
+        switch (state.pendingAction) {
+            case 'createInvite':
+                createInvite();
+                break;
+            case 'quickStart':
+                createRoom();
+                break;
+            case 'joinRoom':
+                showJoinModal();
+                break;
+        }
+        state.pendingAction = null;
+    }
+    
     function getScheduledDateTime() {
         const date = elements.inviteDate?.value;
         const time = elements.inviteTime?.value;
@@ -1233,11 +1310,13 @@
                 templateParams
             );
             
-            elements.preEmailStatus.textContent = `✓ Invite sent to ${email}`;
-            elements.preEmailStatus.className = 'email-status success';
-            elements.preInviteEmail.value = '';
+            showNotification(`Invite sent to ${email}! Room code: ${state.pendingRoomCode}`, 'success');
             
-            showNotification(`Invite sent to ${email}`, 'success');
+            // Close the modal after successful send
+            setTimeout(() => {
+                hidePreInviteModal();
+                loadPendingInvites();
+            }, 500);
             
         } catch (error) {
             console.error('EmailJS error:', error);

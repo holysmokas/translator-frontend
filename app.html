@@ -290,6 +290,63 @@
                 </div>
             </div>
 
+            <!-- Language Selection Modal -->
+            <div class="modal" id="languageModal" style="display: none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>🌍 Choose Your Language</h3>
+                        <button class="modal-close" id="closeLanguageModal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p style="color: var(--gray-400); margin-bottom: 16px; text-align: center;">Select the language you'll be speaking</p>
+                        <div class="form-group">
+                            <select id="languageModalSelect" class="language-select-large">
+                                <option value="en">🇺🇸 English</option>
+                                <option value="es">🇪🇸 Spanish</option>
+                                <option value="fr">🇫🇷 French</option>
+                                <option value="de">🇩🇪 German</option>
+                                <option value="it">🇮🇹 Italian</option>
+                                <option value="pt">🇧🇷 Portuguese</option>
+                                <option value="ru">🇷🇺 Russian</option>
+                                <option value="zh">🇨🇳 Chinese</option>
+                                <option value="ja">🇯🇵 Japanese</option>
+                                <option value="ko">🇰🇷 Korean</option>
+                                <option value="ar">🇸🇦 Arabic</option>
+                                <option value="hi">🇮🇳 Hindi</option>
+                                <option value="bn">🇧🇩 Bengali</option>
+                                <option value="ur">🇵🇰 Urdu</option>
+                                <option value="tr">🇹🇷 Turkish</option>
+                                <option value="nl">🇳🇱 Dutch</option>
+                                <option value="pl">🇵🇱 Polish</option>
+                                <option value="uk">🇺🇦 Ukrainian</option>
+                                <option value="cs">🇨🇿 Czech</option>
+                                <option value="ro">🇷🇴 Romanian</option>
+                                <option value="hu">🇭🇺 Hungarian</option>
+                                <option value="bg">🇧🇬 Bulgarian</option>
+                                <option value="hr">🇭🇷 Croatian</option>
+                                <option value="sk">🇸🇰 Slovak</option>
+                                <option value="sr">🇷🇸 Serbian</option>
+                                <option value="sl">🇸🇮 Slovenian</option>
+                                <option value="el">🇬🇷 Greek</option>
+                                <option value="he">🇮🇱 Hebrew</option>
+                                <option value="vi">🇻🇳 Vietnamese</option>
+                                <option value="th">🇹🇭 Thai</option>
+                                <option value="id">🇮🇩 Indonesian</option>
+                                <option value="ms">🇲🇾 Malay</option>
+                                <option value="tl">🇵🇭 Filipino</option>
+                                <option value="fa">🇮🇷 Persian</option>
+                                <option value="sw">🇰🇪 Swahili</option>
+                                <option value="da">🇩🇰 Danish</option>
+                                <option value="sv">🇸🇪 Swedish</option>
+                                <option value="no">🇳🇴 Norwegian</option>
+                                <option value="fi">🇫🇮 Finnish</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary btn-lg btn-block" id="confirmLanguageBtn">Continue</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Join Room Modal -->
             <div class="modal" id="joinModal" style="display: none;">
                 <div class="modal-content">
