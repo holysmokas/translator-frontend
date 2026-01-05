@@ -1642,3 +1642,620 @@ a:hover { color: var(--primary-dark); }
     background: rgba(239, 68, 68, 0.2);
     color: #ef4444;
 }
+
+/* ========================================
+   MOBILE RESPONSIVE STYLES
+   ======================================== */
+
+/* Mobile Navigation */
+@media (max-width: 768px) {
+    .nav-container {
+        padding: 0 16px;
+        height: 60px;
+    }
+    
+    .nav-logo {
+        font-size: 18px;
+    }
+    
+    .logo-icon {
+        font-size: 24px;
+    }
+    
+    .nav-links, .nav-auth {
+        display: none;
+        position: absolute;
+        top: 60px;
+        left: 0;
+        right: 0;
+        background: white;
+        flex-direction: column;
+        padding: 16px;
+        border-bottom: 1px solid var(--gray-200);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .nav-links.active, .nav-auth.active {
+        display: flex;
+    }
+    
+    .nav-links {
+        gap: 0;
+    }
+    
+    .nav-links a {
+        padding: 12px 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    
+    .nav-auth {
+        top: auto;
+        padding-top: 8px;
+        gap: 8px;
+    }
+    
+    .nav-mobile-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        font-size: 24px;
+    }
+}
+
+/* Mobile Hero */
+@media (max-width: 768px) {
+    .hero {
+        padding: 80px 0 40px;
+    }
+    
+    .hero .container {
+        grid-template-columns: 1fr;
+        gap: 32px;
+        text-align: center;
+    }
+    
+    .hero h1 {
+        font-size: 32px;
+        line-height: 1.2;
+    }
+    
+    .hero-subtitle {
+        font-size: 16px;
+        margin: 0 auto 24px;
+    }
+    
+    .hero-cta {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .hero-cta .btn {
+        width: 100%;
+    }
+    
+    .hero-stats {
+        gap: 24px;
+        justify-content: center;
+    }
+    
+    .stat-number {
+        font-size: 24px;
+    }
+    
+    .hero-visual {
+        display: none;
+    }
+    
+    .hero-badge {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+}
+
+/* Mobile App Container */
+@media (max-width: 768px) {
+    .app-container {
+        grid-template-columns: 1fr;
+        min-height: 100vh;
+    }
+    
+    .app-sidebar {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1000;
+        padding: 16px;
+        overflow-y: auto;
+        background: white;
+    }
+    
+    .app-sidebar.mobile-open {
+        display: block;
+    }
+    
+    .app-main {
+        padding: 16px;
+        padding-bottom: 80px;
+    }
+    
+    /* Mobile sidebar toggle button */
+    .mobile-sidebar-toggle {
+        display: flex;
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        width: 56px;
+        height: 56px;
+        background: var(--gradient);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        font-size: 24px;
+        align-items: center;
+        justify-content: center;
+        box-shadow: var(--shadow-lg);
+        z-index: 999;
+        cursor: pointer;
+    }
+    
+    .mobile-sidebar-close {
+        display: flex;
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        width: 40px;
+        height: 40px;
+        background: var(--gray-100);
+        border: none;
+        border-radius: 50%;
+        font-size: 20px;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+}
+
+@media (min-width: 769px) {
+    .mobile-sidebar-toggle,
+    .mobile-sidebar-close {
+        display: none !important;
+    }
+}
+
+/* Mobile Welcome State */
+@media (max-width: 768px) {
+    .welcome-content {
+        padding: 24px 16px;
+    }
+    
+    .welcome-icon {
+        font-size: 48px !important;
+    }
+    
+    .welcome-content h2 {
+        font-size: 24px;
+    }
+    
+    .welcome-content p {
+        font-size: 14px;
+    }
+    
+    .welcome-actions {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .welcome-actions .btn {
+        width: 100%;
+    }
+}
+
+/* Mobile Room UI */
+@media (max-width: 768px) {
+    .room-header {
+        padding: 12px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .room-info {
+        flex: 1 1 100%;
+        justify-content: space-between;
+    }
+    
+    .room-code {
+        font-size: 16px;
+        letter-spacing: 2px;
+    }
+    
+    .room-timer {
+        font-size: 13px;
+    }
+    
+    .room-actions {
+        flex: 1 1 100%;
+        justify-content: flex-end;
+    }
+    
+    .room-content-multiparty {
+        flex-direction: column;
+        height: auto;
+        min-height: calc(100vh - 200px);
+    }
+    
+    .main-area {
+        flex: none;
+        height: 50vh;
+        min-height: 300px;
+    }
+    
+    .room-sidebar {
+        width: 100%;
+        height: 40vh;
+        min-height: 250px;
+    }
+    
+    .video-container {
+        min-height: 280px;
+    }
+    
+    .video-container iframe {
+        min-height: 280px;
+    }
+    
+    /* Controls bar mobile */
+    .controls-bar {
+        padding: 8px 12px;
+        gap: 6px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .control-btn {
+        padding: 10px 12px;
+        font-size: 14px;
+        flex: 0 0 auto;
+    }
+    
+    .control-label {
+        display: none;
+    }
+    
+    .control-icon {
+        font-size: 18px;
+    }
+    
+    /* Transcript dropdown mobile */
+    .transcript-dropdown {
+        position: static;
+    }
+    
+    .transcript-menu {
+        position: fixed;
+        bottom: 60px;
+        left: 10px;
+        right: 10px;
+        top: auto;
+    }
+}
+
+/* Mobile Chat/Messages */
+@media (max-width: 768px) {
+    .chat-messages,
+    .messages-container {
+        padding: 12px;
+    }
+    
+    .chat-message {
+        max-width: 90%;
+        padding: 10px 14px;
+        font-size: 14px;
+    }
+    
+    .chat-input-form {
+        padding: 12px;
+    }
+    
+    .chat-input {
+        font-size: 16px; /* Prevents iOS zoom */
+        padding: 12px 16px;
+    }
+    
+    .sidebar-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .sidebar-tab {
+        padding: 10px 8px;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+}
+
+/* Mobile Participants */
+@media (max-width: 768px) {
+    .participants-list {
+        padding: 12px;
+    }
+    
+    .participant-item {
+        padding: 10px 12px;
+    }
+    
+    .host-controls {
+        padding: 12px;
+        gap: 8px;
+    }
+    
+    .host-btn {
+        padding: 10px 14px;
+        font-size: 12px;
+    }
+}
+
+/* Mobile Modals */
+@media (max-width: 768px) {
+    .modal-content,
+    .invite-modal-content {
+        width: 95%;
+        max-width: none;
+        margin: 16px;
+        padding: 20px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    .modal-header h2,
+    .invite-header h2 {
+        font-size: 20px;
+    }
+    
+    .modal-icon,
+    .invite-icon {
+        font-size: 40px;
+    }
+    
+    .join-input {
+        font-size: 24px;
+        letter-spacing: 4px;
+        padding: 16px;
+    }
+}
+
+/* Mobile Auth Pages */
+@media (max-width: 768px) {
+    .auth-container {
+        padding: 16px;
+    }
+    
+    .auth-card {
+        padding: 24px 20px;
+    }
+    
+    .auth-header h1 {
+        font-size: 24px;
+    }
+    
+    .form-group input {
+        font-size: 16px; /* Prevents iOS zoom */
+        padding: 14px 16px;
+    }
+    
+    .back-to-home {
+        font-size: 14px;
+    }
+}
+
+/* Mobile Pricing */
+@media (max-width: 768px) {
+    .pricing-grid {
+        grid-template-columns: 1fr;
+        max-width: 100%;
+        gap: 16px;
+    }
+    
+    .pricing-card {
+        padding: 24px 20px;
+    }
+    
+    .pricing-card.featured {
+        transform: none;
+        margin: 0;
+    }
+    
+    .price-amount {
+        font-size: 36px;
+    }
+}
+
+/* Mobile Features Section */
+@media (max-width: 768px) {
+    .section-header h2 {
+        font-size: 24px;
+    }
+    
+    .section-header p {
+        font-size: 14px;
+    }
+    
+    .features-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    .feature-card {
+        padding: 24px 20px;
+    }
+    
+    .feature-icon {
+        font-size: 36px;
+    }
+}
+
+/* Mobile Footer */
+@media (max-width: 768px) {
+    .footer {
+        padding: 40px 0 24px;
+    }
+    
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 32px;
+        text-align: center;
+    }
+    
+    .footer-brand {
+        margin-bottom: 16px;
+    }
+    
+    .footer-links {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+    
+    .footer-column h4 {
+        margin-bottom: 12px;
+    }
+}
+
+/* Mobile Legal Pages */
+@media (max-width: 768px) {
+    .legal-page {
+        padding: 24px 16px;
+    }
+    
+    .legal-page h1 {
+        font-size: 24px;
+    }
+    
+    .legal-page h2 {
+        font-size: 18px;
+    }
+    
+    .legal-nav-inner {
+        padding: 0 16px;
+    }
+}
+
+/* Mobile Personal Room Card */
+@media (max-width: 768px) {
+    .personal-room-card {
+        padding: 16px;
+    }
+    
+    .personal-room-link input {
+        font-size: 12px;
+    }
+}
+
+/* Mobile Room History */
+@media (max-width: 768px) {
+    .room-history-section h3 {
+        font-size: 14px;
+    }
+    
+    .history-item {
+        padding: 12px;
+    }
+    
+    .history-code {
+        font-size: 14px;
+    }
+}
+
+/* Touch-friendly improvements */
+@media (max-width: 768px) {
+    /* Larger touch targets */
+    .btn {
+        min-height: 44px;
+    }
+    
+    .sidebar-btn {
+        min-height: 48px;
+    }
+    
+    input, select, textarea {
+        min-height: 44px;
+    }
+    
+    /* Remove hover effects on touch */
+    @media (hover: none) {
+        .btn:hover {
+            transform: none;
+        }
+        
+        .sidebar-btn:hover {
+            background: var(--gray-50);
+        }
+    }
+}
+
+/* Subtitle overlay mobile */
+@media (max-width: 768px) {
+    .subtitle-overlay {
+        font-size: 14px;
+        padding: 8px 16px;
+        bottom: 60px;
+    }
+}
+
+/* Active session banner mobile */
+@media (max-width: 768px) {
+    .active-session-banner {
+        flex-direction: column;
+        gap: 8px;
+        padding: 12px 16px;
+        text-align: center;
+    }
+    
+    .active-session-banner .btn {
+        width: 100%;
+    }
+}
+
+/* Landscape phone adjustments */
+@media (max-width: 768px) and (orientation: landscape) {
+    .room-content-multiparty {
+        flex-direction: row;
+    }
+    
+    .main-area {
+        flex: 1;
+        height: auto;
+    }
+    
+    .room-sidebar {
+        width: 280px;
+        height: auto;
+    }
+    
+    .video-container {
+        min-height: 200px;
+    }
+}
+
+/* Very small screens */
+@media (max-width: 375px) {
+    .hero h1 {
+        font-size: 26px;
+    }
+    
+    .hero-stats {
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .control-btn {
+        padding: 8px 10px;
+    }
+    
+    .room-code {
+        font-size: 14px;
+    }
+}

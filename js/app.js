@@ -854,6 +854,28 @@
     // Event Bindings
     // ========================================
     function bindEvents() {
+        // Mobile sidebar toggle
+        const mobileSidebarToggle = document.getElementById('mobileSidebarToggle');
+        const mobileSidebarClose = document.getElementById('mobileSidebarClose');
+        const appSidebar = document.getElementById('appSidebar');
+        
+        mobileSidebarToggle?.addEventListener('click', () => {
+            appSidebar?.classList.add('mobile-open');
+        });
+        
+        mobileSidebarClose?.addEventListener('click', () => {
+            appSidebar?.classList.remove('mobile-open');
+        });
+        
+        // Close sidebar when clicking a sidebar button on mobile
+        document.querySelectorAll('.sidebar-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    appSidebar?.classList.remove('mobile-open');
+                }
+            });
+        });
+        
         // Room creation - new flow
         elements.createInviteBtn?.addEventListener('click', createInvite);
         elements.quickStartBtn?.addEventListener('click', createRoom);
