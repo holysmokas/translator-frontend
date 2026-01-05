@@ -6,6 +6,8 @@
     <title>Sign Up | Mamnoon.ai</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>">
+    <!-- EmailJS for signup notifications -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 </head>
 <body class="auth-page">
     <div class="auth-container">
@@ -112,6 +114,9 @@
                 const data = await response.json();
                 
                 if (response.ok && data.status === 'success') {
+                    // Send email notification (non-blocking)
+                    sendSignupNotification(name, email);
+                    
                     // Don't store user data yet - they need to verify email first
                     // Show verification message
                     successEl.innerHTML = `
@@ -138,6 +143,28 @@
                 submitBtn.innerHTML = '<span>Create Account</span>';
             }
         });
+        
+        // Send email notification to admin
+        function sendSignupNotification(name, email) {
+            // Using EmailJS - make sure to add the script
+            if (typeof emailjs !== 'undefined') {
+                emailjs.send(
+                    CONFIG.EMAILJS_SERVICE_ID,
+                    CONFIG.EMAILJS_TEMPLATE_SIGNUP || CONFIG.EMAILJS_TEMPLATE_ID,
+                    {
+                        to_email: 'babak@mamnoon.ai',
+                        user_name: name,
+                        user_email: email,
+                        signup_date: new Date().toLocaleString(),
+                        message: `New signup: ${name} (${email})`
+                    }
+                ).then(() => {
+                    console.log('✅ Signup notification sent');
+                }).catch((err) => {
+                    console.log('⚠️ Signup notification failed:', err);
+                });
+            }
+        }
     </script>
 </body>
 </html>
