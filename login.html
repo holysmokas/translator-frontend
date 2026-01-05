@@ -17,7 +17,7 @@
                     <span class="logo-text">Mamnoon.ai</span>
                 </a>
                 <h1>Welcome Back</h1>
-                <p>Log in to continue translating</p>
+                <p id="loginSubtitle">Log in to continue translating</p>
             </div>
 
             <form id="loginForm" class="auth-form">
@@ -58,6 +58,21 @@
         if (existingUser) {
             window.location.href = 'app.html';
         }
+        
+        // Check for plan parameter from signup flow
+        const urlParams = new URLSearchParams(window.location.search);
+        const planFromSignup = urlParams.get('plan');
+        
+        if (planFromSignup) {
+            const planLabels = {
+                'starter': 'Starter',
+                'professional': 'Professional', 
+                'business': 'Business',
+                'enterprise': 'Enterprise'
+            };
+            document.getElementById('loginSubtitle').textContent = 
+                `Log in to complete your ${planLabels[planFromSignup] || planFromSignup} subscription`;
+        }
 
         // Form submission
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
@@ -92,8 +107,16 @@
                         localStorage.setItem('profile', JSON.stringify(data.profile));
                     }
                     
-                    // Redirect to app
-                    window.location.href = 'app.html';
+                    // Check for pending plan - redirect to checkout
+                    const pendingPlan = data.profile?.pending_plan;
+                    if (pendingPlan && pendingPlan !== 'trial') {
+                        // User signed up with a paid plan - redirect to checkout
+                        submitBtn.innerHTML = '<span class="spinner"></span> Redirecting to checkout...';
+                        await redirectToCheckout(data.user.id, pendingPlan);
+                    } else {
+                        // No pending plan - go to app
+                        window.location.href = 'app.html';
+                    }
                 } else {
                     // Check if it's an email verification error
                     const errorMsg = data.detail || data.error || 'Invalid email or password';
@@ -119,6 +142,33 @@
                 submitBtn.innerHTML = '<span>Log In</span>';
             }
         });
+        
+        // Redirect to Stripe checkout for pending plan
+        async function redirectToCheckout(userId, plan) {
+            try {
+                const response = await fetch(`${CONFIG.API_BASE}/api/checkout/create`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        tier: plan
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.url) {
+                    window.location.href = data.url;
+                } else {
+                    // If checkout fails, just go to app
+                    console.error('Checkout redirect failed:', data);
+                    window.location.href = 'app.html';
+                }
+            } catch (error) {
+                console.error('Checkout error:', error);
+                window.location.href = 'app.html';
+            }
+        }
     </script>
 </body>
 </html>
