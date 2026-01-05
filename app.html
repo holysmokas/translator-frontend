@@ -118,6 +118,23 @@
                     <div class="history-loading">Loading...</div>
                 </div>
             </div>
+            
+            <!-- Personal Room Section (for paid users) -->
+            <div class="sidebar-section personal-room-sidebar" id="personalRoomCard" style="display: none;">
+                <div class="personal-room-header-sidebar">
+                    <h3>🔗 My Meeting Room</h3>
+                    <button class="btn-icon-small delete-room-btn" id="deletePersonalRoom" title="Delete personal room">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                    </button>
+                </div>
+                <div class="personal-room-link-sidebar">
+                    <input type="text" id="dashboardPersonalLink" readonly>
+                    <button class="btn btn-outline btn-sm" id="copyDashboardLink">Copy</button>
+                </div>
+                <button class="btn btn-success btn-sm btn-block" id="startPersonalRoom">
+                    🚀 Start My Room
+                </button>
+            </div>
         </aside>
 
         <!-- Main Content -->
@@ -141,21 +158,6 @@
                     </div>
                     <button class="btn btn-ghost" id="quickStartBtn">
                         ⚡ Quick Start (no invite)
-                    </button>
-                </div>
-                
-                <!-- Personal Room Card (for paid users) -->
-                <div class="personal-room-card-dashboard" id="personalRoomCard" style="display: none;">
-                    <div class="personal-room-header">
-                        <span class="icon">🔗</span>
-                        <h3>My Meeting Room</h3>
-                    </div>
-                    <div class="personal-room-link">
-                        <input type="text" id="dashboardPersonalLink" readonly>
-                        <button class="btn btn-outline btn-sm" id="copyDashboardLink">Copy</button>
-                    </div>
-                    <button class="btn btn-success" id="startPersonalRoom">
-                        🚀 Start My Room
                     </button>
                 </div>
                 
@@ -368,13 +370,17 @@
                         
                         <!-- Controls Bar -->
                         <div class="controls-bar" id="controlsBar">
-                            <button class="control-btn voice-btn" id="startVoiceBtn" title="Enable voice-to-text translation">
-                                <span class="control-icon">🗣️</span>
-                                <span class="control-label">Voice Off</span>
+                            <button class="control-btn voice-btn" id="startVoiceBtn" title="Start voice-to-text translation">
+                                <span class="control-icon">🎤</span>
+                                <span class="control-label">Start Speaking</span>
                             </button>
                             <button class="control-btn" id="toggleSubtitlesBtn" title="Toggle subtitles">
                                 <span class="control-icon">💬</span>
                                 <span class="control-label">Subtitles</span>
+                            </button>
+                            <button class="control-btn" id="toggleFullscreenBtn" title="Toggle fullscreen">
+                                <span class="control-icon">⛶</span>
+                                <span class="control-label">Fullscreen</span>
                             </button>
                             <button class="control-btn danger" id="endCallBtn" title="Leave room">
                                 <span class="control-icon">📞</span>

@@ -250,11 +250,11 @@ a:hover { color: var(--primary-dark); }
 .count-value { font-weight: 600; }
 
 /* Multi-party Room Layout */
-.room-content-multiparty { display: flex; gap: 16px; height: calc(100vh - 200px); }
+.room-content-multiparty { display: flex; gap: 16px; height: calc(100vh - 160px); }
 .main-area { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 
 /* Video Grid */
-.video-grid { flex: 1; display: grid; gap: 8px; background: #111; border-radius: var(--radius); padding: 8px; overflow: hidden; }
+.video-grid { flex: 1; display: grid; gap: 8px; background: #111; border-radius: var(--radius); padding: 8px; overflow: hidden; min-height: 400px; }
 .video-grid.participants-1 { grid-template-columns: 1fr; }
 .video-grid.participants-2 { grid-template-columns: repeat(2, 1fr); }
 .video-grid.participants-3 { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); }
@@ -266,8 +266,8 @@ a:hover { color: var(--primary-dark); }
 .video-grid.participants-8,
 .video-grid.participants-9 { grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); }
 
-.video-section { background: #000; border-radius: 8px; overflow: hidden; position: relative; }
-.video-section iframe { width: 100%; height: 100%; border: none; }
+.video-section { background: #000; border-radius: 8px; overflow: hidden; position: relative; min-height: 450px; }
+.video-section iframe { width: 100%; height: 100%; min-height: 450px; border: none; }
 
 .video-tile { background: #1a1a2e; border-radius: 8px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
 .video-tile video { width: 100%; height: 100%; object-fit: cover; }
@@ -456,6 +456,7 @@ a:hover { color: var(--primary-dark); }
     position: relative;
     width: 100%;
     height: 100%;
+    min-height: 450px;
     background: #000;
     border-radius: var(--radius);
     overflow: hidden;
@@ -464,6 +465,7 @@ a:hover { color: var(--primary-dark); }
 .video-container iframe {
     width: 100%;
     height: 100%;
+    min-height: 450px;
     border: none;
 }
 
@@ -1351,4 +1353,68 @@ a:hover { color: var(--primary-dark); }
 
 .personal-room-card-dashboard .btn-success {
     width: 100%;
+}
+
+/* Personal Room in Sidebar */
+.personal-room-sidebar {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.05));
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 8px;
+}
+
+.personal-room-header-sidebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.personal-room-header-sidebar h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+    margin: 0;
+}
+
+.personal-room-link-sidebar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.personal-room-link-sidebar input {
+    flex: 1;
+    padding: 8px 10px;
+    background: var(--gray-900);
+    border: 1px solid var(--gray-700);
+    border-radius: 6px;
+    color: white;
+    font-size: 11px;
+    font-family: monospace;
+    min-width: 0;
+}
+
+.btn-icon-small {
+    background: transparent;
+    border: none;
+    color: var(--gray-500);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.btn-icon-small:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.delete-room-btn:hover {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
 }
