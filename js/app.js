@@ -83,6 +83,11 @@
         welcomeState: document.getElementById('welcomeState'),
         roomState: document.getElementById('roomState'),
         
+        // Create Personal Room buttons
+        createPersonalRoomBtn: document.getElementById('createPersonalRoomBtn'),
+        createPersonalRoomSection: document.getElementById('createPersonalRoomSection'),
+        createPersonalRoomMain: document.getElementById('createPersonalRoomMain'),
+        
         // Active session banner
         activeSessionBanner: document.getElementById('activeSessionBanner'),
         activeSessionCode: document.getElementById('activeSessionCode'),
@@ -750,8 +755,11 @@
             const isActive = session.status === 'active';
             const status = isActive ? '🟢' : '⚪';
             
-            // Add end session button for active sessions
-            const endBtn = isActive ? `
+            // Add rejoin/end buttons for active sessions
+            const actionBtns = isActive ? `
+                <button class="rejoin-session-btn" onclick="rejoinFromHistory('${session.room_code}', '${session.id}')" title="Rejoin room">
+                    ↩️
+                </button>
                 <button class="end-session-btn" onclick="endStuckSession('${session.id}', '${session.room_code}')" title="End this session">
                     ✕
                 </button>
@@ -766,7 +774,7 @@
                     <div class="history-meta">
                         <span class="history-time">${timeAgo}</span>
                         <span class="history-duration">${duration}</span>
-                        ${endBtn}
+                        ${actionBtns}
                     </div>
                 </div>
             `;
@@ -774,6 +782,15 @@
         
         elements.roomHistory.innerHTML = html;
     }
+    
+    // Rejoin from history
+    window.rejoinFromHistory = async function(roomCode, sessionId) {
+        rejoinActiveSession({
+            room_code: roomCode,
+            session_id: sessionId,
+            remaining_minutes: 60
+        });
+    };
 
     // End stuck session (kill switch)
     window.endStuckSession = async function(sessionId, roomCode) {
@@ -788,7 +805,8 @@
         if (!confirmed) return;
         
         try {
-            const response = await fetch(`${CONFIG.API_BASE}/api/session/end/${sessionId}`, {
+            // Use the user's id to end session, not session id
+            const response = await fetch(`${CONFIG.API_BASE}/api/session/end/${state.user.id}`, {
                 method: 'POST'
             });
             
@@ -847,6 +865,10 @@
                 rejoinActiveSession(state.activeSession);
             }
         });
+        
+        // Create Personal Room buttons
+        elements.createPersonalRoomBtn?.addEventListener('click', createPersonalRoom);
+        elements.createPersonalRoomMain?.addEventListener('click', createPersonalRoom);
         
         // Room joining
         elements.joinRoomBtn?.addEventListener('click', () => showJoinModal());
@@ -1433,7 +1455,7 @@
                 state.hasPersonalRoom = true;
                 state.personalRoomCode = data.room_code;
                 
-                // Show personal room card
+                // Show personal room card in sidebar
                 const baseUrl = window.location.origin + window.location.pathname.replace('app.html', '');
                 const roomLink = `${baseUrl}join.html?code=${data.room_code}`;
                 
@@ -1443,28 +1465,63 @@
                 if (elements.personalRoomCard) {
                     elements.personalRoomCard.style.display = 'block';
                 }
+                
+                // Hide create buttons since room exists
+                hideCreatePersonalRoomButtons();
+                
             } else if (!data.upgrade_required) {
-                // User is on paid plan but doesn't have a personal room - auto-create one
-                await createPersonalRoom();
-            } else {
+                // User is on paid plan but doesn't have a personal room
+                // Show the "Create My Meeting Room" buttons
                 state.hasPersonalRoom = false;
+                showCreatePersonalRoomButtons();
+                
+                if (elements.personalRoomCard) {
+                    elements.personalRoomCard.style.display = 'none';
+                }
+            } else {
+                // User is on trial - hide everything
+                state.hasPersonalRoom = false;
+                hideCreatePersonalRoomButtons();
                 if (elements.personalRoomCard) {
                     elements.personalRoomCard.style.display = 'none';
                 }
             }
         } catch (error) {
             console.error('Failed to load personal room:', error);
+            hideCreatePersonalRoomButtons();
             if (elements.personalRoomCard) {
                 elements.personalRoomCard.style.display = 'none';
             }
         }
     }
     
+    function showCreatePersonalRoomButtons() {
+        if (elements.createPersonalRoomBtn) {
+            elements.createPersonalRoomBtn.style.display = 'flex';
+        }
+        if (elements.createPersonalRoomSection) {
+            elements.createPersonalRoomSection.style.display = 'block';
+        }
+    }
+    
+    function hideCreatePersonalRoomButtons() {
+        if (elements.createPersonalRoomBtn) {
+            elements.createPersonalRoomBtn.style.display = 'none';
+        }
+        if (elements.createPersonalRoomSection) {
+            elements.createPersonalRoomSection.style.display = 'none';
+        }
+    }
+    
     async function createPersonalRoom() {
+        showLoading('Creating your meeting room...');
+        
         try {
             const response = await fetch(`${CONFIG.API_BASE}/api/personal-room/create/${state.user.id}`, {
                 method: 'POST'
             });
+            
+            hideLoading();
             
             if (response.ok) {
                 const data = await response.json();
@@ -1481,10 +1538,18 @@
                     elements.personalRoomCard.style.display = 'block';
                 }
                 
+                // Hide create buttons now that room exists
+                hideCreatePersonalRoomButtons();
+                
                 showNotification('Personal meeting room created!', 'success');
+            } else {
+                const errData = await response.json();
+                showNotification(errData.detail?.message || 'Failed to create room', 'error');
             }
         } catch (error) {
+            hideLoading();
             console.error('Failed to create personal room:', error);
+            showNotification('Failed to create room', 'error');
         }
     }
 

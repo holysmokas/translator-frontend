@@ -909,12 +909,33 @@ a:hover { color: var(--primary-dark); }
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-left: 8px;
+    margin-left: 4px;
     transition: all 0.2s;
 }
 
 .end-session-btn:hover {
     background: #ef4444;
+    color: white;
+}
+
+.rejoin-session-btn {
+    background: rgba(34, 197, 94, 0.2);
+    border: none;
+    color: #22c55e;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 8px;
+    transition: all 0.2s;
+}
+
+.rejoin-session-btn:hover {
+    background: #22c55e;
     color: white;
 }
 
@@ -1155,6 +1176,27 @@ a:hover { color: var(--primary-dark); }
 
 .quick-start-divider span {
     padding: 0 16px;
+}
+
+/* Create Personal Room Section */
+.create-personal-room-section {
+    text-align: center;
+}
+
+.personal-room-hint {
+    font-size: 12px;
+    color: var(--gray-500);
+    margin-top: 8px;
+}
+
+.personal-room-btn {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(16, 185, 129, 0.1));
+    border: 1px dashed rgba(34, 197, 94, 0.3);
+}
+
+.personal-room-btn:hover {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(16, 185, 129, 0.2));
+    border-color: rgba(34, 197, 94, 0.5);
 }
 
 /* Pending Invites */

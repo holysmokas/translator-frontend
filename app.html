@@ -51,6 +51,10 @@
                     <span class="sidebar-btn-icon">🚪</span>
                     <span>Join Room</span>
                 </button>
+                <button class="sidebar-btn personal-room-btn" id="createPersonalRoomBtn" style="display: none;">
+                    <span class="sidebar-btn-icon">🔗</span>
+                    <span>Create My Meeting Room</span>
+                </button>
             </div>
 
             <div class="sidebar-section">
@@ -165,6 +169,18 @@
                             <span>Join Room</span>
                         </button>
                     </div>
+                    
+                    <!-- Create Personal Meeting Room (for paid users without one) -->
+                    <div class="create-personal-room-section" id="createPersonalRoomSection" style="display: none;">
+                        <div class="quick-start-divider">
+                            <span>or get your permanent room</span>
+                        </div>
+                        <button class="btn btn-success btn-lg" id="createPersonalRoomMain">
+                            🔗 Create My Meeting Room
+                        </button>
+                        <p class="personal-room-hint">One link that never expires - share anytime</p>
+                    </div>
+                    
                     <div class="quick-start-divider">
                         <span>or start immediately</span>
                     </div>
