@@ -1662,7 +1662,26 @@ a:hover { color: var(--primary-dark); }
         font-size: 24px;
     }
     
+    /* Hide desktop nav items */
     .nav-links, .nav-auth {
+        display: none !important;
+    }
+    
+    .nav-mobile-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        font-size: 24px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--gray-700);
+    }
+    
+    /* Mobile Menu Dropdown */
+    .nav-mobile-menu {
         display: none;
         position: absolute;
         top: 60px;
@@ -1670,37 +1689,46 @@ a:hover { color: var(--primary-dark); }
         right: 0;
         background: white;
         flex-direction: column;
-        padding: 16px;
+        padding: 8px 0;
         border-bottom: 1px solid var(--gray-200);
         box-shadow: var(--shadow-md);
+        z-index: 1001;
     }
     
-    .nav-links.active, .nav-auth.active {
+    .nav-mobile-menu.active {
         display: flex;
     }
     
-    .nav-links {
-        gap: 0;
-    }
-    
-    .nav-links a {
-        padding: 12px 0;
+    .nav-mobile-menu > a {
+        padding: 14px 24px;
+        color: var(--gray-700);
+        font-size: 16px;
+        font-weight: 500;
         border-bottom: 1px solid var(--gray-100);
     }
     
-    .nav-auth {
-        top: auto;
-        padding-top: 8px;
-        gap: 8px;
+    .nav-mobile-menu > a:hover {
+        background: var(--gray-50);
+        color: var(--primary);
     }
     
-    .nav-mobile-toggle {
+    .nav-mobile-auth {
         display: flex;
-        align-items: center;
+        flex-direction: column;
+        gap: 10px;
+        padding: 16px 24px;
+    }
+    
+    .nav-mobile-auth .btn {
+        width: 100%;
         justify-content: center;
-        width: 40px;
-        height: 40px;
-        font-size: 24px;
+    }
+}
+
+/* Hide mobile menu on desktop */
+@media (min-width: 769px) {
+    .nav-mobile-menu {
+        display: none !important;
     }
 }
 

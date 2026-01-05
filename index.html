@@ -27,6 +27,16 @@
             </div>
             <button class="nav-mobile-toggle" id="mobileToggle">☰</button>
         </div>
+        <!-- Mobile Menu Dropdown -->
+        <div class="nav-mobile-menu" id="mobileMenu">
+            <a href="#features">Features</a>
+            <a href="#pricing">Pricing</a>
+            <a href="#how-it-works">How It Works</a>
+            <div class="nav-mobile-auth">
+                <a href="login.html" class="btn btn-ghost btn-block">Log In</a>
+                <a href="signup.html" class="btn btn-primary btn-block">Start Free Trial</a>
+            </div>
+        </div>
     </nav>
 
     <!-- Hero Section -->
@@ -370,9 +380,21 @@
     <script src="js/config.js"></script>
     <script>
         // Mobile nav toggle
-        document.getElementById('mobileToggle').addEventListener('click', function() {
-            document.querySelector('.nav-links').classList.toggle('active');
-            document.querySelector('.nav-auth').classList.toggle('active');
+        const mobileToggle = document.getElementById('mobileToggle');
+        const mobileMenu = document.getElementById('mobileMenu');
+        
+        mobileToggle.addEventListener('click', function() {
+            mobileMenu.classList.toggle('active');
+            // Change hamburger to X
+            this.textContent = mobileMenu.classList.contains('active') ? '✕' : '☰';
+        });
+        
+        // Close menu when clicking a link
+        mobileMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('active');
+                mobileToggle.textContent = '☰';
+            });
         });
     </script>
 </body>
