@@ -9,10 +9,10 @@ const CONFIG = {
     
     // EmailJS Configuration
     // Sign up at https://www.emailjs.com/ to get these values
-    EMAILJS_PUBLIC_KEY: '_Q-BX_wJPt3QBMn0D',      // Replace with your EmailJS public key
-    EMAILJS_SERVICE_ID: 'service_7pyh79o',      // Replace with your EmailJS service ID
-    EMAILJS_TEMPLATE_ID: 'template_b82wc2e',    // Replace with your EmailJS template ID (for invites)
-    EMAILJS_TEMPLATE_SIGNUP: 'template_rl7bq3e'  // Template for signup notifications
+    EMAILJS_PUBLIC_KEY: 'YOUR_PUBLIC_KEY',      // Replace with your EmailJS public key
+    EMAILJS_SERVICE_ID: 'YOUR_SERVICE_ID',      // Replace with your EmailJS service ID
+    EMAILJS_TEMPLATE_ID: 'YOUR_TEMPLATE_ID',    // Replace with your EmailJS template ID (for invites)
+    EMAILJS_TEMPLATE_SIGNUP: 'YOUR_SIGNUP_TEMPLATE_ID'  // Template for signup notifications
 };
 
 const LANGUAGES = {
