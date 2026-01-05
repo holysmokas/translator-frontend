@@ -1162,10 +1162,13 @@
             elements.languageSelect.value = selectedLanguage;
         }
         
+        // Save the action before hiding (which clears pendingAction)
+        const actionToExecute = state.pendingAction;
+        
         hideLanguageModal();
         
         // Execute the pending action
-        switch (state.pendingAction) {
+        switch (actionToExecute) {
             case 'createInvite':
                 createInvite();
                 break;
@@ -1176,7 +1179,6 @@
                 showJoinModal();
                 break;
         }
-        state.pendingAction = null;
     }
     
     function getScheduledDateTime() {
