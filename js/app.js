@@ -812,10 +812,10 @@
             
             if (response.ok) {
                 showNotification(`Session ${roomCode} ended`, 'success');
-                // Reload history
-                await loadRoomHistory();
-                // Reload profile to update usage
-                await loadProfile();
+                // Reload page to reset everything
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
             } else {
                 const data = await response.json();
                 throw new Error(data.detail || 'Failed to end session');
@@ -1766,25 +1766,13 @@
         state.roomCode = null;
         state.sessionId = null;
         state.connected = false;
-        state.transcript = []; // Clear transcript
+        state.transcript = [];
         
-        // Reset UI
-        elements.roomState.style.display = 'none';
-        elements.welcomeState.style.display = 'flex';
-        elements.messagesContainer.innerHTML = '<div class="empty-messages"><p>💬 Messages will appear here</p></div>';
-        elements.videoSection.innerHTML = '<div class="video-placeholder"><div class="video-placeholder-icon">📹</div><p>Loading video...</p></div>';
-        
-        // Reset subtitle overlay reference
-        elements.subtitleOverlay = null;
-        
-        // Reset voice button state
-        if (elements.startVoiceBtn) {
-            elements.startVoiceBtn.classList.remove('active');
-            elements.startVoiceBtn.querySelector('.control-label').textContent = 'Start Speaking';
-        }
-        
-        // Reload profile to update usage
-        loadProfile();
+        // Clean reload of the page to reset everything properly
+        showNotification('Session ended', 'success');
+        setTimeout(() => {
+            window.location.reload();
+        }, 500);
     }
 
     function copyRoomCode() {
