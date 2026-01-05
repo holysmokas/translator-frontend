@@ -1913,27 +1913,40 @@ a:hover { color: var(--primary-dark); }
     .room-content-multiparty {
         flex-direction: column;
         height: auto;
-        min-height: calc(100vh - 200px);
+        min-height: calc(100vh - 140px);
+        gap: 8px;
+        padding: 8px;
     }
     
     .main-area {
         flex: none;
-        height: 50vh;
-        min-height: 300px;
+        height: auto;
+        min-height: 350px;
     }
     
     .room-sidebar {
         width: 100%;
-        height: 40vh;
-        min-height: 250px;
+        height: auto;
+        min-height: 280px;
+        max-height: 50vh;
     }
     
     .video-container {
-        min-height: 280px;
+        min-height: 320px;
+        height: 100%;
+        overflow: visible; /* Allow Daily controls to show */
     }
     
     .video-container iframe {
-        min-height: 280px;
+        min-height: 320px;
+        height: 100%;
+    }
+    
+    /* Video grid fills container */
+    .video-grid {
+        padding: 0;
+        gap: 0;
+        height: 100%;
     }
     
     /* Controls bar mobile */

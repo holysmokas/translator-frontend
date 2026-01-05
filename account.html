@@ -234,6 +234,46 @@
             }
         }
         
+        /* Mobile back button */
+        .back-btn-mobile {
+            display: none;
+            color: var(--primary-light);
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            padding: 8px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .back-btn-mobile {
+                display: block;
+            }
+            
+            .account-nav .nav-container {
+                padding: 0 16px;
+            }
+            
+            .account-nav .nav-links {
+                display: none;
+            }
+            
+            .account-nav .nav-logo .logo-text {
+                display: none;
+            }
+            
+            .account-container {
+                padding: 16px;
+            }
+            
+            .account-header h1 {
+                font-size: 24px;
+            }
+            
+            .account-section {
+                padding: 16px;
+            }
+        }
+        
         .usage-item {
             background: var(--gray-800);
             padding: 20px;
@@ -513,6 +553,7 @@
     <!-- Navigation -->
     <nav class="account-nav">
         <div class="nav-container">
+            <a href="app.html" class="back-btn-mobile">← Back</a>
             <a href="index.html" class="nav-logo">
                 <span class="logo-icon">🌍</span>
                 <span class="logo-text">Mamnoon.ai</span>
