@@ -139,6 +139,18 @@
 
         <!-- Main Content -->
         <main class="app-main">
+            <!-- Active Session Banner -->
+            <div class="active-session-banner" id="activeSessionBanner" style="display: none;">
+                <div class="session-info">
+                    <span class="session-icon">🔴</span>
+                    <span class="session-text">You have an active room: <strong id="activeSessionCode">---</strong></span>
+                    <span class="session-time" id="activeSessionTime"></span>
+                </div>
+                <button class="btn btn-success btn-sm" id="returnToRoomBtn">
+                    ↩️ Return to Room
+                </button>
+            </div>
+            
             <!-- Welcome State -->
             <div class="app-state" id="welcomeState">
                 <div class="welcome-content">

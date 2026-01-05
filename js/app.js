@@ -58,6 +58,9 @@
         allMuted: false,
         roomLocked: false,
         
+        // Active session (for rejoin)
+        activeSession: null,
+        
         // Participants tracking
         participants: new Map() // id -> {name, language, isMuted, isSpeaking}
     };
@@ -79,6 +82,13 @@
         languageSelect: document.getElementById('languageSelect'),
         welcomeState: document.getElementById('welcomeState'),
         roomState: document.getElementById('roomState'),
+        
+        // Active session banner
+        activeSessionBanner: document.getElementById('activeSessionBanner'),
+        activeSessionCode: document.getElementById('activeSessionCode'),
+        activeSessionTime: document.getElementById('activeSessionTime'),
+        returnToRoomBtn: document.getElementById('returnToRoomBtn'),
+        
         joinModal: document.getElementById('joinModal'),
         closeJoinModal: document.getElementById('closeJoinModal'),
         joinRoomCode: document.getElementById('joinRoomCode'),
@@ -259,6 +269,9 @@
         
         // Load profile and usage
         await loadProfile();
+        
+        // Check for active session first
+        await checkActiveSession();
         
         // Load room history
         await loadRoomHistory();
@@ -828,6 +841,13 @@
         elements.quickStartBtn?.addEventListener('click', createRoom);
         elements.createRoomBtn?.addEventListener('click', createRoom);
         
+        // Return to active session
+        elements.returnToRoomBtn?.addEventListener('click', () => {
+            if (state.activeSession) {
+                rejoinActiveSession(state.activeSession);
+            }
+        });
+        
         // Room joining
         elements.joinRoomBtn?.addEventListener('click', () => showJoinModal());
         elements.welcomeJoinBtn?.addEventListener('click', () => showJoinModal());
@@ -1298,6 +1318,106 @@
     };
 
     // ========================================
+    // Active Session Recovery
+    // ========================================
+    async function checkActiveSession() {
+        if (state.user.isGuest) return;
+        
+        try {
+            const response = await fetch(`${CONFIG.API_BASE}/api/session/active/${state.user.id}`);
+            const data = await response.json();
+            
+            if (data.has_active_session && data.room_code) {
+                // Store active session data
+                state.activeSession = data;
+                
+                // Show the persistent banner
+                showActiveSessionBanner(data);
+                
+                // Also show dialog on first load
+                const shouldRejoin = await showConfirm({
+                    title: 'Active Session Found',
+                    message: `You have an active room: ${data.room_code}. Would you like to rejoin?`,
+                    icon: '🔄',
+                    confirmText: 'Rejoin Room',
+                    cancelText: 'Stay Here'
+                });
+                
+                if (shouldRejoin) {
+                    rejoinActiveSession(data);
+                }
+                // If they click "Stay Here", banner remains visible
+            } else {
+                hideActiveSessionBanner();
+            }
+        } catch (error) {
+            console.error('Failed to check active session:', error);
+        }
+    }
+    
+    function showActiveSessionBanner(sessionData) {
+        if (!elements.activeSessionBanner) return;
+        
+        elements.activeSessionCode.textContent = sessionData.room_code;
+        
+        if (sessionData.remaining_minutes) {
+            const mins = Math.floor(sessionData.remaining_minutes);
+            elements.activeSessionTime.textContent = `${mins} min remaining`;
+        } else {
+            elements.activeSessionTime.textContent = '';
+        }
+        
+        elements.activeSessionBanner.style.display = 'flex';
+    }
+    
+    function hideActiveSessionBanner() {
+        if (elements.activeSessionBanner) {
+            elements.activeSessionBanner.style.display = 'none';
+        }
+        state.activeSession = null;
+    }
+    
+    async function rejoinActiveSession(sessionData) {
+        showLoading('Rejoining room...');
+        
+        try {
+            // Clear any stale state
+            state.participants.clear();
+            state.transcript = [];
+            
+            // Set room info
+            state.roomCode = sessionData.room_code;
+            state.sessionId = sessionData.session_id;
+            state.maxMinutes = sessionData.remaining_minutes || 60;
+            
+            // Hide the banner since we're rejoining
+            hideActiveSessionBanner();
+            
+            // Get video URL
+            const response = await fetch(`${CONFIG.API_BASE}/api/room/${sessionData.room_code}/rejoin`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: state.user.id })
+            });
+            
+            const data = await response.json();
+            
+            hideLoading();
+            
+            if (response.ok && data.video_url) {
+                connectWebSocket(data.video_url);
+            } else {
+                showNotification('Could not rejoin room', 'error');
+                // Re-show banner if rejoin failed
+                if (sessionData) showActiveSessionBanner(sessionData);
+            }
+        } catch (error) {
+            hideLoading();
+            showNotification('Failed to rejoin', 'error');
+        }
+    }
+
+    // ========================================
     // Personal Room Functions
     // ========================================
     async function loadPersonalRoom() {
@@ -1307,6 +1427,8 @@
             const response = await fetch(`${CONFIG.API_BASE}/api/personal-room/${state.user.id}`);
             const data = await response.json();
             
+            console.log('Personal room data:', data); // Debug
+            
             if (data.has_personal_room) {
                 state.hasPersonalRoom = true;
                 state.personalRoomCode = data.room_code;
@@ -1315,15 +1437,54 @@
                 const baseUrl = window.location.origin + window.location.pathname.replace('app.html', '');
                 const roomLink = `${baseUrl}join.html?code=${data.room_code}`;
                 
-                elements.dashboardPersonalLink.value = roomLink;
-                elements.personalRoomCard.style.display = 'block';
+                if (elements.dashboardPersonalLink) {
+                    elements.dashboardPersonalLink.value = roomLink;
+                }
+                if (elements.personalRoomCard) {
+                    elements.personalRoomCard.style.display = 'block';
+                }
+            } else if (!data.upgrade_required) {
+                // User is on paid plan but doesn't have a personal room - auto-create one
+                await createPersonalRoom();
             } else {
                 state.hasPersonalRoom = false;
-                elements.personalRoomCard.style.display = 'none';
+                if (elements.personalRoomCard) {
+                    elements.personalRoomCard.style.display = 'none';
+                }
             }
         } catch (error) {
             console.error('Failed to load personal room:', error);
-            elements.personalRoomCard.style.display = 'none';
+            if (elements.personalRoomCard) {
+                elements.personalRoomCard.style.display = 'none';
+            }
+        }
+    }
+    
+    async function createPersonalRoom() {
+        try {
+            const response = await fetch(`${CONFIG.API_BASE}/api/personal-room/create/${state.user.id}`, {
+                method: 'POST'
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                state.hasPersonalRoom = true;
+                state.personalRoomCode = data.room_code;
+                
+                const baseUrl = window.location.origin + window.location.pathname.replace('app.html', '');
+                const roomLink = `${baseUrl}join.html?code=${data.room_code}`;
+                
+                if (elements.dashboardPersonalLink) {
+                    elements.dashboardPersonalLink.value = roomLink;
+                }
+                if (elements.personalRoomCard) {
+                    elements.personalRoomCard.style.display = 'block';
+                }
+                
+                showNotification('Personal meeting room created!', 'success');
+            }
+        } catch (error) {
+            console.error('Failed to create personal room:', error);
         }
     }
 
