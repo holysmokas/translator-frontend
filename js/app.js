@@ -54,6 +54,10 @@
         personalRoomCode: null,
         hasPersonalRoom: false,
         
+        // Host controls state
+        allMuted: false,
+        roomLocked: false,
+        
         // Participants tracking
         participants: new Map() // id -> {name, language, isMuted, isSpeaking}
     };
@@ -160,11 +164,14 @@
         controlsBar: document.getElementById('controlsBar'),
         toggleMicBtn: document.getElementById('toggleMicBtn'),
         toggleVideoBtn: document.getElementById('toggleVideoBtn'),
-        toggleSubtitlesBtn: document.getElementById('toggleSubtitlesBtn'),
         toggleFullscreenBtn: document.getElementById('toggleFullscreenBtn'),
         startVoiceBtn: document.getElementById('startVoiceBtn'),
         endCallBtn: document.getElementById('endCallBtn'),
         unreadBadge: document.getElementById('unreadBadge'),
+        transcriptBtn: document.getElementById('transcriptBtn'),
+        transcriptMenu: document.getElementById('transcriptMenu'),
+        downloadTranscriptTxt: document.getElementById('downloadTranscriptTxt'),
+        downloadTranscriptJson: document.getElementById('downloadTranscriptJson'),
         
         // Speech elements
         subtitleOverlay: null
@@ -626,13 +633,12 @@
         
         const langInfo = LANGUAGES[senderLang] || { name: senderLang, flag: '🌐' };
         
-        // Create subtitle element
+        // Create clean subtitle element - only show translated text
         const subtitle = document.createElement('div');
         subtitle.className = 'subtitle-text received';
         subtitle.innerHTML = `
-            <div class="subtitle-sender">${escapeHtml(sender)} ${langInfo.flag}</div>
+            <div class="subtitle-sender">${langInfo.flag} ${escapeHtml(sender)}</div>
             <div class="subtitle-main">${escapeHtml(text)}</div>
-            <div class="subtitle-original">${escapeHtml(originalText)}</div>
         `;
         
         // Clear old subtitles and show new one
@@ -640,13 +646,13 @@
         elements.subtitleOverlay.appendChild(subtitle);
         elements.subtitleOverlay.style.display = 'block';
         
-        // Auto-hide after 8 seconds
+        // Auto-hide after 6 seconds
         setTimeout(() => {
             if (subtitle.parentNode === elements.subtitleOverlay) {
                 subtitle.classList.add('fade-out');
                 setTimeout(() => subtitle.remove(), 500);
             }
-        }, 8000);
+        }, 6000);
     }
 
     // ========================================
@@ -945,9 +951,19 @@
         
         // Control bar buttons
         elements.startVoiceBtn?.addEventListener('click', toggleListening);
-        elements.toggleSubtitlesBtn?.addEventListener('click', toggleSubtitles);
         elements.toggleFullscreenBtn?.addEventListener('click', toggleFullscreen);
         elements.endCallBtn?.addEventListener('click', leaveRoom);
+        
+        // Transcript dropdown
+        elements.transcriptBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            elements.transcriptMenu?.classList.toggle('show');
+        });
+        elements.downloadTranscriptTxt?.addEventListener('click', () => downloadTranscript('txt'));
+        elements.downloadTranscriptJson?.addEventListener('click', () => downloadTranscript('json'));
+        document.addEventListener('click', () => {
+            elements.transcriptMenu?.classList.remove('show');
+        });
     }
 
     // ========================================
@@ -1714,15 +1730,75 @@ END:VCALENDAR`;
             timestamp: new Date().toISOString(),
             ...entry
         });
+        
+        // Also add to conversation sidebar if it's a message
+        if (entry.type === 'sent' || entry.type === 'received' || entry.type === 'voice') {
+            addToConversationSidebar(entry);
+        }
+    }
+    
+    function addToConversationSidebar(entry) {
+        const chatMessages = document.getElementById('chatMessages');
+        if (!chatMessages) return;
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'chat-message';
+        
+        const isVoice = entry.type === 'voice' || entry.isVoice;
+        const icon = isVoice ? '🎤' : '💬';
+        
+        if (entry.type === 'sent') {
+            messageDiv.classList.add('sent');
+            messageDiv.innerHTML = `
+                <div class="message-header">
+                    <span class="message-icon">${icon}</span>
+                    <span class="message-sender">You</span>
+                    <span class="message-time">${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+                <div class="message-text">${entry.text}</div>
+            `;
+        } else if (entry.type === 'received' || entry.type === 'voice') {
+            messageDiv.classList.add('received');
+            const displayText = entry.translatedText || entry.text;
+            messageDiv.innerHTML = `
+                <div class="message-header">
+                    <span class="message-icon">${icon}</span>
+                    <span class="message-sender">${entry.sender || 'Unknown'}</span>
+                    <span class="message-time">${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+                <div class="message-text">${displayText}</div>
+            `;
+        }
+        
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // Update unread badge if not on chat tab
+        const chatTab = document.querySelector('.sidebar-tab[data-tab="chat"]');
+        if (chatTab && !chatTab.classList.contains('active')) {
+            elements.unreadBadge.style.display = 'inline';
+        }
     }
 
-    function downloadTranscript() {
+    function downloadTranscript(format = 'txt') {
         if (state.transcript.length === 0) {
             showNotification('No messages to download yet', 'info');
             return;
         }
         
+        // Close dropdown
+        elements.transcriptMenu?.classList.remove('show');
+        
         const now = new Date();
+        
+        if (format === 'json') {
+            downloadTranscriptJSON(now);
+        } else {
+            downloadTranscriptTXT(now);
+        }
+    }
+    
+    function downloadTranscriptTXT(now) {
         const dateStr = now.toLocaleDateString('en-US', { 
             year: 'numeric', month: 'long', day: 'numeric' 
         });
@@ -1730,12 +1806,15 @@ END:VCALENDAR`;
             hour: '2-digit', minute: '2-digit' 
         });
         
+        // Get participant list
+        const participants = Array.from(state.participants.values()).map(p => p.name).join(', ');
+        
         let content = `MAMNOON.AI TRANSLATION TRANSCRIPT
 ================================
 Room: ${state.roomCode}
 Date: ${dateStr}
 Time: ${timeStr}
-Participants: ${state.user.name}
+Participants: ${participants}
 ================================
 
 `;
@@ -1745,13 +1824,15 @@ Participants: ${state.user.name}
                 hour: '2-digit', minute: '2-digit', second: '2-digit'
             });
             
+            const icon = entry.isVoice ? '[VOICE]' : '[TEXT]';
+            
             if (entry.type === 'system') {
                 content += `[${time}] --- ${entry.message} ---\n\n`;
             } else if (entry.type === 'sent') {
-                content += `[${time}] ${state.user.name} (${entry.language?.toUpperCase() || 'EN'}):\n`;
+                content += `[${time}] ${icon} ${state.user.name} (${entry.language?.toUpperCase() || 'EN'}):\n`;
                 content += `  "${entry.text}"\n\n`;
-            } else if (entry.type === 'received') {
-                content += `[${time}] ${entry.sender} (${entry.senderLanguage?.toUpperCase() || '??'}):\n`;
+            } else if (entry.type === 'received' || entry.type === 'voice') {
+                content += `[${time}] ${icon} ${entry.sender} (${entry.senderLanguage?.toUpperCase() || '??'}):\n`;
                 content += `  Original: "${entry.originalText}"\n`;
                 content += `  Translated: "${entry.translatedText}"\n\n`;
             }
@@ -1771,7 +1852,68 @@ Generated by Mamnoon.ai
         link.click();
         document.body.removeChild(link);
         
-        showNotification('Transcript downloaded!', 'success');
+        showNotification('Transcript (TXT) downloaded!', 'success');
+    }
+    
+    function downloadTranscriptJSON(now) {
+        // Build participant list
+        const participants = [];
+        state.participants.forEach((p, id) => {
+            participants.push({
+                id: id,
+                name: p.name,
+                language: p.language || 'en',
+                isHost: p.isHost || false
+            });
+        });
+        
+        // Build messages array
+        const messages = state.transcript.filter(e => e.type !== 'system').map(entry => {
+            const msg = {
+                timestamp: entry.timestamp,
+                type: entry.isVoice ? 'voice' : 'text',
+                speaker_name: entry.type === 'sent' ? state.user.name : entry.sender,
+                original_language: entry.type === 'sent' ? state.myLanguage : entry.senderLanguage,
+                original_text: entry.type === 'sent' ? entry.text : entry.originalText
+            };
+            
+            // Add translations if available
+            if (entry.translatedText) {
+                msg.translations = {};
+                msg.translations[state.myLanguage] = entry.translatedText;
+            }
+            
+            return msg;
+        });
+        
+        const jsonData = {
+            session_id: state.sessionId || state.roomCode,
+            room_code: state.roomCode,
+            date: now.toISOString(),
+            duration_minutes: state.maxMinutes ? (state.maxMinutes - Math.floor(state.remainingTime / 60)) : null,
+            host: {
+                id: state.user.id,
+                name: state.user.name,
+                language: state.myLanguage
+            },
+            participants: participants,
+            messages: messages,
+            metadata: {
+                platform: 'Mamnoon.ai',
+                version: CONFIG.VERSION,
+                export_format: '1.0'
+            }
+        };
+        
+        const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `transcript-${state.roomCode}-${now.toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showNotification('Transcript (JSON) downloaded!', 'success');
     }
 
     // ========================================
@@ -1820,7 +1962,7 @@ Generated by Mamnoon.ai
         elements.roomState.style.display = 'block';
         elements.activeRoomCode.textContent = state.roomCode;
         
-        // Create video container with subtitle overlay
+        // Create video container with subtitle overlay and controls
         const videoContainer = document.createElement('div');
         videoContainer.className = 'video-container';
         videoContainer.innerHTML = `
@@ -1846,11 +1988,36 @@ Generated by Mamnoon.ai
         elements.videoSection.innerHTML = '';
         elements.videoSection.appendChild(videoContainer);
         
-        // Store subtitle overlay reference
+        // Store subtitle overlay reference and ensure it's visible by default
         elements.subtitleOverlay = document.getElementById('subtitleOverlay');
+        if (elements.subtitleOverlay) {
+            elements.subtitleOverlay.style.display = 'block';
+        }
         
-        // Clear any stale participants from previous sessions and initialize with self
+        // COMPLETE STATE RESET - prevent ghost participants
         state.participants.clear();
+        state.transcript = [];
+        state.allMuted = false;
+        state.roomLocked = false;
+        
+        // Clear chat messages in sidebar
+        const chatMessages = document.getElementById('chatMessages');
+        if (chatMessages) {
+            chatMessages.innerHTML = '';
+        }
+        
+        // Reset host control buttons
+        const muteBtn = document.querySelector('.host-control-btn[onclick*="muteAll"]');
+        if (muteBtn) {
+            muteBtn.innerHTML = '🔇 <span>Mute All</span>';
+        }
+        const lockBtn = document.getElementById('lockRoomBtn');
+        if (lockBtn) {
+            lockBtn.classList.remove('active');
+            lockBtn.innerHTML = '🔓 <span>Lock Room</span>';
+        }
+        
+        // Initialize with self
         state.participants.set(state.user.id, {
             name: state.user.name || 'You',
             language: state.myLanguage,
@@ -1972,28 +2139,14 @@ Generated by Mamnoon.ai
         }
     }
     
-    function toggleSubtitles() {
-        const btn = elements.toggleSubtitlesBtn;
-        if (!btn) return;
-        
-        btn.classList.toggle('active');
-        const isOn = btn.classList.contains('active');
-        
-        // Toggle subtitle overlay visibility
-        if (elements.subtitleOverlay) {
-            elements.subtitleOverlay.style.display = isOn ? 'block' : 'none';
-        }
-        
-        showNotification(isOn ? 'Subtitles on' : 'Subtitles off', 'info');
-    }
-    
     function toggleFullscreen() {
         const btn = elements.toggleFullscreenBtn;
-        const videoContainer = document.querySelector('.video-container') || elements.videoSection;
+        // Use main-area to include both video and control bar
+        const mainArea = document.querySelector('.main-area');
         
         if (!document.fullscreenElement) {
             // Enter fullscreen
-            const target = videoContainer || document.documentElement;
+            const target = mainArea || document.querySelector('.video-container') || document.documentElement;
             if (target.requestFullscreen) {
                 target.requestFullscreen();
             } else if (target.webkitRequestFullscreen) {
@@ -2003,7 +2156,7 @@ Generated by Mamnoon.ai
             }
             if (btn) {
                 btn.classList.add('active');
-                btn.querySelector('.control-label').textContent = 'Exit Fullscreen';
+                btn.querySelector('.control-label').textContent = 'Exit';
             }
         } else {
             // Exit fullscreen
@@ -2027,7 +2180,7 @@ Generated by Mamnoon.ai
         if (btn) {
             if (document.fullscreenElement) {
                 btn.classList.add('active');
-                btn.querySelector('.control-label').textContent = 'Exit Fullscreen';
+                btn.querySelector('.control-label').textContent = 'Exit';
             } else {
                 btn.classList.remove('active');
                 btn.querySelector('.control-label').textContent = 'Fullscreen';
@@ -2115,24 +2268,35 @@ Generated by Mamnoon.ai
         showNotification(`${participantName} removed from room`, 'info');
     };
     
-    // Mute all participants (host only)
+    // Mute/Unmute all participants (host only)
     window.muteAllParticipants = function() {
+        // Toggle the mute state
+        state.allMuted = !state.allMuted;
+        
         if (state.ws && state.ws.readyState === WebSocket.OPEN) {
             state.ws.send(JSON.stringify({
                 type: 'host_action',
-                action: 'mute_all'
+                action: state.allMuted ? 'mute_all' : 'unmute_all'
             }));
         }
         
         // Update all non-host participants
         for (const [id, p] of state.participants) {
             if (id !== state.user.id) {
-                p.isMuted = true;
+                p.isMuted = state.allMuted;
             }
         }
         updateParticipantsUI();
         
-        showNotification('All participants muted', 'info');
+        // Update button text
+        const muteBtn = document.querySelector('.host-control-btn[onclick*="muteAll"]');
+        if (muteBtn) {
+            muteBtn.innerHTML = state.allMuted ? 
+                '🔊 <span>Unmute All</span>' : 
+                '🔇 <span>Mute All</span>';
+        }
+        
+        showNotification(state.allMuted ? 'All participants muted' : 'All participants unmuted', 'info');
     };
     
     // Lock/unlock room (host only)

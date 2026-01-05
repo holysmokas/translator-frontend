@@ -351,7 +351,13 @@
                         <span class="count-icon">👥</span>
                         <span class="count-value">1</span>
                     </div>
-                    <button class="btn btn-outline btn-sm" id="downloadTranscript" title="Download transcript">📝 Transcript</button>
+                    <div class="transcript-dropdown">
+                        <button class="btn btn-outline btn-sm" id="transcriptBtn" title="Download transcript">📝 Transcript ▾</button>
+                        <div class="transcript-menu" id="transcriptMenu">
+                            <button class="transcript-option" id="downloadTranscriptTxt">📄 Download TXT</button>
+                            <button class="transcript-option" id="downloadTranscriptJson">📊 Download JSON (AI-ready)</button>
+                        </div>
+                    </div>
                     <button class="btn btn-danger btn-sm" id="leaveRoomBtn">Leave</button>
                 </div>
 
@@ -374,10 +380,6 @@
                                 <span class="control-icon">🎤</span>
                                 <span class="control-label">Start Speaking</span>
                             </button>
-                            <button class="control-btn" id="toggleSubtitlesBtn" title="Toggle subtitles">
-                                <span class="control-icon">💬</span>
-                                <span class="control-label">Subtitles</span>
-                            </button>
                             <button class="control-btn" id="toggleFullscreenBtn" title="Toggle fullscreen">
                                 <span class="control-icon">⛶</span>
                                 <span class="control-label">Fullscreen</span>
@@ -389,7 +391,7 @@
                         </div>
                     </div>
                     
-                    <!-- Sidebar: Participants + Chat -->
+                    <!-- Sidebar: Participants + Conversation -->
                     <div class="room-sidebar" id="roomSidebar">
                         <!-- Sidebar Tabs -->
                         <div class="sidebar-tabs">
@@ -397,7 +399,7 @@
                                 👥 Participants <span class="tab-count" id="tabParticipantCount">1</span>
                             </button>
                             <button class="sidebar-tab" data-tab="chat">
-                                💬 Chat <span class="tab-badge" id="unreadBadge" style="display:none;">●</span>
+                                💬 Conversation <span class="tab-badge" id="unreadBadge" style="display:none;">●</span>
                             </button>
                         </div>
                         
