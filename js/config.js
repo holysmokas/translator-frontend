@@ -7,12 +7,6 @@ const CONFIG = {
     WS_BASE: 'wss://translation-server-production-d487.up.railway.app',
     VERSION: '2.3.0',
     
-    // EmailJS Configuration
-    // Sign up at https://www.emailjs.com/ to get these values
-    EMAILJS_PUBLIC_KEY: 'YOUR_PUBLIC_KEY',      // Replace with your EmailJS public key
-    EMAILJS_SERVICE_ID: 'YOUR_SERVICE_ID',      // Replace with your EmailJS service ID
-    EMAILJS_TEMPLATE_ID: 'YOUR_TEMPLATE_ID',    // Replace with your EmailJS template ID (for invites)
-    EMAILJS_TEMPLATE_SIGNUP: 'YOUR_SIGNUP_TEMPLATE_ID'  // Template for signup notifications
 };
 
 const LANGUAGES = {
