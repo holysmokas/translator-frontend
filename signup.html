@@ -6,8 +6,6 @@
     <title>Sign Up | Mamnoon.ai</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>">
-    <!-- EmailJS for signup notifications -->
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         .selected-plan {
             display: flex;
@@ -90,11 +88,6 @@
 
     <script src="js/config.js"></script>
     <script>
-        // Initialize EmailJS
-        if (typeof emailjs !== 'undefined' && CONFIG.EMAILJS_PUBLIC_KEY) {
-            emailjs.init(CONFIG.EMAILJS_PUBLIC_KEY);
-        }
-        
         // Get plan from URL
         const urlParams = new URLSearchParams(window.location.search);
         const selectedPlan = urlParams.get('plan') || 'trial';
@@ -206,25 +199,23 @@
             }
         });
         
-        // Send email notification to admin
+        // Send email notification to admin via Resend backend
         function sendSignupNotification(name, email, plan) {
-            if (typeof emailjs !== 'undefined' && CONFIG.EMAILJS_SERVICE_ID && CONFIG.EMAILJS_SERVICE_ID !== 'YOUR_SERVICE_ID') {
-                emailjs.send(
-                    CONFIG.EMAILJS_SERVICE_ID,
-                    CONFIG.EMAILJS_TEMPLATE_SIGNUP || CONFIG.EMAILJS_TEMPLATE_ID,
-                    {
-                        to_email: 'holysmokasthatscheap@gmail.com',
-                        user_name: name,
-                        user_email: email,
-                        signup_date: new Date().toLocaleString(),
-                        message: `New signup: ${name} (${email}) - Plan: ${plan}`
-                    }
-                ).then(() => {
+            fetch(`${CONFIG.API_BASE}/api/email/signup-notification`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_name: name,
+                    user_email: email,
+                    plan: plan
+                })
+            }).then(response => {
+                if (response.ok) {
                     console.log('✅ Signup notification sent');
-                }).catch((err) => {
-                    console.log('⚠️ Signup notification failed:', err);
-                });
-            }
+                }
+            }).catch(err => {
+                console.log('⚠️ Signup notification failed:', err);
+            });
         }
     </script>
 </body>
