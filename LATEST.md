@@ -1,5 +1,5 @@
 # Mamnoon.ai - Latest Documentation
-**Last Updated:** January 5, 2025
+**Last Updated:** January 6, 2025
 
 ---
 
@@ -29,20 +29,18 @@
 | **Video** | Daily.co WebRTC |
 | **Translation** | Azure Translator API |
 | **Speech-to-Text** | Azure Speech SDK |
-| **Email (Invites)** | EmailJS |
+| **Email** | Resend (invites + signup notifications) |
 | **Signup Tracking** | Google Sheets webhook |
 
 ### Database Schema (Supabase)
 
 ```
-profiles          - User profiles, subscription tier, Stripe customer ID
+profiles          - User profiles, subscription tier, Stripe customer ID, personal_room_code, pending_plan
 sessions          - Room sessions (active/ended)
 usage             - Monthly usage tracking per user
 pending_invites   - Email invites waiting to be accepted
 tier_limits       - Plan configuration (rooms, minutes, participants)
 ```
-
-**Note:** `pending_plan` column added to `profiles` for checkout flow after signup.
 
 ---
 
@@ -69,12 +67,12 @@ Enterprise:   price_1SjGjgBBOVyvZcr43pGNnxA3
 ## ✅ Features Completed
 
 ### Core Functionality
-- [x] Real-time speech-to-text translation (42 languages)
+- [x] Real-time speech-to-text translation (42+ languages)
 - [x] Video calling with Daily.co integration
 - [x] Text chat with translation
-- [x] Subtitle overlay on video (translated text only)
-- [x] Unified conversation sidebar (voice 🎤 + text 💬 messages)
-- [x] Transcript export (TXT + JSON for AI training)
+- [x] Subtitle overlay on video
+- [x] Unified conversation sidebar (voice 🎤 + text 💬)
+- [x] Transcript export (TXT + JSON)
 - [x] Guest join via link (no account needed)
 
 ### User Management
@@ -93,6 +91,7 @@ Enterprise:   price_1SjGjgBBOVyvZcr43pGNnxA3
 - [x] Active session recovery (rejoin after disconnect)
 - [x] Host controls (mute all, lock room, remove participant)
 - [x] Participant list with languages shown
+- [x] Language selection prompt before actions
 
 ### Payments & Billing
 - [x] Stripe Checkout integration
@@ -103,15 +102,17 @@ Enterprise:   price_1SjGjgBBOVyvZcr43pGNnxA3
 - [x] `pending_plan` stored for post-verification checkout redirect
 
 ### Invite System
-- [x] Pre-invite flow (send before room created)
-- [x] EmailJS integration for invite emails
+- [x] Pre-invite flow (send before starting room)
+- [x] Resend email integration for invite emails
 - [x] Invite link with room code
 - [x] Pending invites dashboard
+- [x] Share via WhatsApp, Telegram, Copy Link, Calendar
+- [x] Cancel invite properly deletes pending reservation
 
 ### Admin & Tracking
 - [x] Google Sheets webhook for signup logging
+- [x] Resend email notification on new signups (to holysmokasthatscheap@gmail.com)
 - [x] Signup captures: name, email, selected plan, timestamp
-- [x] EmailJS notification on new signups
 
 ### Legal & Compliance
 - [x] Privacy Policy page
@@ -120,25 +121,35 @@ Enterprise:   price_1SjGjgBBOVyvZcr43pGNnxA3
 - [x] GDPR Compliance page
 - [x] Footer links on landing page
 
-### UI/UX
-- [x] Dark theme throughout
-- [x] Fullscreen mode with controls visible
-- [x] Mute all toggle (state preserved)
-- [x] Ghost participant cleanup on room start
-- [x] Page reload on session end (clean state)
-- [x] Back to home links on auth pages
-- [x] "Create My Meeting Room" button for paid users without one
+### Mobile Responsive (NEW - Jan 6)
+- [x] Mobile navigation with hamburger menu
+- [x] Responsive hero section
+- [x] Mobile-friendly app dashboard with slide-out sidebar
+- [x] Touch-friendly controls (44px min touch targets)
+- [x] Mobile room UI with stacked video/chat
+- [x] Pseudo-fullscreen for iOS (native fullscreen not supported on iPhone)
+- [x] Mobile account page with back button
+- [x] Responsive pricing cards
+- [x] Landscape orientation handling
 
 ---
 
-## 🔧 Recent Fixes (January 5, 2025)
+## 🔧 Recent Updates (January 5-6, 2025)
 
-1. **Signup flow fixed** - Plan parameter captured from URL, stored as `pending_plan`
-2. **Login redirect** - Users with `pending_plan` auto-redirect to Stripe checkout
-3. **Success message** - Signup confirmation now displays properly
-4. **Google Sheets logging** - Now captures actual selected plan (not always "trial")
-5. **Session end UI** - Page reloads cleanly instead of broken state
-6. **Rejoin button** - Added to active sessions in room history
+### January 6, 2025
+1. **Mobile Responsive Design** - Full mobile support added
+2. **Resend Email Migration** - Replaced EmailJS with Resend for all emails
+3. **Language Selection Flow** - Users now choose language before Create Invite/Quick Start/Join Room
+4. **Invite Flow Fixes** - Cancel properly deletes reservation, form closes after sending
+5. **Personal Room Fix** - Rooms now persist after server restart
+6. **Pseudo-Fullscreen** - iOS-compatible fullscreen mode
+7. **Account Page** - Added mobile back button
+
+### January 5, 2025
+1. **Signup flow fixed** - Plan parameter captured from URL
+2. **Login redirect** - Users with `pending_plan` auto-redirect to checkout
+3. **Legal pages** - Privacy, Terms, Cookies, GDPR
+4. **Google Sheets logging** - Captures actual plan selection
 
 ---
 
@@ -149,8 +160,8 @@ Enterprise:   price_1SjGjgBBOVyvZcr43pGNnxA3
 ├── index.html          # Landing page
 ├── app.html            # Main application (dashboard + room)
 ├── login.html          # Login page
-├── signup.html         # Signup page (captures plan from URL)
-├── pricing.html        # Pricing page (for logged-in users)
+├── signup.html         # Signup page
+├── pricing.html        # Pricing page
 ├── join.html           # Guest join page
 ├── checkout.html       # Post-checkout redirect
 ├── account.html        # Account settings
@@ -160,16 +171,16 @@ Enterprise:   price_1SjGjgBBOVyvZcr43pGNnxA3
 ├── cookies.html        # Cookie Policy
 ├── gdpr.html           # GDPR Compliance
 ├── css/
-│   └── style.css       # All styles
+│   └── style.css       # All styles (~2400 lines)
 ├── js/
-│   ├── config.js       # API URLs, EmailJS config
-│   └── app.js          # Main application logic (~2900 lines)
+│   ├── config.js       # API URLs only (no secrets)
+│   └── app.js          # Main application logic (~3000 lines)
 └── LATEST.md           # This document
 ```
 
 ### Backend (`translator-api/`)
 ```
-├── main.py             # FastAPI application (~1500 lines)
+├── main.py             # FastAPI application (~1600 lines)
 ├── requirements.txt    # Python dependencies
 ├── Procfile           # Railway deployment
 ├── runtime.txt        # Python version
@@ -199,18 +210,16 @@ AZURE_SPEECH_KEY=
 AZURE_SPEECH_REGION=
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
+RESEND_API_KEY=
 ```
 
 ### Frontend (config.js)
 ```javascript
-CONFIG = {
+const CONFIG = {
     API_BASE: 'https://translation-server-production-d487.up.railway.app',
     WS_BASE: 'wss://translation-server-production-d487.up.railway.app',
-    EMAILJS_PUBLIC_KEY: '...',
-    EMAILJS_SERVICE_ID: '...',
-    EMAILJS_TEMPLATE_ID: '...',
-    EMAILJS_TEMPLATE_SIGNUP: '...'
-}
+    VERSION: '2.3.0'
+};
 ```
 
 ---
@@ -223,7 +232,7 @@ cd translator-frontend
 git add .
 git commit -m "Description of changes"
 git push origin main
-# Auto-deploys to GitHub Pages
+# Auto-deploys to GitHub Pages → mamnoon.ai
 ```
 
 ### Backend (Railway)
@@ -237,63 +246,58 @@ git push origin main
 
 ---
 
-## 📱 ROADMAP: Mobile Strategy
+## 📱 ROADMAP: What's Next
 
-### Phase 1: Mobile-Responsive Web ⬅️ NEXT
-Make current web app work beautifully on mobile devices:
+### ✅ Phase 1: Mobile-Responsive Web - COMPLETE
 - Responsive CSS for all screen sizes
-- Touch-friendly buttons and controls
-- Mobile-optimized room UI
-- Test on iOS Safari and Android Chrome
+- Touch-friendly controls
+- Mobile room UI
+- Works on iOS Safari and Android Chrome
 
-### Phase 2: Progressive Web App (PWA)
-Convert to installable app:
-- Service worker for offline caching
-- Web app manifest
+### ⬅️ Phase 2: Progressive Web App (PWA) - NEXT UP
+Convert to installable app (1-2 hours):
+- `manifest.json` - App metadata, icons, colors
+- Service Worker - Caching & offline support
+- App icons (multiple sizes)
 - "Add to Home Screen" prompt
 - App-like experience without app store
 
-### Phase 3: Native iOS App (App Store)
-Simple mobile app with core features only:
-```
-┌─────────────────────────────┐
-│      🌍 Mamnoon.ai          │
-│                             │
-│   [ 🇺🇸 Select Language ▼ ] │
-│                             │
-│   [ 🎙️ Start Session ]     │
-│                             │
-│   [ 🚪 Join Session  ]      │
-│                             │
-│   [ 🔗 My Meeting Room ]    │
-│                             │
-└─────────────────────────────┘
-```
+**What users get:**
+- Install icon on home screen
+- Launches without browser chrome
+- Works offline (basic features)
+- Push notification ready
 
-**Technical approach:** Capacitor (wrap existing web app)
-- Reuse 90% of existing code
-- Native iOS/Android shell
-- Access to camera, mic, notifications
-- App Store ready
+### Phase 3: Native iOS App (Capacitor)
+Wrap web app in native shell for App Store:
+- Apple Developer Account required ($99/year)
+- Capacitor wraps existing code (90% reuse)
+- Native camera/mic permissions
+- Push notifications
+- Apple Pay for subscriptions
 
-### Phase 4: Enhanced Mobile Features
-- Push notifications for invites
-- Background audio support
-- Apple/Google Pay for subscriptions
-- Siri/Google Assistant integration
+**Free testing available:**
+- Xcode Simulator (no device needed)
+- Personal device testing (7-day limit, your phone only)
+- TestFlight requires $99 subscription
+
+### Phase 4: React Migration
+Rewrite frontend in React for:
+- Better code organization
+- Component reusability
+- Easier testing
+- Larger developer pool
+- Foundation for React Native mobile app
 
 ---
 
 ## 🎯 Business Strategy
 
-### Target Market: Entire Landscape
-Not niching down - going broad with simple, affordable pricing.
-
-### Competitive Advantages
-1. **Standalone platform** - Not a plugin for Zoom/Meet
-2. **Guest join via link** - Zero friction, no app install
-3. **Simple pricing** - Clear tiers vs confusing per-minute
-4. **Speed** - Ship fast while competitors raise funding
+### Competitive Positioning
+- **Standalone platform** - Not a plugin for Zoom/Meet
+- **Guest join via link** - Zero friction, no app install
+- **Simple pricing** - Clear tiers vs per-minute billing
+- **Speed to market** - Ship while competitors fundraise
 
 ### Key Competitors
 | Company | Funding | Focus |
@@ -304,35 +308,32 @@ Not niching down - going broad with simple, affordable pricing.
 | DeepL Voice | $300M | Enterprise meetings |
 | Google Meet | Google | Native translation |
 
-### Go-to-Market
-1. Product Hunt launch
-2. SEO landing pages (/for-healthcare, /for-legal, etc.)
-3. Google Ads on translation keywords
-4. Content marketing
-5. Let customers reveal winning verticals
+### Market Size
+- Language services: $76.8B (2025) → $98.1B (2028)
+- Translation software: $62B → $96.5B (2033)
+- Real-time translation: $1.2B → $3.5B (2033), 12.9% CAGR
 
 ---
 
 ## 📊 Tracking & Analytics
 
 ### Google Sheets Signup Log
-- Webhook URL: `https://script.google.com/macros/s/AKfycbxwvH9-xXszKBmSKd_XcEHY8Cy-yAU_XXjqGdGXB35yLxuWFcXoZnFX0Sh1NdYCR4iu/exec`
+- Webhook captures all signups
 - Columns: Timestamp, Name, Email, Plan, Source
 
-### EmailJS Signup Notifications
-- Template sends to: babak@mamnoon.ai
-- Includes: user_name, user_email, signup_date, plan
+### Resend Email Notifications
+- Signup notifications to: holysmokasthatscheap@gmail.com
+- Invite emails from: noreply@mamnoon.ai
 
 ---
 
 ## 🐛 Known Issues / TODO
 
-### Bugs to Fix
+### Bugs
 - [ ] None currently tracked
 
 ### Features to Add
-- [ ] Mobile responsive design
-- [ ] PWA support
+- [ ] PWA support (next up)
 - [ ] iOS app (Capacitor)
 - [ ] Android app
 - [ ] Push notifications
@@ -340,7 +341,6 @@ Not niching down - going broad with simple, affordable pricing.
 - [ ] Admin panel
 - [ ] Team management (Business tier)
 - [ ] SSO/SAML (Enterprise tier)
-- [ ] API access for integrations
 
 ### Nice to Have
 - [ ] Voice cloning (preserve speaker's voice)
@@ -351,27 +351,25 @@ Not niching down - going broad with simple, affordable pricing.
 
 ---
 
-## 📞 Support & Contact
-
-- **Support Email:** support@mamnoon.ai
-- **Privacy/GDPR:** privacy@mamnoon.ai, gdpr@mamnoon.ai
-- **Legal:** legal@mamnoon.ai
-
----
-
 ## 📝 Changelog
+
+### January 6, 2025
+- Complete mobile responsive design
+- Migrated from EmailJS to Resend for all emails
+- Language selection flow before actions
+- Fixed invite flow (cancel deletes reservation, closes on send)
+- Fixed personal room persistence after server restart
+- Added pseudo-fullscreen for iOS
+- Added back button on mobile account page
+- Cleaned up config.js (removed EmailJS variables)
 
 ### January 5, 2025
 - Added legal pages (Privacy, Terms, Cookies, GDPR)
 - Fixed signup → checkout flow with `pending_plan`
 - Added Google Sheets signup tracking
-- Added EmailJS signup notifications
 - Fixed plan capture from landing page
-- UI fixes: session end reload, success messages
-- Added rejoin button to room history
 - Updated Stripe price IDs for production
-- Database purged for fresh start
-- Documentation created (this file)
+- Created initial documentation
 
 ---
 

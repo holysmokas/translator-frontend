@@ -5,8 +5,7 @@
 const CONFIG = {
     API_BASE: 'https://translation-server-production-d487.up.railway.app',
     WS_BASE: 'wss://translation-server-production-d487.up.railway.app',
-    VERSION: '2.3.0',
-    
+    VERSION: '2.3.0'
 };
 
 const LANGUAGES = {

@@ -4,6 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Translator | Mamnoon.ai</title>
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Mamnoon.ai">
+    
+    <!-- PWA Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    
     <link rel="stylesheet" href="css/style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>">
 </head>
@@ -25,6 +37,18 @@
             </div>
         </div>
     </nav>
+
+    <!-- PWA Install Banner -->
+    <div class="pwa-install-banner" id="pwaInstallBanner" style="display: none;">
+        <div class="pwa-install-content">
+            <span class="pwa-install-icon">📲</span>
+            <span class="pwa-install-text">Install Mamnoon.ai for quick access</span>
+        </div>
+        <div class="pwa-install-actions">
+            <button class="btn btn-sm btn-primary" id="pwaInstallBtn">Install</button>
+            <button class="btn btn-sm btn-ghost" id="pwaInstallDismiss">Later</button>
+        </div>
+    </div>
 
     <!-- Mobile Sidebar Toggle Button -->
     <button class="mobile-sidebar-toggle" id="mobileSidebarToggle">☰</button>
@@ -584,5 +608,18 @@
 
     <script src="js/config.js"></script>
     <script src="js/app.js"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then((registration) => {
+                    console.log('✅ Service Worker registered');
+                })
+                .catch((error) => {
+                    console.log('❌ Service Worker registration failed:', error);
+                });
+        }
+    </script>
 </body>
 </html>
