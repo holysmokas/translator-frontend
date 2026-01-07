@@ -1,0 +1,250 @@
+/* ========================================
+   Movie-Style Subtitles CSS
+   Position at bottom of video like Netflix
+   ======================================== */
+
+/* ========================================
+   Video Grid Container - Needs relative positioning
+   ======================================== */
+#videoGrid,
+.video-grid {
+    position: relative !important;
+}
+
+/* ========================================
+   Subtitle Overlay - Bottom positioned
+   ======================================== */
+.subtitle-overlay,
+#subtitleOverlay {
+    position: absolute !important;
+    bottom: 20px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: auto !important;
+    max-width: 90% !important;
+    min-width: 200px !important;
+    z-index: 1000 !important;
+    pointer-events: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+}
+
+/* ========================================
+   Subtitle Text Container
+   ======================================== */
+.subtitle-text {
+    background: rgba(0, 0, 0, 0.85) !important;
+    color: #ffffff !important;
+    padding: 12px 24px !important;
+    border-radius: 8px !important;
+    text-align: center !important;
+    max-width: 100% !important;
+    animation: subtitleFadeIn 0.3s ease-out !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+}
+
+.subtitle-text.interim {
+    background: rgba(0, 0, 0, 0.6) !important;
+    font-style: italic !important;
+    opacity: 0.8 !important;
+}
+
+.subtitle-text.received {
+    background: rgba(0, 0, 0, 0.85) !important;
+}
+
+/* ========================================
+   Sender Name (small, above main text)
+   ======================================== */
+.subtitle-sender {
+    font-size: 12px !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    margin-bottom: 4px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.5px !important;
+}
+
+/* ========================================
+   Main Subtitle Text (large, readable)
+   ======================================== */
+.subtitle-main {
+    font-size: 22px !important;
+    font-weight: 600 !important;
+    line-height: 1.4 !important;
+    color: #ffffff !important;
+    text-shadow:
+        2px 2px 4px rgba(0, 0, 0, 0.8),
+        -1px -1px 2px rgba(0, 0, 0, 0.5) !important;
+    word-wrap: break-word !important;
+    max-width: 100% !important;
+}
+
+/* ========================================
+   Animations
+   ======================================== */
+@keyframes subtitleFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.subtitle-text.fade-out {
+    animation: subtitleFadeOut 0.5s ease-out forwards !important;
+}
+
+@keyframes subtitleFadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+/* ========================================
+   MOBILE RESPONSIVE
+   ======================================== */
+
+/* Tablets */
+@media (max-width: 1024px) {
+
+    .subtitle-overlay,
+    #subtitleOverlay {
+        bottom: 15px !important;
+        max-width: 95% !important;
+    }
+
+    .subtitle-text {
+        padding: 10px 20px !important;
+    }
+
+    .subtitle-main {
+        font-size: 20px !important;
+    }
+}
+
+/* Mobile Phones */
+@media (max-width: 768px) {
+
+    .subtitle-overlay,
+    #subtitleOverlay {
+        bottom: 10px !important;
+        max-width: 96% !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+    }
+
+    .subtitle-text {
+        padding: 8px 16px !important;
+        border-radius: 6px !important;
+    }
+
+    .subtitle-sender {
+        font-size: 10px !important;
+        margin-bottom: 2px !important;
+    }
+
+    .subtitle-main {
+        font-size: 16px !important;
+        line-height: 1.3 !important;
+    }
+}
+
+/* Small Mobile Phones */
+@media (max-width: 480px) {
+
+    .subtitle-overlay,
+    #subtitleOverlay {
+        bottom: 8px !important;
+        max-width: 98% !important;
+    }
+
+    .subtitle-text {
+        padding: 6px 12px !important;
+        border-radius: 4px !important;
+    }
+
+    .subtitle-sender {
+        font-size: 9px !important;
+    }
+
+    .subtitle-main {
+        font-size: 14px !important;
+        line-height: 1.25 !important;
+    }
+}
+
+/* Landscape Mobile - More horizontal space */
+@media (max-width: 768px) and (orientation: landscape) {
+
+    .subtitle-overlay,
+    #subtitleOverlay {
+        bottom: 5px !important;
+        max-width: 70% !important;
+    }
+
+    .subtitle-text {
+        padding: 6px 16px !important;
+    }
+
+    .subtitle-main {
+        font-size: 14px !important;
+    }
+}
+
+/* ========================================
+   Fullscreen Mode - Larger subtitles
+   ======================================== */
+:fullscreen .subtitle-overlay,
+:-webkit-full-screen .subtitle-overlay,
+:-moz-full-screen .subtitle-overlay {
+    bottom: 40px !important;
+}
+
+:fullscreen .subtitle-main,
+:-webkit-full-screen .subtitle-main,
+:-moz-full-screen .subtitle-main {
+    font-size: 28px !important;
+}
+
+/* ========================================
+   High Contrast / Accessibility
+   ======================================== */
+@media (prefers-contrast: high) {
+    .subtitle-text {
+        background: rgba(0, 0, 0, 0.95) !important;
+        border: 2px solid white !important;
+    }
+
+    .subtitle-main {
+        text-shadow: none !important;
+        font-weight: 700 !important;
+    }
+}
+
+/* ========================================
+   Reduced Motion - Disable animations
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+    .subtitle-text {
+        animation: none !important;
+    }
+
+    .subtitle-text.fade-out {
+        animation: none !important;
+        opacity: 0 !important;
+    }
+}
