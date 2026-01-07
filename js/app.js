@@ -792,6 +792,7 @@
         elements.roomHistory.innerHTML = html;
     }
 
+    window.disconnectRoom = disconnectRoom;
     // Rejoin from history
     window.rejoinFromHistory = async function (roomCode, sessionId) {
         rejoinActiveSession({

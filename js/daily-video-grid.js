@@ -368,15 +368,52 @@ function toggleVideo() {
     }
 }
 
+// ========================================
+// Leave Call - FIXED: Properly disconnect everything
+// ========================================
 function leaveCall() {
+    console.log('👋 Leaving call...');
+
+    // First cleanup Daily call
     if (callObject) {
-        callObject.leave();
+        try {
+            callObject.leave();
+        } catch (e) {
+            console.log('Error leaving call:', e);
+        }
+    }
+
+    // Then trigger the full app disconnect
+    // This handles WebSocket, cleanup, and proper redirect
+    if (typeof disconnectRoom === 'function') {
+        // For guests, clear URL params first to prevent auto-rejoin
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('guest') === 'true') {
+            // Clear URL params before disconnecting
+            window.history.replaceState({}, '', window.location.pathname);
+        }
+        disconnectRoom();
+    } else if (typeof window.disconnectRoom === 'function') {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('guest') === 'true') {
+            window.history.replaceState({}, '', window.location.pathname);
+        }
+        window.disconnectRoom();
+    } else {
+        // Fallback: just reload without params
+        console.log('⚠️ disconnectRoom not found, falling back to redirect');
+        cleanupCall();
+        window.location.href = window.location.pathname;
     }
 }
 
 function cleanupCall() {
     if (callObject) {
-        callObject.destroy();
+        try {
+            callObject.destroy();
+        } catch (e) {
+            console.log('Error destroying call:', e);
+        }
         callObject = null;
     }
     participants = {};
