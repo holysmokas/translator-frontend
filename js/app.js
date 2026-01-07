@@ -1866,7 +1866,13 @@
         // Clean reload of the page to reset everything properly
         showNotification('Session ended', 'success');
         setTimeout(() => {
-            window.location.reload();
+            // For guests, redirect to home page instead of reload
+            // This prevents auto-rejoin from URL params
+            if (state.user?.isGuest) {
+                window.location.href = 'index.html';
+            } else {
+                window.location.reload();
+            }
         }, 500);
     }
 
