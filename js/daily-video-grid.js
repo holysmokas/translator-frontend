@@ -59,9 +59,28 @@ async function joinDailyRoom(roomUrl, userName) {
 function handleJoinedMeeting(event) {
     console.log('✅ Joined meeting');
 
-    // Clear any existing tiles first
+    // Clear video tiles BUT PRESERVE subtitle overlay!
     const grid = document.getElementById('videoGrid');
-    if (grid) grid.innerHTML = '';
+    if (grid) {
+        // Remove only video tiles, not the subtitle overlay
+        const tiles = grid.querySelectorAll('.video-tile');
+        tiles.forEach(tile => tile.remove());
+
+        // If subtitle overlay doesn't exist, recreate it
+        if (!document.getElementById('subtitleOverlay')) {
+            const newOverlay = document.createElement('div');
+            newOverlay.className = 'subtitle-overlay';
+            newOverlay.id = 'subtitleOverlay';
+            newOverlay.style.display = 'block';
+            grid.appendChild(newOverlay);
+
+            // Update elements reference if available
+            if (window.elements) {
+                window.elements.subtitleOverlay = newOverlay;
+            }
+            console.log('🔄 Recreated subtitle overlay');
+        }
+    }
     participants = {};
 
     // Get all participants including local
@@ -133,7 +152,7 @@ function handleTrackStopped(event) {
 }
 
 function handleLeftMeeting() {
-    console.log('📴 Left meeting');
+    console.log('🔴 Left meeting');
     cleanupCall();
 }
 
@@ -184,7 +203,14 @@ function addParticipantTile(participant) {
         </div>
     `;
 
-    grid.appendChild(tile);
+    // Insert tile BEFORE subtitle overlay (so overlay stays on top)
+    const subtitleOverlay = document.getElementById('subtitleOverlay');
+    if (subtitleOverlay) {
+        grid.insertBefore(tile, subtitleOverlay);
+    } else {
+        grid.appendChild(tile);
+    }
+
     participants[sessionId] = participant;
     updateGridLayout();
 
@@ -354,57 +380,11 @@ function cleanupCall() {
         callObject = null;
     }
     participants = {};
+
+    // Clear only video tiles, preserve subtitle overlay
     const grid = document.getElementById('videoGrid');
-    if (grid) grid.innerHTML = '';
-}
-
-// ========================================
-// Updated showRoomUI Function
-// Replace existing showRoomUI in app.js with this
-// ========================================
-function showRoomUI_DailySDK(videoUrl) {
-    // Hide welcome, show room state
-    const welcomeState = document.getElementById('welcomeState');
-    const roomState = document.getElementById('roomState');
-    const activeRoomCode = document.getElementById('activeRoomCode');
-    const videoSection = document.getElementById('videoSection');
-
-    if (welcomeState) welcomeState.style.display = 'none';
-    if (roomState) roomState.style.display = 'block';
-    if (activeRoomCode && window.state?.roomCode) {
-        activeRoomCode.textContent = window.state.roomCode;
-    }
-
-    // Create video grid container with controls
-    const videoContainer = document.createElement('div');
-    videoContainer.className = 'video-container';
-    videoContainer.innerHTML = `
-        <div class="video-grid" id="videoGrid"></div>
-        <div class="subtitle-overlay" id="subtitleOverlay"></div>
-        <div class="video-controls">
-            <button class="control-btn" id="toggleMuteBtn" onclick="toggleMute()">🎤 Mute</button>
-            <button class="control-btn" id="toggleVideoBtn" onclick="toggleVideo()">📹 Video</button>
-            <button class="control-btn control-btn-danger" onclick="leaveCall()">Leave</button>
-        </div>
-    `;
-
-    if (videoSection) {
-        videoSection.innerHTML = '';
-        videoSection.appendChild(videoContainer);
-    }
-
-    // Join Daily room with SDK instead of iframe
-    if (videoUrl) {
-        joinDailyRoom(videoUrl);
-    }
-
-    // Store subtitle overlay reference for translation system
-    const subtitleOverlay = document.getElementById('subtitleOverlay');
-    if (subtitleOverlay) {
-        subtitleOverlay.style.display = 'block';
-        // If you have elements object, update it
-        if (window.elements) {
-            window.elements.subtitleOverlay = subtitleOverlay;
-        }
+    if (grid) {
+        const tiles = grid.querySelectorAll('.video-tile');
+        tiles.forEach(tile => tile.remove());
     }
 }
