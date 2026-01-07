@@ -9,7 +9,7 @@ let participants = {};
 // ========================================
 // Main Entry Point - Call this instead of iframe
 // ========================================
-async function joinDailyRoom(roomUrl) {
+async function joinDailyRoom(roomUrl, userName) {
     console.log('🎥 Joining Daily room with SDK:', roomUrl);
 
     // Create call object
@@ -27,9 +27,12 @@ async function joinDailyRoom(roomUrl) {
     callObject.on('left-meeting', handleLeftMeeting);
     callObject.on('error', handleError);
 
-    // Join the room
+    // Join the room with user name
     try {
-        await callObject.join({ url: roomUrl });
+        await callObject.join({
+            url: roomUrl,
+            userName: userName || 'Guest'
+        });
     } catch (err) {
         console.error('❌ Failed to join Daily room:', err);
         handleError(err);
@@ -63,6 +66,7 @@ function handleTrackStarted(event) {
     const { participant, track } = event;
     if (track.kind === 'video') {
         attachVideoTrack(participant.session_id, track);
+        updateAvatarVisibility(participant.session_id, true);
     }
     if (track.kind === 'audio' && !participant.local) {
         attachAudioTrack(participant.session_id, track);
@@ -73,6 +77,7 @@ function handleTrackStopped(event) {
     const { participant, track } = event;
     if (track.kind === 'video') {
         detachVideoTrack(participant.session_id);
+        updateAvatarVisibility(participant.session_id, false);
     }
 }
 
@@ -100,13 +105,18 @@ function addParticipantTile(participant) {
     // Don't duplicate
     if (document.getElementById(`tile-${sessionId}`)) return;
 
+    // Get initials for avatar fallback
+    const name = participant.user_name || 'Guest';
+    const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+
     const tile = document.createElement('div');
     tile.id = `tile-${sessionId}`;
     tile.className = 'video-tile';
     tile.innerHTML = `
         <video id="video-${sessionId}" autoplay playsinline ${participant.local ? 'muted' : ''}></video>
         <audio id="audio-${sessionId}" autoplay></audio>
-        <div class="participant-name">${participant.user_name || 'Guest'}${participant.local ? ' (You)' : ''}</div>
+        <div class="avatar-fallback" id="avatar-${sessionId}">${initials}</div>
+        <div class="participant-name">${name}${participant.local ? ' (You)' : ''}</div>
         <div class="participant-status">
             <span class="mic-status">${participant.audio ? '🎤' : '🔇'}</span>
             <span class="cam-status">${participant.video ? '📹' : '📷'}</span>
@@ -117,12 +127,19 @@ function addParticipantTile(participant) {
     participants[sessionId] = participant;
     updateGridLayout();
 
+    // Check if video is on/off and show/hide avatar
+    updateAvatarVisibility(sessionId, participant.video);
+
     // Attach tracks if already available
     const tracks = callObject.participants()[sessionId]?.tracks;
-    if (tracks?.video?.track) {
+    if (tracks?.video?.persistentTrack) {
+        attachVideoTrack(sessionId, tracks.video.persistentTrack);
+    } else if (tracks?.video?.track) {
         attachVideoTrack(sessionId, tracks.video.track);
     }
-    if (tracks?.audio?.track && !participant.local) {
+    if (tracks?.audio?.persistentTrack && !participant.local) {
+        attachAudioTrack(sessionId, tracks.audio.persistentTrack);
+    } else if (tracks?.audio?.track && !participant.local) {
         attachAudioTrack(sessionId, tracks.audio.track);
     }
 }
@@ -144,12 +161,34 @@ function updateParticipantTile(participant) {
     const camStatus = tile.querySelector('.cam-status');
     if (micStatus) micStatus.textContent = participant.audio ? '🎤' : '🔇';
     if (camStatus) camStatus.textContent = participant.video ? '📹' : '📷';
+
+    // Show/hide avatar based on video state
+    updateAvatarVisibility(sessionId, participant.video);
+}
+
+function updateAvatarVisibility(sessionId, hasVideo) {
+    const avatar = document.getElementById(`avatar-${sessionId}`);
+    const video = document.getElementById(`video-${sessionId}`);
+
+    if (avatar) {
+        avatar.style.display = hasVideo ? 'none' : 'flex';
+    }
+    if (video) {
+        video.style.display = hasVideo ? 'block' : 'none';
+    }
 }
 
 function attachVideoTrack(sessionId, track) {
     const video = document.getElementById(`video-${sessionId}`);
     if (video && track) {
         video.srcObject = new MediaStream([track]);
+        video.style.display = 'block';
+        // Hide avatar when video is attached
+        const avatar = document.getElementById(`avatar-${sessionId}`);
+        if (avatar) avatar.style.display = 'none';
+
+        // Ensure video plays
+        video.play().catch(err => console.log('Video autoplay prevented:', err));
     }
 }
 
@@ -157,6 +196,7 @@ function attachAudioTrack(sessionId, track) {
     const audio = document.getElementById(`audio-${sessionId}`);
     if (audio && track) {
         audio.srcObject = new MediaStream([track]);
+        audio.play().catch(err => console.log('Audio autoplay prevented:', err));
     }
 }
 
@@ -164,7 +204,11 @@ function detachVideoTrack(sessionId) {
     const video = document.getElementById(`video-${sessionId}`);
     if (video) {
         video.srcObject = null;
+        video.style.display = 'none';
     }
+    // Show avatar when video is detached
+    const avatar = document.getElementById(`avatar-${sessionId}`);
+    if (avatar) avatar.style.display = 'flex';
 }
 
 function updateGridLayout() {
