@@ -12,9 +12,19 @@ let participants = {};
 async function joinDailyRoom(roomUrl, userName) {
     console.log('🎥 Joining Daily room with SDK:', roomUrl);
 
-    // Create call object
+    // Clean up any existing call first
+    if (callObject) {
+        await callObject.destroy();
+        callObject = null;
+    }
+    participants = {};
+
+    // Create call object with camera/mic enabled
     callObject = DailyIframe.createCallObject({
         subscribeToTracksAutomatically: true,
+        dailyConfig: {
+            experimentalChromeVideoMuteLightOff: true,
+        }
     });
 
     // Set up event listeners
@@ -26,13 +36,17 @@ async function joinDailyRoom(roomUrl, userName) {
     callObject.on('track-stopped', handleTrackStopped);
     callObject.on('left-meeting', handleLeftMeeting);
     callObject.on('error', handleError);
+    callObject.on('camera-error', (e) => console.error('📷 Camera error:', e));
 
-    // Join the room with user name
+    // Join the room with camera and mic ON
     try {
         await callObject.join({
             url: roomUrl,
-            userName: userName || 'Guest'
+            userName: userName || 'Guest',
+            startVideoOff: false,
+            startAudioOff: false
         });
+        console.log('✅ Successfully joined room');
     } catch (err) {
         console.error('❌ Failed to join Daily room:', err);
         handleError(err);
@@ -44,13 +58,40 @@ async function joinDailyRoom(roomUrl, userName) {
 // ========================================
 function handleJoinedMeeting(event) {
     console.log('✅ Joined meeting');
-    const local = callObject.participants().local;
-    addParticipantTile(local);
+
+    // Clear any existing tiles first
+    const grid = document.getElementById('videoGrid');
+    if (grid) grid.innerHTML = '';
+    participants = {};
+
+    // Get all participants including local
+    const allParticipants = callObject.participants();
+    console.log('👥 All participants:', Object.keys(allParticipants));
+
+    // Add local participant first
+    if (allParticipants.local) {
+        addParticipantTile(allParticipants.local);
+    }
+
+    // Add any existing remote participants
+    Object.entries(allParticipants).forEach(([id, participant]) => {
+        if (id !== 'local' && !document.getElementById(`tile-${participant.session_id}`)) {
+            console.log(`➕ Adding existing participant: ${participant.user_name}`);
+            addParticipantTile(participant);
+        }
+    });
 }
 
 function handleParticipantJoined(event) {
-    console.log('👤 Participant joined:', event.participant.user_name);
-    addParticipantTile(event.participant);
+    const p = event.participant;
+    console.log('👤 Participant joined:', p.user_name, p.session_id);
+
+    // Only add if not already present
+    if (!participants[p.session_id]) {
+        addParticipantTile(p);
+    } else {
+        console.log('⚠️ Participant already in grid:', p.user_name);
+    }
 }
 
 function handleParticipantUpdated(event) {
@@ -64,10 +105,20 @@ function handleParticipantLeft(event) {
 
 function handleTrackStarted(event) {
     const { participant, track } = event;
+    console.log(`🎬 Track started: ${track.kind} for ${participant.user_name} (session: ${participant.session_id}, local: ${participant.local})`);
+
+    // Make sure tile exists
+    if (!document.getElementById(`tile-${participant.session_id}`)) {
+        console.log(`📦 Creating tile for track-started participant: ${participant.user_name}`);
+        addParticipantTile(participant);
+    }
+
     if (track.kind === 'video') {
+        console.log(`📹 Attaching video track for ${participant.user_name}`);
         attachVideoTrack(participant.session_id, track);
         updateAvatarVisibility(participant.session_id, true);
     }
+    // Attach audio for remote participants only (local audio would cause echo)
     if (track.kind === 'audio' && !participant.local) {
         attachAudioTrack(participant.session_id, track);
     }
@@ -101,21 +152,31 @@ function addParticipantTile(participant) {
     }
 
     const sessionId = participant.session_id;
+    console.log(`➕ Adding tile for: ${participant.user_name} (${sessionId}), local: ${participant.local}, video: ${participant.video}`);
 
     // Don't duplicate
-    if (document.getElementById(`tile-${sessionId}`)) return;
+    if (document.getElementById(`tile-${sessionId}`)) {
+        console.log(`⚠️ Tile already exists for ${sessionId}`);
+        return;
+    }
+
+    // Check if already in participants
+    if (participants[sessionId]) {
+        console.log(`⚠️ Participant already tracked: ${sessionId}`);
+        return;
+    }
 
     // Get initials for avatar fallback
     const name = participant.user_name || 'Guest';
-    const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '?';
 
     const tile = document.createElement('div');
     tile.id = `tile-${sessionId}`;
     tile.className = 'video-tile';
     tile.innerHTML = `
-        <video id="video-${sessionId}" autoplay playsinline ${participant.local ? 'muted' : ''}></video>
+        <video id="video-${sessionId}" autoplay playsinline ${participant.local ? 'muted' : ''} style="display: none;"></video>
         <audio id="audio-${sessionId}" autoplay></audio>
-        <div class="avatar-fallback" id="avatar-${sessionId}">${initials}</div>
+        <div class="avatar-fallback" id="avatar-${sessionId}" style="display: flex;">${initials}</div>
         <div class="participant-name">${name}${participant.local ? ' (You)' : ''}</div>
         <div class="participant-status">
             <span class="mic-status">${participant.audio ? '🎤' : '🔇'}</span>
@@ -127,20 +188,25 @@ function addParticipantTile(participant) {
     participants[sessionId] = participant;
     updateGridLayout();
 
-    // Check if video is on/off and show/hide avatar
-    updateAvatarVisibility(sessionId, participant.video);
-
-    // Attach tracks if already available
-    const tracks = callObject.participants()[sessionId]?.tracks;
+    // Try to attach video track if already available
+    const tracks = participant.tracks;
     if (tracks?.video?.persistentTrack) {
+        console.log(`📹 Found persistentTrack for ${name}`);
         attachVideoTrack(sessionId, tracks.video.persistentTrack);
     } else if (tracks?.video?.track) {
+        console.log(`📹 Found track for ${name}`);
         attachVideoTrack(sessionId, tracks.video.track);
+    } else {
+        console.log(`⏳ No video track yet for ${name}, waiting for track-started event`);
     }
-    if (tracks?.audio?.persistentTrack && !participant.local) {
-        attachAudioTrack(sessionId, tracks.audio.persistentTrack);
-    } else if (tracks?.audio?.track && !participant.local) {
-        attachAudioTrack(sessionId, tracks.audio.track);
+
+    // Attach audio for remote participants
+    if (!participant.local) {
+        if (tracks?.audio?.persistentTrack) {
+            attachAudioTrack(sessionId, tracks.audio.persistentTrack);
+        } else if (tracks?.audio?.track) {
+            attachAudioTrack(sessionId, tracks.audio.track);
+        }
     }
 }
 
@@ -179,16 +245,36 @@ function updateAvatarVisibility(sessionId, hasVideo) {
 }
 
 function attachVideoTrack(sessionId, track) {
+    console.log(`🎬 attachVideoTrack called for ${sessionId}, track:`, track);
     const video = document.getElementById(`video-${sessionId}`);
-    if (video && track) {
+    if (!video) {
+        console.error(`❌ Video element not found: video-${sessionId}`);
+        return;
+    }
+    if (!track) {
+        console.error(`❌ Track is null for ${sessionId}`);
+        return;
+    }
+
+    try {
         video.srcObject = new MediaStream([track]);
         video.style.display = 'block';
+
         // Hide avatar when video is attached
         const avatar = document.getElementById(`avatar-${sessionId}`);
         if (avatar) avatar.style.display = 'none';
 
         // Ensure video plays
-        video.play().catch(err => console.log('Video autoplay prevented:', err));
+        video.play().then(() => {
+            console.log(`✅ Video playing for ${sessionId}`);
+        }).catch(err => {
+            console.log('⚠️ Video autoplay prevented:', err);
+            // Try muted autoplay
+            video.muted = true;
+            video.play().catch(e => console.error('Failed even muted:', e));
+        });
+    } catch (err) {
+        console.error(`❌ Error attaching video track for ${sessionId}:`, err);
     }
 }
 
@@ -216,6 +302,7 @@ function updateGridLayout() {
     if (!grid) return;
 
     const count = Object.keys(participants).length;
+    console.log(`📊 Updating grid layout: ${count} participants`);
 
     // Remove old participant-count classes
     grid.className = 'video-grid';
