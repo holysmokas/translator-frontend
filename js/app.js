@@ -2025,6 +2025,13 @@ END:VCALENDAR`;
                     elements.emailStatus.textContent = `✓ Invite sent to ${email}`;
                     elements.emailStatus.className = 'email-status success';
                     elements.inviteEmail.value = '';
+
+                    // Auto-close modal after brief delay so user sees success message
+                    setTimeout(() => {
+                        hideInviteModal();
+                        elements.emailStatus.textContent = '';
+                        elements.emailStatus.className = 'email-status';
+                    }, 1500);
                 }
             } else {
                 throw new Error(data.detail || 'Failed to send');
