@@ -4144,3 +4144,161 @@ body.fullscreen-mode .mobile-sidebar-toggle {
     }
 }
 
+/* End Session Modal */
+.end-session-modal {
+    max-width: 500px;
+}
+
+.end-session-modal h2 {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.session-summary {
+    display: flex;
+    justify-content: space-around;
+    background: var(--gray-800);
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+}
+
+.summary-item {
+    text-align: center;
+}
+
+.summary-item .label {
+    display: block;
+    font-size: 12px;
+    color: var(--gray-400);
+    margin-bottom: 4px;
+}
+
+.summary-item .value {
+    font-size: 20px;
+    font-weight: 600;
+    color: white;
+}
+
+.download-buttons {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.download-buttons .btn {
+    flex: 1;
+}
+
+.vault-warning {
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+}
+
+.vault-warning p {
+    margin: 0;
+    color: #fbbf24;
+    font-size: 14px;
+}
+
+.vault-saved {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.vault-saved p {
+    margin: 0;
+    color: #10b981;
+}
+
+.vault-saved .subtext {
+    font-size: 12px;
+    color: var(--gray-400);
+    margin-top: 4px;
+}
+
+.vault-upsell {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.vault-upsell .upsell-header {
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 8px;
+}
+
+.vault-upsell .upsell-header .icon {
+    margin-right: 8px;
+}
+
+.vault-upsell p {
+    color: var(--gray-400);
+    font-size: 14px;
+    margin: 0 0 16px 0;
+}
+
+.btn-accent {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    border: none;
+}
+
+.btn-accent:hover {
+    background: linear-gradient(135deg, #5558e3, #7c4fe0);
+}
+
+.modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    padding-top: 16px;
+    border-top: 1px solid var(--gray-700);
+}
+
+.btn-secondary {
+    background: var(--gray-700);
+    color: white;
+    border: none;
+}
+
+.btn-secondary:hover {
+    background: var(--gray-600);
+}
+
+.btn-danger {
+    background: #ef4444;
+    color: white;
+    border: none;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+}
+
+@media (max-width: 480px) {
+    .download-buttons {
+        flex-direction: column;
+    }
+
+    .session-summary {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .modal-actions {
+        flex-direction: column;
+    }
+}

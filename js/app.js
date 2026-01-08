@@ -1,4 +1,5 @@
 // ========================================
+// App.js
 // Mamnoon.ai Translator - Main Application
 // With Speech Recognition & Live Subtitles
 // ========================================
@@ -27,6 +28,8 @@
         ws: null,
         roomCode: null,
         sessionId: null,
+        hasTranscriptVault: false,
+        vaultIncludedInPlan: false,
         maxMinutes: 15,
         timerInterval: null,
         startTime: null,
@@ -283,6 +286,9 @@
 
         // Load profile and usage
         await loadProfile();
+
+        // Check vault status
+        await checkVaultStatus();
 
         // Check for active session first
         await checkActiveSession();
@@ -1818,18 +1824,8 @@
     }
 
     async function leaveRoom() {
-        const confirmed = await showConfirm({
-            title: 'Leave Room?',
-            message: 'You will disconnect from the translation session.',
-            icon: '🚪',
-            confirmText: 'Leave',
-            cancelText: 'Stay',
-            danger: false
-        });
-
-        if (confirmed) {
-            disconnectRoom();
-        }
+        // Show end session modal with transcript download options
+        showEndSessionModal();
     }
 
     function disconnectRoom() {
@@ -2108,16 +2104,146 @@ END:VCALENDAR`;
             return;
         }
 
-        // Close dropdown
+        // Close dropdown if open
         elements.transcriptMenu?.classList.remove('show');
 
         const now = new Date();
 
         if (format === 'json') {
             downloadTranscriptJSON(now);
+        } else if (format === 'pdf') {
+            downloadTranscriptPDF(now);
         } else {
             downloadTranscriptTXT(now);
         }
+    }
+
+    function downloadTranscriptPDF(now) {
+        const dateStr = now.toLocaleDateString('en-US', {
+            year: 'numeric', month: 'long', day: 'numeric'
+        });
+
+        // Create a printable HTML document and trigger print/save as PDF
+        const printWindow = window.open('', '_blank');
+
+        let html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Transcript - ${state.roomCode}</title>
+            <style>
+                body { 
+                    font-family: 'Segoe UI', Arial, sans-serif; 
+                    padding: 40px;
+                    max-width: 800px;
+                    margin: 0 auto;
+                    color: #333;
+                }
+                .header { 
+                    border-bottom: 2px solid #6366f1; 
+                    padding-bottom: 20px;
+                    margin-bottom: 30px;
+                }
+                .header h1 { 
+                    color: #6366f1; 
+                    margin: 0 0 10px 0;
+                    font-size: 24px;
+                }
+                .meta { 
+                    color: #666; 
+                    font-size: 14px;
+                }
+                .meta span { 
+                    margin-right: 20px; 
+                }
+                .entry { 
+                    margin-bottom: 20px; 
+                    padding: 15px;
+                    background: #f8f9fa;
+                    border-radius: 8px;
+                    border-left: 3px solid #6366f1;
+                }
+                .entry-header { 
+                    font-weight: 600; 
+                    color: #6366f1;
+                    margin-bottom: 8px;
+                    font-size: 12px;
+                }
+                .original { 
+                    margin-bottom: 5px;
+                }
+                .translated { 
+                    color: #059669;
+                    font-style: italic;
+                }
+                .label {
+                    font-size: 10px;
+                    color: #999;
+                    text-transform: uppercase;
+                }
+                @media print {
+                    body { padding: 20px; }
+                    .entry { break-inside: avoid; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>🌍 Mamnoon.ai Transcript</h1>
+                <div class="meta">
+                    <span><strong>Room:</strong> ${state.roomCode || 'N/A'}</span>
+                    <span><strong>Date:</strong> ${dateStr}</span>
+                    <span><strong>Duration:</strong> ${state.startTime ? Math.floor((Date.now() - state.startTime) / 60000) : 0} min</span>
+                    <span><strong>Lines:</strong> ${state.transcript.length}</span>
+                </div>
+            </div>
+        `;
+
+        state.transcript.forEach(entry => {
+            if (entry.type === 'system') return;
+
+            const time = new Date(entry.timestamp).toLocaleTimeString('en-US', {
+                hour: '2-digit', minute: '2-digit'
+            });
+
+            if (entry.type === 'sent') {
+                html += `
+                <div class="entry">
+                    <div class="entry-header">${state.user.name || 'You'} · ${time}</div>
+                    <div class="original">${escapeHtml(entry.text)}</div>
+                </div>
+                `;
+            } else if (entry.type === 'received') {
+                html += `
+                <div class="entry">
+                    <div class="entry-header">${escapeHtml(entry.sender || 'Unknown')} · ${time}</div>
+                    <div class="original">
+                        <span class="label">Original (${entry.senderLanguage || '?'}):</span><br>
+                        ${escapeHtml(entry.originalText || '')}
+                    </div>
+                    <div class="translated">
+                        <span class="label">Translated:</span><br>
+                        ${escapeHtml(entry.translatedText || '')}
+                    </div>
+                </div>
+                `;
+            }
+        });
+
+        html += `
+            <script>
+                window.onload = function() {
+                    window.print();
+                }
+            </script>
+        </body>
+        </html>
+        `;
+
+        printWindow.document.write(html);
+        printWindow.document.close();
+
+        showNotification('PDF ready - use Print dialog to save', 'success');
     }
 
     function downloadTranscriptTXT(now) {
@@ -3128,6 +3254,118 @@ Generated by Mamnoon.ai
         if (banner) banner.style.display = 'none';
         deferredPrompt = null;
     });
+
+    // ========================================
+    // Transcript Vault & End Session Modal
+    // ========================================
+
+    async function checkVaultStatus() {
+        if (state.user.isGuest) return;
+
+        try {
+            const response = await fetch(`${CONFIG.API_BASE}/api/transcript-vault/status/${state.user.id}`);
+            const data = await response.json();
+            state.hasTranscriptVault = data.has_vault || false;
+            state.vaultIncludedInPlan = data.included_in_plan || false;
+        } catch (e) {
+            console.log('Could not check vault status:', e);
+            state.hasTranscriptVault = false;
+        }
+    }
+
+    function showEndSessionModal() {
+        // Update summary
+        const duration = state.startTime ? Math.floor((Date.now() - state.startTime) / 60000) : 0;
+        const lines = state.transcript ? state.transcript.length : 0;
+
+        document.getElementById('summaryDuration').textContent = `${duration} min`;
+        document.getElementById('summaryLanguages').textContent = state.myLanguage?.toUpperCase() || 'EN';
+        document.getElementById('summaryLines').textContent = lines;
+
+        // Show/hide vault elements based on status
+        const vaultWarning = document.getElementById('vaultWarning');
+        const vaultSaved = document.getElementById('vaultSaved');
+        const vaultUpsell = document.getElementById('vaultUpsell');
+
+        if (state.hasTranscriptVault) {
+            // Has vault - show saved message, hide warning and upsell
+            if (vaultWarning) vaultWarning.style.display = 'none';
+            if (vaultSaved) vaultSaved.style.display = 'block';
+            if (vaultUpsell) vaultUpsell.style.display = 'none';
+
+            // Auto-save transcript
+            saveTranscriptToVault();
+        } else {
+            // No vault - show warning and upsell
+            if (vaultWarning) vaultWarning.style.display = 'block';
+            if (vaultSaved) vaultSaved.style.display = 'none';
+            if (vaultUpsell) vaultUpsell.style.display = 'block';
+        }
+
+        document.getElementById('endSessionModal').style.display = 'flex';
+    }
+
+    function closeEndSessionModal() {
+        document.getElementById('endSessionModal').style.display = 'none';
+    }
+
+    function confirmEndSession() {
+        closeEndSessionModal();
+        disconnectRoom();
+    }
+
+    async function saveTranscriptToVault() {
+        if (!state.hasTranscriptVault || !state.transcript || state.transcript.length === 0) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${CONFIG.API_BASE}/api/transcript/save`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_id: state.user.id,
+                    session_id: state.sessionId || 'unknown',
+                    room_code: state.roomCode || 'unknown',
+                    duration_minutes: state.startTime ? Math.floor((Date.now() - state.startTime) / 60000) : 0,
+                    source_language: state.myLanguage || 'unknown',
+                    target_language: 'mixed',
+                    transcript_data: state.transcript
+                })
+            });
+
+            if (response.ok) {
+                console.log('✅ Transcript saved to vault');
+            }
+        } catch (e) {
+            console.error('Failed to save transcript to vault:', e);
+        }
+    }
+
+    async function subscribeToVault() {
+        try {
+            const response = await fetch(`${CONFIG.API_BASE}/api/transcript-vault/subscribe?user_id=${state.user.id}`, {
+                method: 'POST'
+            });
+
+            const data = await response.json();
+
+            if (data.url) {
+                window.location.href = data.url;
+            } else if (data.message) {
+                showNotification(data.message, 'info');
+            }
+        } catch (e) {
+            showNotification('Failed to start subscription', 'error');
+        }
+    }
+
+    // Make functions available globally for onclick handlers
+    window.showEndSessionModal = showEndSessionModal;
+    window.closeEndSessionModal = closeEndSessionModal;
+    window.confirmEndSession = confirmEndSession;
+    window.subscribeToVault = subscribeToVault;
+    window.downloadTranscript = downloadTranscript;
 
     // ========================================
     // Start App

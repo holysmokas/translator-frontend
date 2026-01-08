@@ -1,3 +1,4 @@
+<!--spp.htmlß-->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -635,6 +636,69 @@
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- End Session / Transcript Modal -->
+    <div id="endSessionModal" class="modal" style="display: none;">
+        <div class="modal-content end-session-modal">
+            <h2>📝 Your Session Transcript</h2>
+
+            <div class="session-summary">
+                <div class="summary-item">
+                    <span class="label">Duration</span>
+                    <span class="value" id="summaryDuration">0 min</span>
+                </div>
+                <div class="summary-item">
+                    <span class="label">Languages</span>
+                    <span class="value" id="summaryLanguages">-</span>
+                </div>
+                <div class="summary-item">
+                    <span class="label">Lines</span>
+                    <span class="value" id="summaryLines">0</span>
+                </div>
+            </div>
+
+            <div class="download-buttons">
+                <button class="btn btn-primary" onclick="downloadTranscript('pdf')">
+                    📄 Download PDF
+                </button>
+                <button class="btn btn-outline" onclick="downloadTranscript('txt')">
+                    📝 Download TXT
+                </button>
+                <button class="btn btn-outline" onclick="downloadTranscript('json')">
+                    { } JSON
+                </button>
+            </div>
+
+            <div id="vaultWarning" class="vault-warning">
+                <p>⚠️ Transcript will not be saved after you close this window.</p>
+            </div>
+
+            <div id="vaultSaved" class="vault-saved" style="display: none;">
+                <p>✅ Transcript saved to your Vault</p>
+                <p class="subtext">View anytime in Session History</p>
+            </div>
+
+            <div id="vaultUpsell" class="vault-upsell">
+                <div class="upsell-header">
+                    <span class="icon">💾</span>
+                    <span>Never lose a transcript again</span>
+                </div>
+                <p>Add Transcript Vault to auto-save all your sessions to the cloud.</p>
+                <button class="btn btn-accent" onclick="subscribeToVault()">
+                    Add Vault - $29/mo
+                </button>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeEndSessionModal()">
+                    Continue Session
+                </button>
+                <button class="btn btn-danger" onclick="confirmEndSession()">
+                    End Session
+                </button>
+            </div>
+        </div>
     </div>
 
     <script src="js/config.js"></script>
