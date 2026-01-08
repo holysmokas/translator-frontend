@@ -161,6 +161,23 @@
                 </div>
             </div>
 
+            <!-- Transcript Vault Section -->
+            <div class="sidebar-section vault-section" id="vaultSection">
+                <div class="vault-section-header">
+                    <h3>📁 Transcript Vault</h3>
+                    <button class="vault-refresh-btn" id="vaultRefreshBtn" title="Refresh">↻</button>
+                </div>
+
+                <!-- Vault Content - populated by JavaScript -->
+                <div id="vaultContent">
+                    <!-- Will show: transcripts list, empty state, or upsell -->
+                    <div class="vault-empty">
+                        <div class="vault-empty-icon">📂</div>
+                        <p>Loading...</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Personal Room Section (for paid users) -->
             <div class="sidebar-section personal-room-sidebar" id="personalRoomCard" style="display: none;">
                 <div class="personal-room-header-sidebar">
@@ -179,6 +196,10 @@
                     🚀 Start My Room
                 </button>
             </div>
+
+            <!-- Resize Handle -->
+            <div class="sidebar-resize-handle" id="sidebarResizeHandle"></div>
+            
         </aside>
 
         <!-- Main Content -->
@@ -637,6 +658,51 @@
             </div>
         </main>
     </div>
+
+    <!-- Transcript Preview Slide-in Panel -->
+    <div class="transcript-preview-overlay" id="transcriptPreviewOverlay">
+        <div class="transcript-preview-panel" id="transcriptPreviewPanel">
+            <div class="preview-header">
+                <h2>📄 Transcript</h2>
+                <button class="preview-close-btn" onclick="closeTranscriptPreview()">✕</button>
+            </div>
+
+            <div class="preview-meta" id="previewMeta">
+                <div class="preview-meta-item">
+                    <span class="label">Date</span>
+                    <span class="value" id="previewDate">-</span>
+                </div>
+                <div class="preview-meta-item">
+                    <span class="label">Room Code</span>
+                    <span class="value" id="previewRoom">-</span>
+                </div>
+                <div class="preview-meta-item">
+                    <span class="label">Duration</span>
+                    <span class="value" id="previewDuration">-</span>
+                </div>
+                <div class="preview-meta-item">
+                    <span class="label">Languages</span>
+                    <span class="value" id="previewLanguages">-</span>
+                </div>
+            </div>
+
+            <div class="preview-content" id="previewContent">
+                <div class="preview-loading">
+                    <div class="spinner"></div>
+                    <p>Loading transcript...</p>
+                </div>
+            </div>
+
+            <div class="preview-actions">
+                <button class="btn btn-primary" onclick="downloadPreviewTranscript('pdf')">📥 PDF</button>
+                <button class="btn btn-outline" onclick="downloadPreviewTranscript('txt')">📥 TXT</button>
+                <button class="btn btn-outline" onclick="downloadPreviewTranscript('json')">📥 JSON</button>
+                <button class="btn preview-delete-btn" onclick="deletePreviewTranscript()">🗑️ Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Resize Handle (add inside .app-sidebar, at the end) -->
 
     <!-- End Session / Transcript Modal -->
     <div id="endSessionModal" class="modal" style="display: none;">
