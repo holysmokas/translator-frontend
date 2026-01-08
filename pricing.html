@@ -225,6 +225,144 @@
         .trial-note strong {
             color: white;
         }
+
+        /* Add-ons Section */
+        .addons-section {
+            margin-top: 48px;
+            margin-bottom: 40px;
+        }
+
+        .addons-title {
+            text-align: center;
+            color: white;
+            font-size: 24px;
+            margin-bottom: 24px;
+        }
+
+        .addon-card {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            background: var(--gray-900);
+            border: 1px solid var(--gray-800);
+            border-radius: 16px;
+            padding: 28px 32px;
+            max-width: 800px;
+            margin: 0 auto;
+            transition: all 0.3s;
+        }
+
+        .addon-card:hover {
+            border-color: var(--gray-700);
+        }
+
+        .addon-card.owned {
+            border-color: var(--success);
+            background: linear-gradient(to right, rgba(16, 185, 129, 0.05), var(--gray-900));
+        }
+
+        .addon-icon {
+            font-size: 48px;
+            flex-shrink: 0;
+        }
+
+        .addon-info {
+            flex: 1;
+        }
+
+        .addon-info h3 {
+            color: white;
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .addon-info p {
+            color: var(--gray-400);
+            font-size: 14px;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .addon-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 16px;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .addon-features li {
+            color: var(--gray-300);
+            font-size: 13px;
+        }
+
+        .addon-pricing {
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .addon-price {
+            margin-bottom: 12px;
+        }
+
+        .addon-price .amount {
+            font-size: 32px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .addon-price .period {
+            color: var(--gray-500);
+            font-size: 14px;
+        }
+
+        .addon-btn {
+            min-width: 140px;
+        }
+
+        .addon-btn.owned {
+            background: var(--success);
+            cursor: default;
+        }
+
+        .addon-note {
+            font-size: 11px;
+            color: var(--gray-500);
+            margin-top: 8px;
+        }
+
+        .addon-note.included {
+            color: var(--success);
+        }
+
+        .btn-accent {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+        }
+
+        .btn-accent:hover {
+            background: linear-gradient(135deg, #5558e3, #7c4fe0);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 700px) {
+            .addon-card {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .addon-features {
+                justify-content: center;
+            }
+
+            .addon-pricing {
+                width: 100%;
+                padding-top: 16px;
+                border-top: 1px solid var(--gray-800);
+            }
+        }
     </style>
 </head>
 
@@ -343,6 +481,36 @@
             </div>
         </div>
 
+        <!-- Add-ons Section -->
+        <div class="addons-section">
+            <h2 class="addons-title">Optional Add-ons</h2>
+
+            <div class="addon-card">
+                <div class="addon-icon">💾</div>
+                <div class="addon-info">
+                    <h3>Transcript Vault</h3>
+                    <p>Auto-save all your session transcripts to the cloud. Download anytime as PDF, TXT, or JSON.
+                        90-day retention.</p>
+                    <ul class="addon-features">
+                        <li>✓ Automatic cloud backup</li>
+                        <li>✓ Download in multiple formats</li>
+                        <li>✓ 90-day retention</li>
+                        <li>✓ Searchable history</li>
+                    </ul>
+                </div>
+                <div class="addon-pricing">
+                    <div class="addon-price">
+                        <span class="amount">$29</span>
+                        <span class="period">/month</span>
+                    </div>
+                    <button class="btn btn-accent addon-btn" id="vaultAddonBtn" data-addon="transcript_vault">
+                        Add to Plan
+                    </button>
+                    <p class="addon-note" id="vaultNote">Available for Starter & Professional</p>
+                </div>
+            </div>
+        </div>
+
         <div class="trial-note">
             <p>🎁 <strong>Free Trial:</strong> You get 15 minutes of translation to try before you subscribe. No credit
                 card required.</p>
@@ -455,6 +623,86 @@
                 }
             });
         });
+
+        // Check vault status and update button
+        async function checkVaultStatus() {
+            const vaultBtn = document.getElementById('vaultAddonBtn');
+            const vaultNote = document.getElementById('vaultNote');
+            const addonCard = vaultBtn.closest('.addon-card');
+
+            // Business and Enterprise include vault
+            if (['business', 'enterprise'].includes(currentTier)) {
+                vaultBtn.textContent = '✓ Included';
+                vaultBtn.classList.add('owned');
+                vaultBtn.disabled = true;
+                vaultNote.textContent = 'Included in your plan';
+                vaultNote.classList.add('included');
+                addonCard.classList.add('owned');
+                return;
+            }
+
+            // Trial users can't add vault
+            if (currentTier === 'trial') {
+                vaultBtn.textContent = 'Subscribe First';
+                vaultBtn.disabled = true;
+                vaultNote.textContent = 'Subscribe to a plan to add this';
+                return;
+            }
+
+            // Check if user already has vault
+            try {
+                const response = await fetch(`${CONFIG.API_BASE}/api/transcript-vault/status/${user.id}`);
+                const data = await response.json();
+
+                if (data.has_vault) {
+                    vaultBtn.textContent = '✓ Active';
+                    vaultBtn.classList.add('owned');
+                    vaultBtn.disabled = true;
+                    vaultNote.textContent = 'Transcript Vault is active';
+                    vaultNote.classList.add('included');
+                    addonCard.classList.add('owned');
+                }
+            } catch (e) {
+                console.error('Failed to check vault status:', e);
+            }
+        }
+
+        // Handle vault add-on purchase
+        document.getElementById('vaultAddonBtn').addEventListener('click', async function () {
+            if (this.disabled) return;
+
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner"></span> Processing...';
+
+            try {
+                const response = await fetch(`${CONFIG.API_BASE}/api/transcript-vault/subscribe?user_id=${user.id}`, {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.url) {
+                    window.location.href = data.url;
+                } else if (data.message) {
+                    this.textContent = '✓ ' + data.message;
+                    this.classList.add('owned');
+                } else {
+                    throw new Error(data.detail || 'Failed to process');
+                }
+            } catch (error) {
+                const errorDiv = document.createElement('div');
+                errorDiv.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#ef4444;color:white;padding:14px 24px;border-radius:10px;z-index:1000;';
+                errorDiv.textContent = error.message;
+                document.body.appendChild(errorDiv);
+                setTimeout(() => errorDiv.remove(), 3000);
+
+                this.disabled = false;
+                this.textContent = 'Add to Plan';
+            }
+        });
+
+        // Check vault status on page load
+        checkVaultStatus();
     </script>
 </body>
 
