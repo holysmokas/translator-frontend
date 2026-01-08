@@ -4787,3 +4787,26 @@ body.sidebar-resizing * {
         flex-direction: column;
     }
 }
+
+/* Fix pricing grid - 3 cards centered */
+#pricing .pricing-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 320px) !important;
+    justify-content: center !important;
+    gap: 24px !important;
+    max-width: none !important;
+}
+
+@media (max-width: 1024px) {
+    #pricing .pricing-grid {
+        grid-template-columns: repeat(2, 300px) !important;
+    }
+}
+
+@media (max-width: 680px) {
+    #pricing .pricing-grid {
+        grid-template-columns: 1fr !important;
+        max-width: 380px !important;
+        margin: 0 auto !important;
+    }
+}
