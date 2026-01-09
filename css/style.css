@@ -495,6 +495,77 @@ a:hover {
     margin-top: 32px;
 }
 
+/* Pricing */
+.pricing {
+    padding: 100px 0;
+}
+
+.pricing-card:hover {
+    border-color: var(--primary);
+}
+
+.pricing-badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--primary);
+    color: white;
+    padding: 6px 16px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.pricing-badge.enterprise {
+    background: linear-gradient(135deg, #059669, #10b981);
+}
+
+.pricing-header h3 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.pricing-description {
+    color: var(--gray-500);
+    font-size: 14px;
+    margin-bottom: 24px;
+}
+
+.pricing-price {
+    margin-bottom: 24px;
+}
+
+.price-amount {
+    font-size: 48px;
+    font-weight: 800;
+    color: var(--gray-900);
+}
+
+.price-period {
+    font-size: 16px;
+    color: var(--gray-500);
+}
+
+.pricing-features {
+    list-style: none;
+    margin-bottom: 32px;
+}
+
+.pricing-features li {
+    padding: 8px 0;
+    color: var(--gray-600);
+}
+
+.pricing-trial {
+    text-align: center;
+    margin-top: 48px;
+    padding: 24px;
+    background: var(--gray-50);
+    border-radius: var(--radius);
+}
 
 /* Use Cases */
 .use-cases {
@@ -4698,10 +4769,7 @@ body.sidebar-resizing * {
 /* ========================================
    Pricing Grid Fix - 3 Cards Centered
    ======================================== */
-
-.pricing {
-    padding: 100px 0;
-}
+.
 
 /* Pricing Grid Fix - 3 Cards Centered */
 .pricing-grid {
@@ -4726,71 +4794,4 @@ body.sidebar-resizing * {
     .pricing-card.featured {
         transform: none !important;
     }
-}
-
-.pricing-card:hover {
-    border-color: var(--primary);
-}
-
-.pricing-badge {
-    position: absolute;
-    top: -12px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--primary);
-    color: white;
-    padding: 6px 16px;
-    border-radius: 50px;
-    font-size: 12px;
-    font-weight: 700;
-    white-space: nowrap;
-}
-
-.pricing-badge.enterprise {
-    background: linear-gradient(135deg, #059669, #10b981);
-}
-
-.pricing-header h3 {
-    font-size: 24px;
-    font-weight: 700;
-    margin-bottom: 4px;
-}
-
-.pricing-description {
-    color: var(--gray-500);
-    font-size: 14px;
-    margin-bottom: 24px;
-}
-
-.pricing-price {
-    margin-bottom: 24px;
-}
-
-.price-amount {
-    font-size: 48px;
-    font-weight: 800;
-    color: var(--gray-900);
-}
-
-.price-period {
-    font-size: 16px;
-    color: var(--gray-500);
-}
-
-.pricing-features {
-    list-style: none;
-    margin-bottom: 32px;
-}
-
-.pricing-features li {
-    padding: 8px 0;
-    color: var(--gray-600);
-}
-
-.pricing-trial {
-    text-align: center;
-    margin-top: 48px;
-    padding: 24px;
-    background: var(--gray-50);
-    border-radius: var(--radius);
 }
