@@ -37,6 +37,7 @@ async function joinDailyRoom(roomUrl, userName) {
     callObject.on('left-meeting', handleLeftMeeting);
     callObject.on('error', handleError);
     callObject.on('camera-error', (e) => console.error('📷 Camera error:', e));
+    callObject.on('app-message', handleAppMessage);
 
     // Join the room with camera and mic ON
     try {
@@ -367,6 +368,58 @@ function toggleVideo() {
         btn.innerHTML = localVideo ? '📷 Start Video' : '📹 Stop Video';
     }
 }
+
+// ========================================
+// Handle App Messages (for host controls like mute all)
+// ========================================
+function handleAppMessage(event) {
+    console.log('📨 App message received:', event);
+    const { data, fromId } = event;
+
+    if (data.type === 'mute_all') {
+        // Host requested everyone to mute
+        console.log('🔇 Host requested mute all');
+        if (callObject && callObject.localAudio()) {
+            callObject.setLocalAudio(false);
+            // Update button UI
+            const btn = document.getElementById('toggleMuteBtn');
+            if (btn) {
+                btn.innerHTML = '🔇 Unmute';
+            }
+            if (typeof showNotification === 'function') {
+                showNotification('Host muted all participants', 'info');
+            }
+        }
+    } else if (data.type === 'unmute_all') {
+        // Host allowed everyone to unmute (just notify, don't force unmute)
+        console.log('🔊 Host allowed unmute');
+        if (typeof showNotification === 'function') {
+            showNotification('Host enabled audio - you can unmute now', 'info');
+        }
+    }
+}
+
+// ========================================
+// Host Controls - Mute All Participants
+// ========================================
+function sendMuteAllRequest(mute) {
+    if (!callObject) {
+        console.log('⚠️ No call object for mute all');
+        return false;
+    }
+
+    try {
+        callObject.sendAppMessage({ type: mute ? 'mute_all' : 'unmute_all' }, '*');
+        console.log(`📢 Sent ${mute ? 'mute' : 'unmute'} all request`);
+        return true;
+    } catch (e) {
+        console.error('❌ Failed to send mute all:', e);
+        return false;
+    }
+}
+
+// Expose to global scope for app.js
+window.sendMuteAllRequest = sendMuteAllRequest;
 
 // ========================================
 // Leave Call - FIXED: Properly disconnect everything

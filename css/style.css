@@ -999,6 +999,8 @@ a:hover {
     background: white;
     border-right: 1px solid var(--gray-200);
     padding: 24px;
+    overflow-y: auto;
+    max-height: calc(100vh - 64px);
 }
 
 .sidebar-section {
@@ -4788,3 +4790,41 @@ body.sidebar-resizing * {
     }
 }
 
+/* ========================================
+   Pricing Grid Fix - 3 Cards Centered
+   ======================================== */
+.pricing-grid {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 24px !important;
+}
+
+.pricing-card {
+    flex: 0 0 320px !important;
+    width: 320px !important;
+    background: white;
+    border: 2px solid #e5e7eb !important;
+    border-radius: 20px;
+}
+
+.pricing-card:hover {
+    border-color: #6366f1 !important;
+}
+
+.pricing-card.featured {
+    border-color: #6366f1 !important;
+    transform: scale(1.05);
+}
+
+@media (max-width: 680px) {
+    .pricing-card {
+        flex: 0 0 100% !important;
+        width: 100% !important;
+        max-width: 380px !important;
+    }
+
+    .pricing-card.featured {
+        transform: none !important;
+    }
+}
