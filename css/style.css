@@ -495,99 +495,6 @@ a:hover {
     margin-top: 32px;
 }
 
-/* Pricing */
-.pricing {
-    padding: 100px 0;
-}
-
-.pricing-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
-    max-width: 1000px;
-    margin: 0 auto;
-}
-
-.pricing-card {
-    background: white;
-    border: 2px solid var(--gray-200);
-    border-radius: var(--radius-lg);
-    padding: 40px 32px;
-    position: relative;
-    transition: all 0.3s;
-}
-
-.pricing-card:hover {
-    border-color: var(--primary);
-}
-
-.pricing-card.featured {
-    border-color: var(--primary);
-    transform: scale(1.05);
-}
-
-.pricing-badge {
-    position: absolute;
-    top: -12px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--primary);
-    color: white;
-    padding: 6px 16px;
-    border-radius: 50px;
-    font-size: 12px;
-    font-weight: 700;
-    white-space: nowrap;
-}
-
-.pricing-badge.enterprise {
-    background: linear-gradient(135deg, #059669, #10b981);
-}
-
-.pricing-header h3 {
-    font-size: 24px;
-    font-weight: 700;
-    margin-bottom: 4px;
-}
-
-.pricing-description {
-    color: var(--gray-500);
-    font-size: 14px;
-    margin-bottom: 24px;
-}
-
-.pricing-price {
-    margin-bottom: 24px;
-}
-
-.price-amount {
-    font-size: 48px;
-    font-weight: 800;
-    color: var(--gray-900);
-}
-
-.price-period {
-    font-size: 16px;
-    color: var(--gray-500);
-}
-
-.pricing-features {
-    list-style: none;
-    margin-bottom: 32px;
-}
-
-.pricing-features li {
-    padding: 8px 0;
-    color: var(--gray-600);
-}
-
-.pricing-trial {
-    text-align: center;
-    margin-top: 48px;
-    padding: 24px;
-    background: var(--gray-50);
-    border-radius: var(--radius);
-}
 
 /* Use Cases */
 .use-cases {
@@ -4791,38 +4698,99 @@ body.sidebar-resizing * {
 /* ========================================
    Pricing Grid Fix - 3 Cards Centered
    ======================================== */
-.pricing .pricing-grid {
+
+.pricing {
+    padding: 100px 0;
+}
+
+/* Pricing Grid Fix - 3 Cards Centered */
+.pricing-grid {
     display: flex !important;
     flex-wrap: wrap !important;
     justify-content: center !important;
     gap: 24px !important;
-    max-width: none !important;
 }
 
-.pricing .pricing-card {
+.pricing-card {
     flex: 0 0 320px !important;
     width: 320px !important;
 }
 
-.pricing .pricing-card.featured {
-    transform: scale(1.05);
-}
-
-@media (max-width: 1060px) {
-    .pricing .pricing-card {
-        flex: 0 0 300px !important;
-        width: 300px !important;
-    }
-}
-
 @media (max-width: 680px) {
-    .pricing .pricing-card {
+    .pricing-card {
         flex: 0 0 100% !important;
         width: 100% !important;
         max-width: 380px !important;
     }
 
-    .pricing .pricing-card.featured {
-        transform: none;
+    .pricing-card.featured {
+        transform: none !important;
     }
+}
+
+.pricing-card:hover {
+    border-color: var(--primary);
+}
+
+.pricing-badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--primary);
+    color: white;
+    padding: 6px 16px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.pricing-badge.enterprise {
+    background: linear-gradient(135deg, #059669, #10b981);
+}
+
+.pricing-header h3 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.pricing-description {
+    color: var(--gray-500);
+    font-size: 14px;
+    margin-bottom: 24px;
+}
+
+.pricing-price {
+    margin-bottom: 24px;
+}
+
+.price-amount {
+    font-size: 48px;
+    font-weight: 800;
+    color: var(--gray-900);
+}
+
+.price-period {
+    font-size: 16px;
+    color: var(--gray-500);
+}
+
+.pricing-features {
+    list-style: none;
+    margin-bottom: 32px;
+}
+
+.pricing-features li {
+    padding: 8px 0;
+    color: var(--gray-600);
+}
+
+.pricing-trial {
+    text-align: center;
+    margin-top: 48px;
+    padding: 24px;
+    background: var(--gray-50);
+    border-radius: var(--radius);
 }
