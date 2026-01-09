@@ -4791,53 +4791,46 @@ body.sidebar-resizing * {
 /* ========================================
    Pricing Grid Fix - 3 Cards Centered
    ======================================== */
-.pricing-grid {
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    justify-content: center !important;
+#pricing .pricing-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
     gap: 24px !important;
-    max-width: 1000px !important;
+    max-width: 960px !important;
     margin: 0 auto !important;
 }
 
-.pricing-card {
-    flex: 1 1 300px !important;
-    max-width: 320px !important;
+#pricing .pricing-card {
     background: white !important;
     border: 2px solid #e5e7eb !important;
     border-radius: 20px !important;
     padding: 40px 32px !important;
+    position: relative !important;
 }
 
-.pricing-card:hover {
+#pricing .pricing-card:hover {
     border-color: #6366f1 !important;
 }
 
-.pricing-card.featured {
+#pricing .pricing-card.featured {
     border-color: #6366f1 !important;
     transform: scale(1.05);
     z-index: 1;
 }
 
 @media (max-width: 900px) {
-    .pricing-grid {
-        flex-wrap: wrap !important;
-    }
-
-    .pricing-card {
-        flex: 0 0 280px !important;
-        max-width: 300px !important;
+    #pricing .pricing-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        max-width: 640px !important;
     }
 }
 
-@media (max-width: 680px) {
-    .pricing-card {
-        flex: 0 0 100% !important;
-        width: 100% !important;
+@media (max-width: 600px) {
+    #pricing .pricing-grid {
+        grid-template-columns: 1fr !important;
         max-width: 380px !important;
     }
 
-    .pricing-card.featured {
+    #pricing .pricing-card.featured {
         transform: none !important;
     }
 }
