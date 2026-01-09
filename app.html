@@ -26,6 +26,71 @@
 
     <!-- Files Panel & Screen Share Styles -->
     <style>
+        /* Room Sidebar Scrollability */
+        .room-sidebar {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            max-height: calc(100vh - 180px);
+            overflow: hidden;
+        }
+
+        .sidebar-tabs {
+            flex-shrink: 0;
+        }
+
+        .sidebar-panel {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            min-height: 0;
+        }
+
+        .sidebar-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar-panel::-webkit-scrollbar-track {
+            background: var(--gray-800, #1f2937);
+        }
+
+        .sidebar-panel::-webkit-scrollbar-thumb {
+            background: var(--gray-600, #4b5563);
+            border-radius: 3px;
+        }
+
+        .sidebar-panel::-webkit-scrollbar-thumb:hover {
+            background: var(--gray-500, #6b7280);
+        }
+
+        /* Participants panel scrollability */
+        #participantsPanel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .participants-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        /* Chat panel scrollability */
+        #chatPanel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #chatPanel .messages {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+        }
+
+        #chatPanel .chat-input {
+            flex-shrink: 0;
+        }
+
         /* Files Panel */
         #filesPanel {
             display: flex;
@@ -796,7 +861,7 @@
                         </div>
 
                         <!-- Files Panel (Professional+) -->
-                        <div class="sidebar-panel" id="filesPanel">
+                        <div class="sidebar-panel" id="filesPanel" style="display: none;">
                             <div class="files-upload-area" id="filesUploadArea">
                                 <input type="file" id="fileInput" style="display: none;"
                                     accept=".pdf,.png,.jpg,.jpeg,.gif,.doc,.docx,.xls,.xlsx">
