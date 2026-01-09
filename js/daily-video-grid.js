@@ -60,6 +60,9 @@ async function joinDailyRoom(roomUrl, userName) {
 function handleJoinedMeeting(event) {
     console.log('✅ Joined meeting');
 
+    // Setup screen share event listeners
+    setupScreenShareListeners();
+
     // Clear video tiles BUT PRESERVE subtitle overlay!
     const grid = document.getElementById('videoGrid');
     if (grid) {
@@ -420,6 +423,75 @@ function sendMuteAllRequest(mute) {
 
 // Expose to global scope for app.js
 window.sendMuteAllRequest = sendMuteAllRequest;
+
+// ========================================
+// Screen Sharing
+// ========================================
+let isScreenSharing = false;
+
+async function toggleDailyScreenShare() {
+    if (!callObject) {
+        console.log('⚠️ No call object for screen share');
+        return false;
+    }
+
+    try {
+        if (isScreenSharing) {
+            // Stop screen share
+            await callObject.stopScreenShare();
+            isScreenSharing = false;
+            console.log('🖥️ Screen share stopped');
+
+            if (typeof showNotification === 'function') {
+                showNotification('Screen sharing stopped', 'info');
+            }
+        } else {
+            // Start screen share
+            await callObject.startScreenShare();
+            isScreenSharing = true;
+            console.log('🖥️ Screen share started');
+
+            if (typeof showNotification === 'function') {
+                showNotification('Screen sharing started', 'success');
+            }
+        }
+        return isScreenSharing;
+    } catch (err) {
+        console.error('❌ Screen share error:', err);
+        isScreenSharing = false;
+
+        if (typeof showNotification === 'function') {
+            if (err.message?.includes('Permission denied') || err.name === 'NotAllowedError') {
+                showNotification('Screen share permission denied', 'error');
+            } else {
+                showNotification('Failed to share screen', 'error');
+            }
+        }
+        return false;
+    }
+}
+
+// Listen for screen share stopped event (user clicked browser's stop button)
+function setupScreenShareListeners() {
+    if (!callObject) return;
+
+    callObject.on('participant-updated', (event) => {
+        if (event.participant.local && event.participant.screen === false && isScreenSharing) {
+            isScreenSharing = false;
+            console.log('🖥️ Screen share stopped via browser');
+
+            // Update UI in app.js if function exists
+            if (typeof window.updateScreenShareButton === 'function') {
+                window.state = window.state || {};
+                window.state.isScreenSharing = false;
+                window.updateScreenShareButton();
+            }
+        }
+    });
+}
+
+// Expose to global scope
+window.toggleDailyScreenShare = toggleDailyScreenShare;
 
 // ========================================
 // Leave Call - FIXED: Properly disconnect everything

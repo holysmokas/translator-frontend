@@ -24,6 +24,185 @@
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>">
 
+    <!-- Files Panel & Screen Share Styles -->
+    <style>
+        /* Files Panel */
+        #filesPanel {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .files-upload-area {
+            padding: 12px;
+            border-bottom: 1px solid var(--gray-700, #374151);
+        }
+
+        .upload-dropzone {
+            border: 2px dashed var(--gray-600, #4b5563);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .upload-dropzone:hover,
+        .upload-dropzone.dragover {
+            border-color: var(--primary, #6366f1);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .dropzone-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .upload-dropzone p {
+            margin: 4px 0;
+            color: var(--gray-400, #9ca3af);
+            font-size: 13px;
+        }
+
+        .dropzone-hint {
+            font-size: 11px !important;
+            color: var(--gray-500, #6b7280) !important;
+        }
+
+        .btn-link {
+            background: none;
+            border: none;
+            color: var(--primary, #6366f1);
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: inherit;
+            padding: 0;
+        }
+
+        .upload-progress {
+            margin-top: 12px;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: var(--gray-700, #374151);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary, #6366f1);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .progress-text {
+            font-size: 11px;
+            color: var(--gray-400, #9ca3af);
+            display: block;
+            margin-top: 4px;
+        }
+
+        .files-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        .empty-files {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray-500, #6b7280);
+        }
+
+        .empty-files-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            background: var(--gray-800, #1f2937);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            gap: 10px;
+        }
+
+        .file-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .file-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .file-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--gray-100, #f3f4f6);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-meta {
+            font-size: 11px;
+            color: var(--gray-500, #6b7280);
+            display: flex;
+            gap: 8px;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .file-action-btn {
+            background: none;
+            border: none;
+            padding: 6px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .file-action-btn:hover {
+            background: var(--gray-700, #374151);
+        }
+
+        .file-action-btn.delete:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        /* Screen Share Button Active State */
+        .control-btn.screen-sharing {
+            background: var(--success, #10b981) !important;
+            color: white;
+        }
+
+        .control-btn.screen-sharing:hover {
+            background: var(--success-dark, #059669) !important;
+        }
+
+        /* Screen share tile indicator */
+        .video-tile.screen-share {
+            border: 2px solid var(--success, #10b981);
+        }
+
+        .video-tile.screen-share .participant-name::after {
+            content: ' (Screen)';
+            color: var(--success, #10b981);
+        }
+    </style>
+
 
     <!-- Daily.co SDK for custom video grid -->
     <script src="https://unpkg.com/@daily-co/daily-js"></script>
@@ -199,7 +378,7 @@
 
             <!-- Resize Handle -->
             <div class="sidebar-resize-handle" id="sidebarResizeHandle"></div>
-            
+
         </aside>
 
         <!-- Main Content -->
@@ -546,6 +725,11 @@
                                 <span class="control-icon">🎤</span>
                                 <span class="control-label">Start Speaking</span>
                             </button>
+                            <button class="control-btn" id="toggleScreenShareBtn" title="Share your screen"
+                                style="display: none;">
+                                <span class="control-icon">🖥️</span>
+                                <span class="control-label">Share Screen</span>
+                            </button>
                             <button class="control-btn" id="toggleFullscreenBtn" title="Toggle fullscreen">
                                 <span class="control-icon">⛶</span>
                                 <span class="control-label">Fullscreen</span>
@@ -566,6 +750,9 @@
                             </button>
                             <button class="sidebar-tab" data-tab="chat">
                                 💬 Conversation <span class="tab-badge" id="unreadBadge" style="display:none;">●</span>
+                            </button>
+                            <button class="sidebar-tab" data-tab="files" id="filesTab" style="display:none;">
+                                📁 Files <span class="tab-count" id="tabFilesCount">0</span>
                             </button>
                         </div>
 
@@ -605,6 +792,33 @@
                             <div class="chat-input">
                                 <input type="text" id="messageInput" placeholder="Type a message...">
                                 <button class="btn btn-primary btn-sm" id="sendBtn">Send</button>
+                            </div>
+                        </div>
+
+                        <!-- Files Panel (Professional+) -->
+                        <div class="sidebar-panel" id="filesPanel">
+                            <div class="files-upload-area" id="filesUploadArea">
+                                <input type="file" id="fileInput" style="display: none;"
+                                    accept=".pdf,.png,.jpg,.jpeg,.gif,.doc,.docx,.xls,.xlsx">
+                                <div class="upload-dropzone" id="uploadDropzone">
+                                    <div class="dropzone-icon">📤</div>
+                                    <p>Drag files here or <button class="btn-link" id="selectFileBtn">browse</button>
+                                    </p>
+                                    <p class="dropzone-hint">PDF, Images, Word, Excel (max <span
+                                            id="maxFileSizeText">10MB</span>)</p>
+                                </div>
+                                <div class="upload-progress" id="uploadProgress" style="display: none;">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" id="uploadProgressFill"></div>
+                                    </div>
+                                    <span class="progress-text" id="uploadProgressText">Uploading...</span>
+                                </div>
+                            </div>
+                            <div class="files-list" id="filesList">
+                                <div class="empty-files">
+                                    <div class="empty-files-icon">📂</div>
+                                    <p>No files shared yet</p>
+                                </div>
                             </div>
                         </div>
                     </div>
