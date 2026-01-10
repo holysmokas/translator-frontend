@@ -344,6 +344,8 @@
                     <span class="user-name" id="userName">User</span>
                 </div>
                 <button class="btn btn-ghost btn-sm" id="accountBtn">Account</button>
+                <button class="btn btn-sm" id="supportBtn"
+                    style="background: #ef4444; color: white; border: none;">Support</button>
                 <button class="btn btn-ghost btn-sm" id="logoutBtn">Log Out</button>
             </div>
         </div>
@@ -793,6 +795,46 @@
                             <span class="tip-icon">💡</span>
                             <span>Guests can join without signing up</span>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Support Modal -->
+            <div class="modal" id="supportModal" style="display: none;">
+                <div class="modal-content" style="max-width: 450px;">
+                    <div class="modal-header">
+                        <h3>🆘 Contact Support</h3>
+                        <button class="modal-close" id="closeSupportModal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="supportForm">
+                            <div class="form-group" style="margin-bottom: 16px;">
+                                <label
+                                    style="display: block; margin-bottom: 6px; font-weight: 500; color: #374151;">Name</label>
+                                <input type="text" id="supportName" required
+                                    style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;"
+                                    placeholder="Your name">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 16px;">
+                                <label
+                                    style="display: block; margin-bottom: 6px; font-weight: 500; color: #374151;">Email</label>
+                                <input type="email" id="supportEmail" required
+                                    style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;"
+                                    placeholder="your@email.com">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 16px;">
+                                <label
+                                    style="display: block; margin-bottom: 6px; font-weight: 500; color: #374151;">Message</label>
+                                <textarea id="supportMessage" required rows="5"
+                                    style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; resize: vertical;"
+                                    placeholder="How can we help you?"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary" id="submitSupportBtn"
+                                style="width: 100%; background: #ef4444; border-color: #ef4444;">
+                                Send Message
+                            </button>
+                        </form>
+                        <div id="supportStatus" style="margin-top: 12px; text-align: center;"></div>
                     </div>
                 </div>
             </div>
