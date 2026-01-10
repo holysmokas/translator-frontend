@@ -626,12 +626,13 @@ function debugAudio() {
             }
             if (audioTrack.persistentTrack) {
                 console.log(`   PersistentTrack enabled: ${audioTrack.persistentTrack.enabled}`);
+                console.log(`   PersistentTrack readyState: ${audioTrack.persistentTrack.readyState}`);
             }
         } else {
             console.log(`   ⚠️ No audio track object`);
         }
 
-        // Check audio element
+        // Check audio element - DEEPER inspection
         const audioEl = document.getElementById(`audio-${p.session_id}`);
         if (audioEl) {
             console.log(`   Audio element: found`);
@@ -639,10 +640,34 @@ function debugAudio() {
             console.log(`   Audio element muted: ${audioEl.muted}`);
             console.log(`   Audio element volume: ${audioEl.volume}`);
             console.log(`   Audio element srcObject: ${audioEl.srcObject ? 'set' : 'null'}`);
+
+            // DEEPER: Check the actual MediaStream
+            if (audioEl.srcObject) {
+                const stream = audioEl.srcObject;
+                console.log(`   MediaStream active: ${stream.active}`);
+                console.log(`   MediaStream id: ${stream.id}`);
+                const audioTracks = stream.getAudioTracks();
+                console.log(`   MediaStream audio tracks: ${audioTracks.length}`);
+                audioTracks.forEach((track, i) => {
+                    console.log(`     Track ${i}: enabled=${track.enabled}, readyState=${track.readyState}, muted=${track.muted}`);
+                });
+            }
         } else {
             console.log(`   ⚠️ Audio element NOT found`);
         }
     });
+
+    // Check AudioContext state
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        console.log(`\n🔊 AudioContext state: ${audioCtx.state}`);
+        if (audioCtx.state === 'suspended') {
+            console.log('⚠️ AudioContext is suspended! Click page to resume.');
+        }
+        audioCtx.close();
+    } catch (e) {
+        console.log('Could not check AudioContext:', e);
+    }
 
     console.log('\n=== END AUDIO DEBUG ===');
 }
@@ -663,6 +688,58 @@ function forcePlayAllAudio() {
     });
 }
 
+// Fix audio by reattaching tracks from Daily.co
+function fixAudio() {
+    console.log('🔧 Attempting to fix audio by reattaching tracks...');
+
+    if (!callObject) {
+        console.log('❌ No call object');
+        return;
+    }
+
+    const allParticipants = callObject.participants();
+
+    Object.entries(allParticipants).forEach(([id, p]) => {
+        // Skip local participant
+        if (p.local) return;
+
+        console.log(`🔧 Fixing audio for: ${p.user_name}`);
+
+        const audioEl = document.getElementById(`audio-${p.session_id}`);
+        if (!audioEl) {
+            console.log(`   ❌ No audio element found`);
+            return;
+        }
+
+        // Get the track from Daily
+        const audioTrack = p.tracks?.audio?.persistentTrack || p.tracks?.audio?.track;
+
+        if (!audioTrack) {
+            console.log(`   ❌ No audio track available from Daily`);
+            return;
+        }
+
+        console.log(`   📡 Got track: enabled=${audioTrack.enabled}, readyState=${audioTrack.readyState}`);
+
+        // Create fresh MediaStream and attach
+        const newStream = new MediaStream([audioTrack]);
+        console.log(`   📡 New MediaStream: active=${newStream.active}, tracks=${newStream.getAudioTracks().length}`);
+
+        audioEl.srcObject = newStream;
+        audioEl.muted = false;
+        audioEl.volume = 1.0;
+
+        audioEl.play().then(() => {
+            console.log(`   ✅ Audio now playing for ${p.user_name}`);
+        }).catch(e => {
+            console.error(`   ❌ Play failed:`, e);
+        });
+    });
+
+    console.log('🔧 Fix audio complete');
+}
+
 // Expose debug functions globally
 window.debugAudio = debugAudio;
 window.forcePlayAllAudio = forcePlayAllAudio;
+window.fixAudio = fixAudio;
