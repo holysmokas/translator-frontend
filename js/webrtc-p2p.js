@@ -5,7 +5,7 @@
 // Uses STUN/TURN for NAT traversal
 // ========================================
 
-const WebRTCP2P = (function() {
+const WebRTCP2P = (function () {
     'use strict';
 
     // ========================================
@@ -20,18 +20,18 @@ const WebRTCP2P = (function() {
         // Sign up at https://www.metered.ca/ and replace with your credentials
         {
             urls: 'turn:a.relay.metered.ca:80',
-            username: 'd6900d6ee48e0b2376a913e9',
-            credential: 'z+msMrPEVLxX0Qeo'
+            username: 'open',
+            credential: 'open'
         },
         {
             urls: 'turn:a.relay.metered.ca:443',
-            username: 'd6900d6ee48e0b2376a913e9',
-            credential: 'z+msMrPEVLxX0Qeo'
+            username: 'open',
+            credential: 'open'
         },
         {
             urls: 'turn:a.relay.metered.ca:443?transport=tcp',
-            username: 'd6900d6ee48e0b2376a913e9',
-            credential: 'z+msMrPEVLxX0Qeo'
+            username: 'open',
+            credential: 'open'
         }
     ];
 
@@ -70,26 +70,26 @@ const WebRTCP2P = (function() {
     // ========================================
     // Initialization
     // ========================================
-    
+
     async function init(options) {
         console.log('🎥 P2P WebRTC initializing...');
-        
+
         roomCode = options.roomCode;
         userId = options.userId;
         userName = options.userName;
         websocket = options.websocket;
         videoGrid = options.videoGrid || document.getElementById('videoGrid');
-        onParticipantJoined = options.onParticipantJoined || (() => {});
-        onParticipantLeft = options.onParticipantLeft || (() => {});
+        onParticipantJoined = options.onParticipantJoined || (() => { });
+        onParticipantLeft = options.onParticipantLeft || (() => { });
 
         // Get local media
         try {
             localStream = await navigator.mediaDevices.getUserMedia(MEDIA_CONSTRAINTS);
             console.log('✅ Got local media stream');
-            
+
             // Create local video tile
             createVideoTile('local', userId, userName, localStream, true);
-            
+
             return true;
         } catch (error) {
             console.error('❌ Failed to get media:', error);
@@ -100,7 +100,7 @@ const WebRTCP2P = (function() {
 
     function handleMediaError(error) {
         let message = 'Could not access camera/microphone';
-        
+
         if (error.name === 'NotAllowedError') {
             message = 'Camera/microphone permission denied. Please allow access and refresh.';
         } else if (error.name === 'NotFoundError') {
@@ -108,7 +108,7 @@ const WebRTCP2P = (function() {
         } else if (error.name === 'NotReadableError') {
             message = 'Camera/microphone is in use by another application.';
         }
-        
+
         if (typeof showNotification === 'function') {
             showNotification(message, 'error');
         } else {
@@ -127,7 +127,7 @@ const WebRTCP2P = (function() {
         }
 
         console.log('🔗 Creating peer connection...');
-        
+
         const config = {
             iceServers: ICE_SERVERS,
             iceCandidatePoolSize: 10
@@ -157,9 +157,12 @@ const WebRTCP2P = (function() {
         // Handle ICE connection state
         peerConnection.oniceconnectionstatechange = () => {
             console.log('🧊 ICE state:', peerConnection.iceConnectionState);
-            
+
             if (peerConnection.iceConnectionState === 'connected') {
                 console.log('✅ P2P connection established!');
+                // Clear retry timeout on success
+                clearTimeout(connectionTimeout);
+                connectionRetries = 0;
             } else if (peerConnection.iceConnectionState === 'failed') {
                 console.log('❌ ICE connection failed, attempting restart...');
                 restartIce();
@@ -172,7 +175,7 @@ const WebRTCP2P = (function() {
         peerConnection.onnegotiationneeded = async () => {
             if (isNegotiating) return;
             isNegotiating = true;
-            
+
             try {
                 if (isInitiator) {
                     console.log('📝 Creating offer (negotiation needed)');
@@ -188,13 +191,13 @@ const WebRTCP2P = (function() {
         // Handle remote tracks
         peerConnection.ontrack = (event) => {
             console.log('📥 Received remote track:', event.track.kind);
-            
+
             if (!remoteStream) {
                 remoteStream = new MediaStream();
             }
-            
+
             remoteStream.addTrack(event.track);
-            
+
             // Create or update remote video tile
             if (remoteUserId) {
                 createVideoTile('remote', remoteUserId, remoteUserName || 'Guest', remoteStream, false);
@@ -204,7 +207,7 @@ const WebRTCP2P = (function() {
         // Handle connection state
         peerConnection.onconnectionstatechange = () => {
             console.log('🔌 Connection state:', peerConnection.connectionState);
-            
+
             if (peerConnection.connectionState === 'failed') {
                 console.log('❌ Connection failed');
             }
@@ -215,16 +218,16 @@ const WebRTCP2P = (function() {
 
     async function createAndSendOffer() {
         if (!peerConnection) return;
-        
+
         try {
             const offer = await peerConnection.createOffer({
                 offerToReceiveAudio: true,
                 offerToReceiveVideo: true
             });
-            
+
             await peerConnection.setLocalDescription(offer);
             console.log('📤 Sending offer');
-            
+
             sendSignal({
                 type: 'offer',
                 sdp: offer
@@ -236,32 +239,32 @@ const WebRTCP2P = (function() {
 
     async function handleOffer(offer, fromUserId, fromUserName) {
         console.log('📥 Received offer from:', fromUserName);
-        
+
         remoteUserId = fromUserId;
         remoteUserName = fromUserName;
-        
+
         if (!peerConnection) {
             createPeerConnection();
         }
-        
+
         try {
             await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
-            
+
             // Process queued ICE candidates
             await processIceCandidateQueue();
-            
+
             // Create and send answer
             const answer = await peerConnection.createAnswer();
             await peerConnection.setLocalDescription(answer);
-            
+
             console.log('📤 Sending answer');
             sendSignal({
                 type: 'answer',
                 sdp: answer
             });
-            
+
             onParticipantJoined(fromUserId, fromUserName);
-            
+
         } catch (error) {
             console.error('❌ Error handling offer:', error);
         }
@@ -269,15 +272,15 @@ const WebRTCP2P = (function() {
 
     async function handleAnswer(answer) {
         console.log('📥 Received answer');
-        
+
         if (!peerConnection) return;
-        
+
         try {
             await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
-            
+
             // Process queued ICE candidates
             await processIceCandidateQueue();
-            
+
         } catch (error) {
             console.error('❌ Error handling answer:', error);
         }
@@ -289,13 +292,13 @@ const WebRTCP2P = (function() {
             iceCandidatesQueue.push(candidate);
             return;
         }
-        
+
         if (!peerConnection.remoteDescription) {
             console.log('⏳ Queuing ICE candidate (no remote description yet)');
             iceCandidatesQueue.push(candidate);
             return;
         }
-        
+
         try {
             await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
             console.log('🧊 Added ICE candidate');
@@ -306,7 +309,7 @@ const WebRTCP2P = (function() {
 
     async function processIceCandidateQueue() {
         console.log(`🧊 Processing ${iceCandidatesQueue.length} queued ICE candidates`);
-        
+
         while (iceCandidatesQueue.length > 0) {
             const candidate = iceCandidatesQueue.shift();
             try {
@@ -319,13 +322,13 @@ const WebRTCP2P = (function() {
 
     async function restartIce() {
         if (!peerConnection || !isInitiator) return;
-        
+
         console.log('🔄 Restarting ICE...');
-        
+
         try {
             const offer = await peerConnection.createOffer({ iceRestart: true });
             await peerConnection.setLocalDescription(offer);
-            
+
             sendSignal({
                 type: 'offer',
                 sdp: offer
@@ -344,7 +347,7 @@ const WebRTCP2P = (function() {
             console.error('❌ WebSocket not connected');
             return;
         }
-        
+
         websocket.send(JSON.stringify({
             type: 'webrtc_signal',
             signal: data,
@@ -357,9 +360,9 @@ const WebRTCP2P = (function() {
         const signal = message.signal;
         const fromUserId = message.from_user_id;
         const fromUserName = message.from_user_name;
-        
+
         console.log('📨 Received signal:', signal.type, 'from:', fromUserName);
-        
+
         switch (signal.type) {
             case 'offer':
                 handleOffer(signal.sdp, fromUserId, fromUserName);
@@ -379,46 +382,99 @@ const WebRTCP2P = (function() {
     // Peer Management
     // ========================================
 
+    let connectionTimeout = null;
+    let connectionRetries = 0;
+    const MAX_RETRIES = 3;
+
     function startCall(remoteId, remoteName) {
         console.log('📞 Starting call with:', remoteName);
-        
+
         remoteUserId = remoteId;
         remoteUserName = remoteName;
         isInitiator = true;
-        
+
         createPeerConnection();
         createAndSendOffer();
-        
+
         onParticipantJoined(remoteId, remoteName);
+
+        // Set connection timeout - retry if not connected in 10 seconds
+        clearTimeout(connectionTimeout);
+        connectionTimeout = setTimeout(() => {
+            if (peerConnection && peerConnection.iceConnectionState !== 'connected' &&
+                peerConnection.iceConnectionState !== 'completed') {
+                console.log('⏳ Connection timeout, retrying...');
+                retryConnection();
+            }
+        }, 10000);
+    }
+
+    function retryConnection() {
+        if (connectionRetries >= MAX_RETRIES) {
+            console.log('❌ Max retries reached');
+            if (typeof showNotification === 'function') {
+                showNotification('Video connection failed. Try refreshing the page.', 'error');
+            }
+            return;
+        }
+
+        connectionRetries++;
+        console.log(`🔄 Retry ${connectionRetries}/${MAX_RETRIES}`);
+
+        // Close existing connection
+        if (peerConnection) {
+            peerConnection.close();
+            peerConnection = null;
+        }
+
+        // Restart
+        if (isInitiator && remoteUserId) {
+            createPeerConnection();
+            createAndSendOffer();
+
+            // Set another timeout
+            connectionTimeout = setTimeout(() => {
+                if (peerConnection && peerConnection.iceConnectionState !== 'connected') {
+                    retryConnection();
+                }
+            }, 10000);
+        }
     }
 
     function handlePeerJoined(peerId, peerName) {
         console.log('👤 Peer joined:', peerName);
-        
+
+        // Reset retry counter for new peer
+        connectionRetries = 0;
+
         // If we're already here, we become the initiator
         if (!peerConnection && !remoteUserId) {
             startCall(peerId, peerName);
+        } else if (peerConnection && remoteUserId === peerId) {
+            // Peer reconnected, restart ICE
+            console.log('🔄 Peer reconnected, restarting connection');
+            restartIce();
         }
     }
 
     function handlePeerLeft(peerId) {
         console.log('👋 Peer left:', peerId);
-        
+
         // Remove remote video tile
         removeVideoTile('remote');
-        
+
         // Clean up peer connection
         if (peerConnection) {
             peerConnection.close();
             peerConnection = null;
         }
-        
+
         remoteStream = null;
         remoteUserId = null;
         remoteUserName = null;
         isInitiator = false;
         iceCandidatesQueue = [];
-        
+
         onParticipantLeft(peerId);
     }
 
@@ -428,30 +484,30 @@ const WebRTCP2P = (function() {
 
     function createVideoTile(type, oderId, name, stream, isLocal) {
         if (!videoGrid) return;
-        
+
         const tileId = `video-tile-${type}`;
-        
+
         // Remove existing tile
         const existingTile = document.getElementById(tileId);
         if (existingTile) {
             existingTile.remove();
         }
-        
+
         const tile = document.createElement('div');
         tile.id = tileId;
         tile.className = 'video-tile p2p-tile';
         if (isLocal) tile.classList.add('local');
-        
+
         const video = document.createElement('video');
         video.autoplay = true;
         video.playsInline = true;
         video.muted = isLocal; // Mute local to prevent feedback
         video.srcObject = stream;
-        
+
         const nameLabel = document.createElement('div');
         nameLabel.className = 'participant-name';
         nameLabel.textContent = isLocal ? `${name} (You)` : name;
-        
+
         // Status indicators
         const indicators = document.createElement('div');
         indicators.className = 'video-indicators';
@@ -459,30 +515,30 @@ const WebRTCP2P = (function() {
             <span class="indicator mic-indicator" title="Microphone">🎤</span>
             <span class="indicator cam-indicator" title="Camera">📹</span>
         `;
-        
+
         tile.appendChild(video);
         tile.appendChild(nameLabel);
         tile.appendChild(indicators);
-        
+
         // Add to grid (local first)
         if (isLocal) {
             videoGrid.insertBefore(tile, videoGrid.firstChild);
         } else {
             videoGrid.appendChild(tile);
         }
-        
+
         // Play video
         video.play().catch(e => console.log('Video play error:', e));
-        
+
         console.log(`✅ Created ${type} video tile for ${name}`);
-        
+
         updateGridLayout();
     }
 
     function removeVideoTile(type) {
         const tileId = `video-tile-${type}`;
         const tile = document.getElementById(tileId);
-        
+
         if (tile) {
             tile.remove();
             console.log(`🗑️ Removed ${type} video tile`);
@@ -492,12 +548,12 @@ const WebRTCP2P = (function() {
 
     function updateGridLayout() {
         if (!videoGrid) return;
-        
+
         const tiles = videoGrid.querySelectorAll('.video-tile');
         const count = tiles.length;
-        
+
         videoGrid.className = 'video-grid';
-        
+
         if (count === 1) {
             videoGrid.classList.add('single');
         } else if (count === 2) {
@@ -511,14 +567,14 @@ const WebRTCP2P = (function() {
 
     function toggleAudio() {
         if (!localStream) return false;
-        
+
         const audioTrack = localStream.getAudioTracks()[0];
         if (audioTrack) {
             audioTrack.enabled = !audioTrack.enabled;
             console.log('🎤 Microphone:', audioTrack.enabled ? 'ON' : 'OFF');
-            
+
             updateLocalIndicator('mic', audioTrack.enabled);
-            
+
             return audioTrack.enabled;
         }
         return false;
@@ -526,14 +582,14 @@ const WebRTCP2P = (function() {
 
     function toggleVideo() {
         if (!localStream) return false;
-        
+
         const videoTrack = localStream.getVideoTracks()[0];
         if (videoTrack) {
             videoTrack.enabled = !videoTrack.enabled;
             console.log('📹 Camera:', videoTrack.enabled ? 'ON' : 'OFF');
-            
+
             updateLocalIndicator('cam', videoTrack.enabled);
-            
+
             return videoTrack.enabled;
         }
         return false;
@@ -542,7 +598,7 @@ const WebRTCP2P = (function() {
     function updateLocalIndicator(type, enabled) {
         const localTile = document.getElementById('video-tile-local');
         if (!localTile) return;
-        
+
         const indicator = localTile.querySelector(`.${type}-indicator`);
         if (indicator) {
             indicator.style.opacity = enabled ? '1' : '0.3';
@@ -568,33 +624,37 @@ const WebRTCP2P = (function() {
 
     function cleanup() {
         console.log('🧹 Cleaning up P2P WebRTC...');
-        
+
+        // Clear connection timeout
+        clearTimeout(connectionTimeout);
+        connectionRetries = 0;
+
         // Close peer connection
         if (peerConnection) {
             peerConnection.close();
             peerConnection = null;
         }
-        
+
         // Stop local stream
         if (localStream) {
             localStream.getTracks().forEach(track => track.stop());
             localStream = null;
         }
-        
+
         // Clear remote stream
         remoteStream = null;
-        
+
         // Remove video tiles
         removeVideoTile('local');
         removeVideoTile('remote');
-        
+
         // Reset state
         isInitiator = false;
         remoteUserId = null;
         remoteUserName = null;
         iceCandidatesQueue = [];
         isNegotiating = false;
-        
+
         console.log('✅ P2P cleanup complete');
     }
 
@@ -613,7 +673,7 @@ const WebRTCP2P = (function() {
         isAudioEnabled,
         isVideoEnabled,
         cleanup,
-        
+
         // Expose for debugging
         getState: () => ({
             hasLocalStream: !!localStream,
