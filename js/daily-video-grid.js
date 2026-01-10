@@ -39,6 +39,17 @@ async function joinDailyRoom(roomUrl, userName) {
     callObject.on('camera-error', (e) => console.error('📷 Camera error:', e));
     callObject.on('app-message', handleAppMessage);
 
+    // Additional debug events
+    callObject.on('active-speaker-change', (event) => {
+        console.log('🎙️ Active speaker:', event.activeSpeaker?.user_name || 'none');
+    });
+    callObject.on('network-quality-change', (event) => {
+        console.log('📶 Network quality:', event.threshold, 'for', event.type);
+    });
+    callObject.on('receive-settings-updated', (event) => {
+        console.log('📡 Receive settings updated:', event);
+    });
+
     // Join the room with camera and mic ON
     try {
         await callObject.join({
@@ -115,7 +126,22 @@ function handleParticipantJoined(event) {
 }
 
 function handleParticipantUpdated(event) {
-    updateParticipantTile(event.participant);
+    const participant = event.participant;
+
+    // Check if audio track became available
+    if (!participant.local && participant.tracks?.audio) {
+        const audioEl = document.getElementById(`audio-${participant.session_id}`);
+        // If audio element exists but has no srcObject, try to attach the track
+        if (audioEl && !audioEl.srcObject) {
+            const audioTrack = participant.tracks.audio.persistentTrack || participant.tracks.audio.track;
+            if (audioTrack) {
+                console.log(`🔊 participant-updated: Found new audio track for ${participant.user_name}`);
+                attachAudioTrack(participant.session_id, audioTrack);
+            }
+        }
+    }
+
+    updateParticipantTile(participant);
 }
 
 function handleParticipantLeft(event) {
@@ -126,6 +152,17 @@ function handleParticipantLeft(event) {
 function handleTrackStarted(event) {
     const { participant, track } = event;
     console.log(`🎬 Track started: ${track.kind} for ${participant.user_name} (session: ${participant.session_id}, local: ${participant.local})`);
+
+    // Log track details for debugging
+    if (track.kind === 'audio') {
+        console.log(`🔊 Audio track details:`, {
+            id: track.id,
+            enabled: track.enabled,
+            muted: track.muted,
+            readyState: track.readyState,
+            label: track.label
+        });
+    }
 
     // Make sure tile exists
     if (!document.getElementById(`tile-${participant.session_id}`)) {
@@ -140,7 +177,10 @@ function handleTrackStarted(event) {
     }
     // Attach audio for remote participants only (local audio would cause echo)
     if (track.kind === 'audio' && !participant.local) {
+        console.log(`🔊 Attaching audio track for REMOTE participant: ${participant.user_name}`);
         attachAudioTrack(participant.session_id, track);
+    } else if (track.kind === 'audio' && participant.local) {
+        console.log(`🔇 Skipping local audio (would cause echo): ${participant.user_name}`);
     }
 }
 
@@ -229,11 +269,26 @@ function addParticipantTile(participant) {
 
     // Attach audio for remote participants
     if (!participant.local) {
+        console.log(`🔊 Checking audio tracks for remote participant: ${name}`);
+        console.log(`🔊 Audio track info:`, {
+            hasAudioObj: !!tracks?.audio,
+            state: tracks?.audio?.state,
+            subscribed: tracks?.audio?.subscribed,
+            hasPersistentTrack: !!tracks?.audio?.persistentTrack,
+            hasTrack: !!tracks?.audio?.track
+        });
+
         if (tracks?.audio?.persistentTrack) {
+            console.log(`🔊 Found audio persistentTrack for ${name}`);
             attachAudioTrack(sessionId, tracks.audio.persistentTrack);
         } else if (tracks?.audio?.track) {
+            console.log(`🔊 Found audio track for ${name}`);
             attachAudioTrack(sessionId, tracks.audio.track);
+        } else {
+            console.log(`⏳ No audio track yet for ${name}, waiting for track-started event`);
         }
+    } else {
+        console.log(`🔇 Skipping audio attachment for local participant: ${name}`);
     }
 }
 
@@ -306,10 +361,67 @@ function attachVideoTrack(sessionId, track) {
 }
 
 function attachAudioTrack(sessionId, track) {
+    console.log(`🔊 attachAudioTrack called for ${sessionId}, track:`, track);
     const audio = document.getElementById(`audio-${sessionId}`);
-    if (audio && track) {
+
+    if (!audio) {
+        console.error(`❌ Audio element not found: audio-${sessionId}`);
+        return;
+    }
+    if (!track) {
+        console.error(`❌ Audio track is null for ${sessionId}`);
+        return;
+    }
+
+    try {
+        // Check track state
+        console.log(`🔊 Track state: ${track.readyState}, enabled: ${track.enabled}, muted: ${track.muted}`);
+
         audio.srcObject = new MediaStream([track]);
-        audio.play().catch(err => console.log('Audio autoplay prevented:', err));
+        audio.muted = false;  // Ensure not muted
+        audio.volume = 1.0;   // Full volume
+
+        // Try to play
+        const playPromise = audio.play();
+
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                console.log(`✅ Audio playing for ${sessionId}`);
+            }).catch(err => {
+                console.warn(`⚠️ Audio autoplay blocked for ${sessionId}:`, err.message);
+
+                // Store reference for later resume
+                if (!window.pendingAudioElements) {
+                    window.pendingAudioElements = [];
+                }
+                window.pendingAudioElements.push(audio);
+
+                // Show notification to user
+                if (typeof showNotification === 'function') {
+                    showNotification('Click anywhere to enable audio', 'info');
+                }
+
+                // Add one-time click handler to resume audio
+                const resumeAudio = () => {
+                    console.log('🔊 Attempting to resume blocked audio...');
+                    if (window.pendingAudioElements) {
+                        window.pendingAudioElements.forEach(audioEl => {
+                            audioEl.play().then(() => {
+                                console.log('✅ Audio resumed after user interaction');
+                            }).catch(e => console.error('❌ Still failed:', e));
+                        });
+                        window.pendingAudioElements = [];
+                    }
+                    document.removeEventListener('click', resumeAudio);
+                    document.removeEventListener('touchstart', resumeAudio);
+                };
+
+                document.addEventListener('click', resumeAudio, { once: true });
+                document.addEventListener('touchstart', resumeAudio, { once: true });
+            });
+        }
+    } catch (err) {
+        console.error(`❌ Error attaching audio track for ${sessionId}:`, err);
     }
 }
 
@@ -484,3 +596,73 @@ function cleanupCall() {
         tiles.forEach(tile => tile.remove());
     }
 }
+
+// ========================================
+// Debug Functions - Call from console
+// ========================================
+function debugAudio() {
+    console.log('=== AUDIO DEBUG ===');
+
+    if (!callObject) {
+        console.log('❌ No call object');
+        return;
+    }
+
+    const allParticipants = callObject.participants();
+    console.log('All participants:', Object.keys(allParticipants));
+
+    Object.entries(allParticipants).forEach(([id, p]) => {
+        console.log(`\n👤 ${p.user_name} (${id}, local: ${p.local})`);
+        console.log(`   Audio: ${p.audio ? 'ON' : 'OFF'}`);
+        console.log(`   Video: ${p.video ? 'ON' : 'OFF'}`);
+
+        if (p.tracks?.audio) {
+            const audioTrack = p.tracks.audio;
+            console.log(`   Audio track state: ${audioTrack.state}`);
+            console.log(`   Audio track subscribed: ${audioTrack.subscribed}`);
+            if (audioTrack.track) {
+                console.log(`   Track enabled: ${audioTrack.track.enabled}`);
+                console.log(`   Track readyState: ${audioTrack.track.readyState}`);
+            }
+            if (audioTrack.persistentTrack) {
+                console.log(`   PersistentTrack enabled: ${audioTrack.persistentTrack.enabled}`);
+            }
+        } else {
+            console.log(`   ⚠️ No audio track object`);
+        }
+
+        // Check audio element
+        const audioEl = document.getElementById(`audio-${p.session_id}`);
+        if (audioEl) {
+            console.log(`   Audio element: found`);
+            console.log(`   Audio element paused: ${audioEl.paused}`);
+            console.log(`   Audio element muted: ${audioEl.muted}`);
+            console.log(`   Audio element volume: ${audioEl.volume}`);
+            console.log(`   Audio element srcObject: ${audioEl.srcObject ? 'set' : 'null'}`);
+        } else {
+            console.log(`   ⚠️ Audio element NOT found`);
+        }
+    });
+
+    console.log('\n=== END AUDIO DEBUG ===');
+}
+
+function forcePlayAllAudio() {
+    console.log('🔊 Force playing all audio elements...');
+    document.querySelectorAll('audio').forEach((audio, i) => {
+        console.log(`Audio ${i}: paused=${audio.paused}, muted=${audio.muted}, src=${audio.srcObject ? 'set' : 'null'}`);
+        if (audio.srcObject) {
+            audio.muted = false;
+            audio.volume = 1.0;
+            audio.play().then(() => {
+                console.log(`✅ Audio ${i} now playing`);
+            }).catch(e => {
+                console.error(`❌ Audio ${i} failed:`, e);
+            });
+        }
+    });
+}
+
+// Expose debug functions globally
+window.debugAudio = debugAudio;
+window.forcePlayAllAudio = forcePlayAllAudio;
