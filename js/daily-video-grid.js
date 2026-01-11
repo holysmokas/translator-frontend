@@ -148,6 +148,8 @@ function handleParticipantJoined(event) {
 function handleParticipantUpdated(event) {
     const participant = event.participant;
 
+    console.log(`🔄 Participant updated: ${participant.user_name}, video: ${participant.video}, screen: ${participant.screen}`);
+
     // Check if audio track became available
     if (!participant.local && participant.tracks?.audio) {
         const audioEl = document.getElementById(`audio-${participant.session_id}`);
@@ -158,6 +160,37 @@ function handleParticipantUpdated(event) {
                 console.log(`🔊 participant-updated: Found new audio track for ${participant.user_name}`);
                 attachAudioTrack(participant.session_id, audioTrack);
             }
+        }
+    }
+
+    // Handle screen share state changes
+    const screenTileId = `screen-${participant.session_id}`;
+    const screenTileExists = document.getElementById(screenTileId);
+
+    // If participant stopped screen sharing but tile still exists, remove it
+    if (!participant.screen && screenTileExists) {
+        console.log(`🖥️ participant-updated: Screen share ended for ${participant.user_name}`);
+        handleScreenShareStopped(participant);
+
+        // Make sure camera video is still showing if camera is on
+        if (participant.video && !participant.local) {
+            const videoTrack = participant.tracks?.video?.persistentTrack || participant.tracks?.video?.track;
+            if (videoTrack) {
+                console.log(`📹 Re-attaching camera after screen share stopped for ${participant.user_name}`);
+                setTimeout(() => {
+                    attachVideoTrack(participant.session_id, videoTrack);
+                    updateAvatarVisibility(participant.session_id, true);
+                }, 100);
+            }
+        }
+    }
+
+    // If participant started screen sharing, handle it
+    if (participant.screen && !screenTileExists) {
+        const screenTrack = participant.tracks?.screenVideo?.persistentTrack || participant.tracks?.screenVideo?.track;
+        if (screenTrack) {
+            console.log(`🖥️ participant-updated: Screen share started for ${participant.user_name}`);
+            handleScreenShareStarted(participant, screenTrack);
         }
     }
 
@@ -220,33 +253,64 @@ function handleTrackStarted(event) {
 function handleTrackStopped(event) {
     const { participant, track } = event;
 
-    console.log(`🎬 Track stopped: ${track.kind} for ${participant.user_name}, label: ${track.label}`);
+    console.log(`🎬 Track stopped: ${track.kind} for ${participant.user_name}, label: ${track.label}, local: ${participant.local}`);
 
-    // Check if this is a screen share track by checking:
-    // 1. Track kind is 'screenVideo'
-    // 2. Track label contains 'screen' 
-    // 3. The participant's screen share state changed
+    // Check if this is a screen share track
     const isScreenTrack = track.kind === 'screenVideo' ||
         track.label?.toLowerCase().includes('screen') ||
         track.label?.toLowerCase().includes('window') ||
-        track.label?.toLowerCase().includes('display');
+        track.label?.toLowerCase().includes('display') ||
+        track.label?.toLowerCase().includes('monitor');
 
-    // Also check if a screen tile exists for this participant
-    const screenTileExists = document.getElementById(`screen-${participant.session_id}`);
+    // Check if a screen tile exists for this participant
+    const screenTileId = `screen-${participant.session_id}`;
+    const screenTileExists = document.getElementById(screenTileId);
 
-    if (isScreenTrack || (track.kind === 'video' && screenTileExists)) {
-        console.log(`🖥️ Screen share stopped from ${participant.user_name}`);
+    console.log(`🔍 isScreenTrack: ${isScreenTrack}, screenTileExists: ${!!screenTileExists}`);
+
+    // If screen tile exists and ANY video track stops from this participant, 
+    // check if it's the screen share
+    if (screenTileExists) {
+        // Remove the screen share tile
+        console.log(`🖥️ Removing screen share tile for ${participant.user_name}`);
         handleScreenShareStopped(participant);
-        // Don't return - let it continue to check camera state
+
+        // If this was identified as a screen track, don't touch camera
+        if (isScreenTrack) {
+            console.log(`🖥️ Was screen track, preserving camera`);
+            return;
+        }
+
+        // If track label is ambiguous but screen tile existed, 
+        // re-attach camera video to make sure it's still showing
+        if (track.kind === 'video' && !participant.local) {
+            console.log(`📹 Re-checking camera for remote participant after screen share stopped`);
+            const allParticipants = callObject?.participants();
+            const currentParticipant = Object.values(allParticipants || {}).find(
+                p => p.session_id === participant.session_id
+            );
+
+            if (currentParticipant && currentParticipant.video) {
+                const cameraTrack = currentParticipant.tracks?.video?.persistentTrack ||
+                    currentParticipant.tracks?.video?.track;
+                if (cameraTrack && cameraTrack !== track) {
+                    console.log(`📹 Re-attaching camera for ${participant.user_name}`);
+                    attachVideoTrack(participant.session_id, cameraTrack);
+                    updateAvatarVisibility(participant.session_id, true);
+                }
+            }
+        }
+        return;
     }
 
-    // Only detach camera video if:
-    // 1. It's a video track
-    // 2. It's NOT a screen share track
-    // 3. The participant's video is actually off
+    // No screen tile - this is a regular camera track stopping
     if (track.kind === 'video' && !isScreenTrack) {
-        // Check if participant's camera is actually off
-        const currentParticipant = callObject?.participants()?.[participant.local ? 'local' : participant.session_id];
+        // Verify camera is actually off before detaching
+        const allParticipants = callObject?.participants();
+        const currentParticipant = participant.local
+            ? allParticipants?.local
+            : Object.values(allParticipants || {}).find(p => p.session_id === participant.session_id);
+
         const cameraOff = currentParticipant && !currentParticipant.video;
 
         if (cameraOff) {
@@ -254,7 +318,7 @@ function handleTrackStopped(event) {
             detachVideoTrack(participant.session_id);
             updateAvatarVisibility(participant.session_id, false);
         } else {
-            console.log(`📷 Ignoring track-stopped for ${participant.user_name} - camera still on`);
+            console.log(`📷 Ignoring track-stopped for ${participant.user_name} - camera still on (video: ${currentParticipant?.video})`);
         }
     }
 }
@@ -437,19 +501,28 @@ function updateParticipantTile(participant) {
     if (micStatus) micStatus.textContent = participant.audio ? '🎤' : '🔇';
     if (camStatus) camStatus.textContent = participant.video ? '📹' : '📷';
 
-    // Show/hide avatar based on video state
-    updateAvatarVisibility(sessionId, participant.video);
+    // Only update avatar visibility if video state actually changed
+    // Don't hide video if it's currently playing
+    const video = document.getElementById(`video-${sessionId}`);
+    const videoPlaying = video && video.srcObject && !video.paused;
+
+    if (!videoPlaying) {
+        updateAvatarVisibility(sessionId, participant.video);
+    }
 }
 
 function updateAvatarVisibility(sessionId, hasVideo) {
     const avatar = document.getElementById(`avatar-${sessionId}`);
     const video = document.getElementById(`video-${sessionId}`);
 
+    // Don't hide video if it has an active stream
+    const videoHasStream = video && video.srcObject && video.srcObject.active;
+
     if (avatar) {
-        avatar.style.display = hasVideo ? 'none' : 'flex';
+        avatar.style.display = (hasVideo || videoHasStream) ? 'none' : 'flex';
     }
     if (video) {
-        video.style.display = hasVideo ? 'block' : 'none';
+        video.style.display = (hasVideo || videoHasStream) ? 'block' : 'none';
     }
 }
 
