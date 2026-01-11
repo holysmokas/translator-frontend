@@ -164,6 +164,13 @@ function handleTrackStarted(event) {
         });
     }
 
+    // Handle screen share track
+    if (track.kind === 'screenVideo' || (track.kind === 'video' && track.label?.includes('screen'))) {
+        console.log(`🖥️ Screen share track started from ${participant.user_name}`);
+        handleScreenShareStarted(participant, track);
+        return;
+    }
+
     // Make sure tile exists
     if (!document.getElementById(`tile-${participant.session_id}`)) {
         console.log(`📦 Creating tile for track-started participant: ${participant.user_name}`);
@@ -186,9 +193,77 @@ function handleTrackStarted(event) {
 
 function handleTrackStopped(event) {
     const { participant, track } = event;
+
+    // Handle screen share track stopped
+    if (track.kind === 'screenVideo' || (track.kind === 'video' && track.label?.includes('screen'))) {
+        console.log(`🖥️ Screen share stopped from ${participant.user_name}`);
+        handleScreenShareStopped(participant);
+        return;
+    }
+
     if (track.kind === 'video') {
         detachVideoTrack(participant.session_id);
         updateAvatarVisibility(participant.session_id, false);
+    }
+}
+
+// ========================================
+// Screen Share Track Handling
+// ========================================
+function handleScreenShareStarted(participant, track) {
+    const grid = document.getElementById('videoGrid');
+    if (!grid) return;
+
+    const screenTileId = `screen-${participant.session_id}`;
+
+    // Don't duplicate
+    if (document.getElementById(screenTileId)) {
+        console.log('⚠️ Screen share tile already exists');
+        return;
+    }
+
+    const name = participant.user_name || 'Guest';
+
+    const tile = document.createElement('div');
+    tile.id = screenTileId;
+    tile.className = 'video-tile screen-share';
+    tile.innerHTML = `
+        <video id="video-${screenTileId}" autoplay playsinline></video>
+        <div class="participant-name">${name}'s Screen</div>
+    `;
+
+    // Insert screen share tile at the beginning (prominently)
+    const subtitleOverlay = document.getElementById('subtitleOverlay');
+    if (subtitleOverlay) {
+        grid.insertBefore(tile, subtitleOverlay);
+    } else {
+        grid.insertBefore(tile, grid.firstChild);
+    }
+
+    // Attach video track
+    const video = document.getElementById(`video-${screenTileId}`);
+    if (video && track) {
+        video.srcObject = new MediaStream([track]);
+        video.play().catch(e => console.log('Screen share autoplay prevented:', e));
+    }
+
+    updateGridLayout();
+    console.log(`✅ Screen share tile created for ${name}`);
+}
+
+function handleScreenShareStopped(participant) {
+    const screenTileId = `screen-${participant.session_id}`;
+    const tile = document.getElementById(screenTileId);
+
+    if (tile) {
+        tile.remove();
+        updateGridLayout();
+        console.log(`✅ Screen share tile removed for ${participant.user_name}`);
+    }
+
+    // Update local state if this was our screen share
+    if (participant.local) {
+        isScreenSharing = false;
     }
 }
 
@@ -500,6 +575,45 @@ function toggleVideo() {
         }
     }
 }
+
+// ========================================
+// Screen Share
+// ========================================
+let isScreenSharing = false;
+
+async function toggleDailyScreenShare() {
+    if (!callObject) {
+        console.log('⚠️ No call object for screen share');
+        return false;
+    }
+
+    try {
+        if (!isScreenSharing) {
+            // Start screen share
+            console.log('🖥️ Starting screen share...');
+            await callObject.startScreenShare();
+            isScreenSharing = true;
+            console.log('✅ Screen share started');
+        } else {
+            // Stop screen share
+            console.log('🖥️ Stopping screen share...');
+            await callObject.stopScreenShare();
+            isScreenSharing = false;
+            console.log('✅ Screen share stopped');
+        }
+        return isScreenSharing;
+    } catch (err) {
+        console.error('❌ Screen share error:', err);
+        // User may have cancelled the browser picker
+        if (err.name === 'NotAllowedError') {
+            console.log('ℹ️ User cancelled screen share picker');
+        }
+        return false;
+    }
+}
+
+// Expose screen share to global scope
+window.toggleDailyScreenShare = toggleDailyScreenShare;
 
 // ========================================
 // Handle App Messages (for host controls like mute all)
