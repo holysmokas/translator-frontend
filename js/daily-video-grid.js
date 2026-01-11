@@ -218,10 +218,37 @@ function handleTrackStarted(event) {
     }
 
     // Check if this is a screen share track
-    const isScreenTrack = track.kind === 'screenVideo' ||
-        track.label?.toLowerCase().includes('screen') ||
-        track.label?.toLowerCase().includes('window') ||
-        track.label?.toLowerCase().includes('display');
+    // Method 1: Check track kind
+    const isScreenVideoKind = track.kind === 'screenVideo';
+
+    // Method 2: Check track label for common patterns
+    const labelLower = track.label?.toLowerCase() || '';
+    const hasScreenLabel = labelLower.includes('screen') ||
+        labelLower.includes('window') ||
+        labelLower.includes('display') ||
+        labelLower.includes('monitor') ||
+        labelLower.includes('entire') ||  // "Entire screen"
+        labelLower.includes('tab');       // "Chrome Tab"
+
+    // Method 3: Check if participant is screen sharing (most reliable)
+    const participantIsScreenSharing = participant.screen === true;
+
+    // Method 4: For local participant, check if we're in screen sharing mode
+    const localScreenSharing = participant.local && isScreenSharing;
+
+    // A screen tile already exists for this participant's camera
+    const cameraTileExists = document.getElementById(`tile-${participant.session_id}`);
+    const screenTileExists = document.getElementById(`screen-${participant.session_id}`);
+
+    // Determine if this is a screen track
+    // If participant.screen is true and this is a video track, and we already have their camera tile, 
+    // this must be their screen share
+    const isScreenTrack = isScreenVideoKind ||
+        (track.kind === 'video' && participantIsScreenSharing && cameraTileExists && !screenTileExists) ||
+        (track.kind === 'video' && localScreenSharing && cameraTileExists && !screenTileExists) ||
+        (track.kind === 'video' && hasScreenLabel);
+
+    console.log(`🔍 Screen detection: kind=${track.kind}, label="${track.label}", participant.screen=${participant.screen}, isScreenSharing=${isScreenSharing}, isScreenTrack=${isScreenTrack}`);
 
     // Handle screen share track
     if (isScreenTrack) {
@@ -716,8 +743,9 @@ async function toggleDailyScreenShare() {
         if (!isScreenSharing) {
             // Start screen share
             console.log('🖥️ Starting screen share...');
-            await callObject.startScreenShare();
+            // Set flag BEFORE starting so track detection knows this is a screen share
             isScreenSharing = true;
+            await callObject.startScreenShare();
             console.log('✅ Screen share started');
         } else {
             // Stop screen share
@@ -729,6 +757,8 @@ async function toggleDailyScreenShare() {
         return isScreenSharing;
     } catch (err) {
         console.error('❌ Screen share error:', err);
+        // Reset flag on failure
+        isScreenSharing = false;
         // User may have cancelled the browser picker
         if (err.name === 'NotAllowedError') {
             console.log('ℹ️ User cancelled screen share picker');
