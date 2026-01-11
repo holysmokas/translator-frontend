@@ -39,6 +39,26 @@ async function joinDailyRoom(roomUrl, userName) {
     callObject.on('camera-error', (e) => console.error('📷 Camera error:', e));
     callObject.on('app-message', handleAppMessage);
 
+    // Screen share events
+    callObject.on('local-screen-share-started', () => {
+        console.log('🖥️ Local screen share started');
+        isScreenSharing = true;
+    });
+    callObject.on('local-screen-share-stopped', () => {
+        console.log('🖥️ Local screen share stopped');
+        isScreenSharing = false;
+        // Make sure our camera video is still showing
+        const local = callObject.participants().local;
+        if (local && local.video) {
+            const videoTrack = local.tracks?.video?.persistentTrack || local.tracks?.video?.track;
+            if (videoTrack) {
+                console.log('📹 Re-attaching local camera after screen share');
+                attachVideoTrack(local.session_id, videoTrack);
+                updateAvatarVisibility(local.session_id, true);
+            }
+        }
+    });
+
     // Additional debug events
     callObject.on('active-speaker-change', (event) => {
         console.log('🎙️ Active speaker:', event.activeSpeaker?.user_name || 'none');
@@ -151,7 +171,7 @@ function handleParticipantLeft(event) {
 
 function handleTrackStarted(event) {
     const { participant, track } = event;
-    console.log(`🎬 Track started: ${track.kind} for ${participant.user_name} (session: ${participant.session_id}, local: ${participant.local})`);
+    console.log(`🎬 Track started: ${track.kind} for ${participant.user_name} (session: ${participant.session_id}, local: ${participant.local}, label: ${track.label})`);
 
     // Log track details for debugging
     if (track.kind === 'audio') {
@@ -164,14 +184,20 @@ function handleTrackStarted(event) {
         });
     }
 
+    // Check if this is a screen share track
+    const isScreenTrack = track.kind === 'screenVideo' ||
+        track.label?.toLowerCase().includes('screen') ||
+        track.label?.toLowerCase().includes('window') ||
+        track.label?.toLowerCase().includes('display');
+
     // Handle screen share track
-    if (track.kind === 'screenVideo' || (track.kind === 'video' && track.label?.includes('screen'))) {
+    if (isScreenTrack) {
         console.log(`🖥️ Screen share track started from ${participant.user_name}`);
         handleScreenShareStarted(participant, track);
         return;
     }
 
-    // Make sure tile exists
+    // Make sure tile exists for regular video
     if (!document.getElementById(`tile-${participant.session_id}`)) {
         console.log(`📦 Creating tile for track-started participant: ${participant.user_name}`);
         addParticipantTile(participant);
@@ -194,16 +220,42 @@ function handleTrackStarted(event) {
 function handleTrackStopped(event) {
     const { participant, track } = event;
 
-    // Handle screen share track stopped
-    if (track.kind === 'screenVideo' || (track.kind === 'video' && track.label?.includes('screen'))) {
+    console.log(`🎬 Track stopped: ${track.kind} for ${participant.user_name}, label: ${track.label}`);
+
+    // Check if this is a screen share track by checking:
+    // 1. Track kind is 'screenVideo'
+    // 2. Track label contains 'screen' 
+    // 3. The participant's screen share state changed
+    const isScreenTrack = track.kind === 'screenVideo' ||
+        track.label?.toLowerCase().includes('screen') ||
+        track.label?.toLowerCase().includes('window') ||
+        track.label?.toLowerCase().includes('display');
+
+    // Also check if a screen tile exists for this participant
+    const screenTileExists = document.getElementById(`screen-${participant.session_id}`);
+
+    if (isScreenTrack || (track.kind === 'video' && screenTileExists)) {
         console.log(`🖥️ Screen share stopped from ${participant.user_name}`);
         handleScreenShareStopped(participant);
-        return;
+        // Don't return - let it continue to check camera state
     }
 
-    if (track.kind === 'video') {
-        detachVideoTrack(participant.session_id);
-        updateAvatarVisibility(participant.session_id, false);
+    // Only detach camera video if:
+    // 1. It's a video track
+    // 2. It's NOT a screen share track
+    // 3. The participant's video is actually off
+    if (track.kind === 'video' && !isScreenTrack) {
+        // Check if participant's camera is actually off
+        const currentParticipant = callObject?.participants()?.[participant.local ? 'local' : participant.session_id];
+        const cameraOff = currentParticipant && !currentParticipant.video;
+
+        if (cameraOff) {
+            console.log(`📷 Camera stopped for ${participant.user_name}`);
+            detachVideoTrack(participant.session_id);
+            updateAvatarVisibility(participant.session_id, false);
+        } else {
+            console.log(`📷 Ignoring track-stopped for ${participant.user_name} - camera still on`);
+        }
     }
 }
 
