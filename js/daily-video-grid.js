@@ -43,10 +43,14 @@ async function joinDailyRoom(roomUrl, userName) {
     callObject.on('local-screen-share-started', () => {
         console.log('🖥️ Local screen share started');
         isScreenSharing = true;
+        // Update button UI
+        updateScreenShareButtonUI(true);
     });
     callObject.on('local-screen-share-stopped', () => {
         console.log('🖥️ Local screen share stopped');
         isScreenSharing = false;
+        // Update button UI
+        updateScreenShareButtonUI(false);
         // Make sure our camera video is still showing
         const local = callObject.participants().local;
         if (local && local.video) {
@@ -767,8 +771,35 @@ async function toggleDailyScreenShare() {
     }
 }
 
+// Update screen share button UI (called when screen share starts/stops via browser)
+function updateScreenShareButtonUI(sharing) {
+    const btn = document.getElementById('toggleScreenShareBtn');
+    if (!btn) return;
+
+    const icon = btn.querySelector('.control-icon');
+    const label = btn.querySelector('.control-label');
+
+    if (sharing) {
+        btn.classList.add('screen-sharing');
+        if (icon) icon.textContent = '🖥️';
+        if (label) label.textContent = 'Stop Sharing';
+        console.log('🖥️ Button updated: sharing');
+    } else {
+        btn.classList.remove('screen-sharing');
+        if (icon) icon.textContent = '🖥️';
+        if (label) label.textContent = 'Share Screen';
+        console.log('🖥️ Button updated: not sharing');
+    }
+
+    // Also notify app.js via custom event
+    window.dispatchEvent(new CustomEvent('screenShareStateChanged', {
+        detail: { isSharing: sharing }
+    }));
+}
+
 // Expose screen share to global scope
 window.toggleDailyScreenShare = toggleDailyScreenShare;
+window.updateScreenShareButtonUI = updateScreenShareButtonUI;
 
 // ========================================
 // Handle App Messages (for host controls like mute all)
