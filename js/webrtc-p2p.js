@@ -111,8 +111,21 @@ const WebRTCP2P = (function () {
 
         if (typeof showNotification === 'function') {
             showNotification(message, 'error');
+        } else if (typeof window.showNotification === 'function') {
+            window.showNotification(message, 'error');
         } else {
-            alert(message);
+            // Fallback: Log to console and show inline error
+            console.error('📷 Media Error:', message);
+            // Try to show error in video grid area
+            const grid = document.getElementById('videoGrid');
+            if (grid) {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'media-error-message';
+                errorDiv.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #ef4444; color: white; padding: 16px 24px; border-radius: 8px; z-index: 100; text-align: center;';
+                errorDiv.textContent = message;
+                grid.appendChild(errorDiv);
+                setTimeout(() => errorDiv.remove(), 5000);
+            }
         }
     }
 
