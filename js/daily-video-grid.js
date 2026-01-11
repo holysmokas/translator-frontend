@@ -462,10 +462,20 @@ function toggleMute() {
     const localAudio = callObject.localAudio();
     callObject.setLocalAudio(!localAudio);
 
-    // Update button UI
-    const btn = document.getElementById('toggleMuteBtn');
+    // Update button UI - check both possible IDs
+    const btn = document.getElementById('toggleMicBtn') || document.getElementById('toggleMuteBtn');
     if (btn) {
-        btn.innerHTML = localAudio ? '🔇 Unmute' : '🎤 Mute';
+        if (localAudio) {
+            // Now muted
+            btn.classList.add('muted');
+            btn.querySelector('.control-icon').textContent = '🔇';
+            btn.querySelector('.control-label').textContent = 'Unmute';
+        } else {
+            // Now unmuted
+            btn.classList.remove('muted');
+            btn.querySelector('.control-icon').textContent = '🎤';
+            btn.querySelector('.control-label').textContent = 'Mute';
+        }
     }
 }
 
@@ -477,7 +487,17 @@ function toggleVideo() {
     // Update button UI
     const btn = document.getElementById('toggleVideoBtn');
     if (btn) {
-        btn.innerHTML = localVideo ? '📷 Start Video' : '📹 Stop Video';
+        if (localVideo) {
+            // Now video off
+            btn.classList.add('video-off');
+            btn.querySelector('.control-icon').textContent = '📷';
+            btn.querySelector('.control-label').textContent = 'Start Video';
+        } else {
+            // Now video on
+            btn.classList.remove('video-off');
+            btn.querySelector('.control-icon').textContent = '📹';
+            btn.querySelector('.control-label').textContent = 'Stop Video';
+        }
     }
 }
 
@@ -495,10 +515,14 @@ function handleAppMessage(event) {
             if (callObject) {
                 callObject.setLocalAudio(false);
                 localAudio = false;
-                // Update button UI
-                const btn = document.getElementById('toggleMuteBtn');
+                // Update button UI - check both possible IDs
+                const btn = document.getElementById('toggleMicBtn') || document.getElementById('toggleMuteBtn');
                 if (btn) {
-                    btn.innerHTML = '🔇 Unmute';
+                    btn.classList.add('muted');
+                    const icon = btn.querySelector('.control-icon');
+                    const label = btn.querySelector('.control-label');
+                    if (icon) icon.textContent = '🔇';
+                    if (label) label.textContent = 'Unmute';
                 }
                 if (typeof showNotification === 'function') {
                     showNotification('Host muted all participants', 'info');
@@ -509,10 +533,28 @@ function handleAppMessage(event) {
             console.error('❌ Failed to mute:', e);
         }
     } else if (data.type === 'unmute_all') {
-        // Host allowed everyone to unmute (just notify, don't force unmute)
-        console.log('🔊 Host allowed unmute');
-        if (typeof showNotification === 'function') {
-            showNotification('Host enabled audio - you can unmute now', 'info');
+        // Host allowed everyone to unmute - ACTUALLY unmute them
+        console.log('🔊 Host requested unmute all');
+        try {
+            if (callObject) {
+                callObject.setLocalAudio(true);
+                localAudio = true;
+                // Update button UI - check both possible IDs
+                const btn = document.getElementById('toggleMicBtn') || document.getElementById('toggleMuteBtn');
+                if (btn) {
+                    btn.classList.remove('muted');
+                    const icon = btn.querySelector('.control-icon');
+                    const label = btn.querySelector('.control-label');
+                    if (icon) icon.textContent = '🎤';
+                    if (label) label.textContent = 'Mute';
+                }
+                if (typeof showNotification === 'function') {
+                    showNotification('Host unmuted all participants', 'info');
+                }
+                console.log('✅ Audio unmuted by host');
+            }
+        } catch (e) {
+            console.error('❌ Failed to unmute:', e);
         }
     }
 }
@@ -743,3 +785,7 @@ function fixAudio() {
 window.debugAudio = debugAudio;
 window.forcePlayAllAudio = forcePlayAllAudio;
 window.fixAudio = fixAudio;
+
+// Expose toggle controls to global scope for button onclick handlers
+window.toggleMute = toggleMute;
+window.toggleVideo = toggleVideo;

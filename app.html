@@ -257,6 +257,18 @@
             background: var(--success-dark, #059669) !important;
         }
 
+        /* Muted/Video Off Button States */
+        .control-btn.muted,
+        .control-btn.video-off {
+            background: var(--danger, #ef4444) !important;
+            color: white;
+        }
+
+        .control-btn.muted:hover,
+        .control-btn.video-off:hover {
+            background: var(--danger-dark, #dc2626) !important;
+        }
+
         /* Screen share tile indicator */
         .video-tile.screen-share {
             border: 2px solid var(--success, #10b981);
@@ -884,10 +896,20 @@
 
                         <!-- Controls Bar -->
                         <div class="controls-bar" id="controlsBar">
+                            <button class="control-btn" id="toggleMicBtn" onclick="toggleMute()"
+                                title="Toggle microphone">
+                                <span class="control-icon">🎤</span>
+                                <span class="control-label">Mute</span>
+                            </button>
+                            <button class="control-btn" id="toggleVideoBtn" onclick="toggleVideo()"
+                                title="Toggle camera">
+                                <span class="control-icon">📹</span>
+                                <span class="control-label">Video</span>
+                            </button>
                             <button class="control-btn voice-btn" id="startVoiceBtn"
                                 title="Start voice-to-text translation">
-                                <span class="control-icon">🎤</span>
-                                <span class="control-label">Start Speaking</span>
+                                <span class="control-icon">🗣️</span>
+                                <span class="control-label">Translate</span>
                             </button>
                             <button class="control-btn" id="toggleScreenShareBtn" title="Share your screen"
                                 style="display: none;">
