@@ -315,8 +315,11 @@
             return;
         }
 
-        // Display user info
-        elements.userName.textContent = state.user.name || state.user.email.split('@')[0];
+        // Display user info - extract first name from full_name if available
+        const displayName = state.user.name
+            ? state.user.name.split(' ')[0]  // First name from "John Doe"
+            : state.user.email.split('@')[0];
+        elements.userName.textContent = displayName;
 
         // Load profile and usage
         await loadProfile();
@@ -778,9 +781,17 @@
                 localStorage.setItem('profile', JSON.stringify(state.profile));
             } else {
                 console.error('❌ Profile load failed:', response.status);
+                // FIXED: Default to trial tier when profile doesn't exist
+                state.profile = { tier: 'trial' };
+                state.tier = 'trial';
+                updatePlanDisplay({ profile: { tier: 'trial' }, usage: {}, limits: {} });
             }
         } catch (error) {
             console.error('Failed to load profile:', error);
+            // FIXED: Default to trial tier on error
+            state.profile = { tier: 'trial' };
+            state.tier = 'trial';
+            updatePlanDisplay({ profile: { tier: 'trial' }, usage: {}, limits: {} });
         }
     }
 
@@ -796,6 +807,16 @@
 
         // Store tier in state for feature checks
         state.tier = tier;
+
+        // FIXED: Update username display with first name from profile
+        const fullName = data.profile?.full_name;
+        if (fullName && elements.userName) {
+            // Extract first name (e.g., "John Doe" -> "John")
+            const firstName = fullName.split(' ')[0];
+            elements.userName.textContent = firstName;
+            // Also update state.user.name for consistency
+            state.user.name = fullName;
+        }
 
         elements.userTier.textContent = tierLabels[tier] || tier;
         elements.userTier.className = `user-tier tier-${tier}`;
@@ -1673,8 +1694,19 @@
         try {
             console.log('🔗 Loading personal room for user:', state.user.id);
             const response = await fetch(`${CONFIG.API_BASE}/api/personal-room/${state.user.id}`);
-            const data = await response.json();
 
+            // FIXED: Handle API errors (404, 500, etc.) - hide premium features
+            if (!response.ok) {
+                console.log('🔗 Personal room API error:', response.status, '- hiding premium features');
+                state.hasPersonalRoom = false;
+                hideCreatePersonalRoomButtons();
+                if (elements.personalRoomCard) {
+                    elements.personalRoomCard.style.display = 'none';
+                }
+                return;
+            }
+
+            const data = await response.json();
             console.log('🔗 Personal room response:', data);
 
             if (data.has_personal_room) {
@@ -1696,8 +1728,8 @@
                 // Hide create buttons since room exists
                 hideCreatePersonalRoomButtons();
 
-            } else if (!data.upgrade_required) {
-                // User is on paid plan but doesn't have a personal room
+            } else if (data.upgrade_required === false) {
+                // FIXED: Explicit check - User is on paid plan (Business/Enterprise) but doesn't have a personal room
                 // Show the "Create My Meeting Room" buttons
                 console.log('🔗 User can create personal room, showing buttons');
                 state.hasPersonalRoom = false;
@@ -1707,8 +1739,8 @@
                     elements.personalRoomCard.style.display = 'none';
                 }
             } else {
-                // User is on trial - hide everything
-                console.log('🔗 Upgrade required for personal room');
+                // User is on trial/starter/professional OR upgrade_required is true - hide everything
+                console.log('🔗 Upgrade required for personal room (upgrade_required:', data.upgrade_required, ')');
                 state.hasPersonalRoom = false;
                 hideCreatePersonalRoomButtons();
                 if (elements.personalRoomCard) {
