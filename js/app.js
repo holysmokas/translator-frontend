@@ -1980,6 +1980,17 @@
             state.roomCode = data.room_code;
             state.maxMinutes = 180; // Joiners get longer time
 
+            // ============================================
+            // CRITICAL FIX: Capture video_mode from API
+            // This ensures guests use the same video system as the host
+            // Without this, guests ignore WebRTC signals from hosts
+            // ============================================
+            if (data.video_mode) {
+                state.videoMode = data.video_mode;
+                state.hostTier = data.host_tier;
+                console.log(`📹 Guest video mode set: ${data.video_mode} (host tier: ${data.host_tier})`);
+            }
+
             connectWebSocket(data.video_url);
 
         } catch (error) {
