@@ -67,6 +67,9 @@ const WebRTCP2P = (function () {
     let iceCandidatesQueue = [];
     let isNegotiating = false;
 
+    // Track if we're waiting for an offer (joiner role)
+    let waitingForOffer = false;
+
     // ========================================
     // Initialization
     // ========================================
@@ -127,6 +130,28 @@ const WebRTCP2P = (function () {
                 setTimeout(() => errorDiv.remove(), 5000);
             }
         }
+    }
+
+    // ========================================
+    // CRITICAL FIX: Setup connection WITHOUT creating offer
+    // This is for the JOINER (person who sees existing_participants)
+    // The person already in the room will send the offer
+    // ========================================
+    function setupConnectionWithoutOffer(peerId, peerName) {
+        console.log('📞 Setting up P2P connection (waiting for offer from:', peerName, ')');
+
+        remoteUserId = peerId;
+        remoteUserName = peerName;
+        isInitiator = false;  // We are NOT the initiator
+        waitingForOffer = true;
+
+        // Create peer connection but DON'T create offer
+        createPeerConnection();
+
+        // Send ready signal so the other peer knows we're prepared
+        sendSignal({ type: 'p2p_ready' });
+
+        console.log('👤 Waiting for offer from:', peerName);
     }
 
     // ========================================
@@ -460,8 +485,19 @@ const WebRTCP2P = (function () {
         // Reset retry counter for new peer
         connectionRetries = 0;
 
-        // If we're already here, we become the initiator
+        // ============================================================
+        // CRITICAL FIX: Only initiate if we were here first
+        // If we're waiting for an offer (we're the joiner), DON'T initiate
+        // ============================================================
+        if (waitingForOffer) {
+            console.log('👤 We are waiting for offer, not initiating');
+            return;
+        }
+
+        // If we don't have a peer connection yet and someone joins,
+        // WE were here first, so WE initiate
         if (!peerConnection && !remoteUserId) {
+            console.log('👤 We were here first - initiating call');
             startCall(peerId, peerName);
         } else if (peerConnection && remoteUserId === peerId) {
             // Peer reconnected, restart ICE
@@ -663,6 +699,7 @@ const WebRTCP2P = (function () {
 
         // Reset state
         isInitiator = false;
+        waitingForOffer = false;  // ADDED: Reset waiting flag
         remoteUserId = null;
         remoteUserName = null;
         iceCandidatesQueue = [];
@@ -681,6 +718,7 @@ const WebRTCP2P = (function () {
         handlePeerJoined,
         handlePeerLeft,
         startCall,
+        setupConnectionWithoutOffer,  // ADDED: For joiner role
         toggleAudio,
         toggleVideo,
         isAudioEnabled,
@@ -693,6 +731,7 @@ const WebRTCP2P = (function () {
             hasPeerConnection: !!peerConnection,
             hasRemoteStream: !!remoteStream,
             isInitiator,
+            waitingForOffer,
             connectionState: peerConnection?.connectionState,
             iceState: peerConnection?.iceConnectionState
         })
