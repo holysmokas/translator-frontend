@@ -87,6 +87,41 @@
         hostTier: null    // Host's tier when joining as guest
     };
 
+    // Language names and flags for display
+    const LANGUAGES = {
+        'en': { name: 'English', flag: '🇺🇸' },
+        'es': { name: 'Spanish', flag: '🇪🇸' },
+        'fr': { name: 'French', flag: '🇫🇷' },
+        'de': { name: 'German', flag: '🇩🇪' },
+        'it': { name: 'Italian', flag: '🇮🇹' },
+        'pt': { name: 'Portuguese', flag: '🇵🇹' },
+        'pt-BR': { name: 'Portuguese (BR)', flag: '🇧🇷' },
+        'zh': { name: 'Chinese', flag: '🇨🇳' },
+        'zh-TW': { name: 'Chinese (TW)', flag: '🇹🇼' },
+        'ja': { name: 'Japanese', flag: '🇯🇵' },
+        'ko': { name: 'Korean', flag: '🇰🇷' },
+        'ru': { name: 'Russian', flag: '🇷🇺' },
+        'ar': { name: 'Arabic', flag: '🇸🇦' },
+        'fa': { name: 'Persian', flag: '🇮🇷' },
+        'hi': { name: 'Hindi', flag: '🇮🇳' },
+        'nl': { name: 'Dutch', flag: '🇳🇱' },
+        'pl': { name: 'Polish', flag: '🇵🇱' },
+        'tr': { name: 'Turkish', flag: '🇹🇷' },
+        'vi': { name: 'Vietnamese', flag: '🇻🇳' },
+        'th': { name: 'Thai', flag: '🇹🇭' },
+        'uk': { name: 'Ukrainian', flag: '🇺🇦' },
+        'he': { name: 'Hebrew', flag: '🇮🇱' },
+        'sv': { name: 'Swedish', flag: '🇸🇪' },
+        'da': { name: 'Danish', flag: '🇩🇰' },
+        'fi': { name: 'Finnish', flag: '🇫🇮' },
+        'no': { name: 'Norwegian', flag: '🇳🇴' },
+        'el': { name: 'Greek', flag: '🇬🇷' },
+        'cs': { name: 'Czech', flag: '🇨🇿' },
+        'ro': { name: 'Romanian', flag: '🇷🇴' },
+        'hu': { name: 'Hungarian', flag: '🇭🇺' },
+        'id': { name: 'Indonesian', flag: '🇮🇩' }
+    };
+
     // ========================================
     // DOM Elements
     // ========================================
