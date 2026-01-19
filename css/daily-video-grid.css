@@ -17,6 +17,21 @@
     box-sizing: border-box;
 }
 
+/* Ensure video section fills available space */
+#videoSection {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+}
+
+#videoSection #videoGrid {
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+}
+
 /* Individual video tile */
 #videoGrid .video-tile {
     position: relative;
@@ -74,13 +89,17 @@
    ======================================== */
 
 /* 1 participant - full width */
-#videoGrid.video-grid.participants-1 {
+#videoGrid.video-grid.participants-1,
+#videoGrid.video-grid.single,
+.video-grid.single {
     grid-template-columns: 1fr !important;
     grid-template-rows: 1fr !important;
 }
 
-/* 2 participants - side by side, equal */
-#videoGrid.video-grid.participants-2 {
+/* 2 participants - side by side on desktop, equal height */
+#videoGrid.video-grid.participants-2,
+#videoGrid.video-grid.duo,
+.video-grid.duo {
     grid-template-columns: 1fr 1fr !important;
     grid-template-rows: 1fr !important;
 }
@@ -138,18 +157,35 @@
         min-height: 300px;
         padding: 4px;
         gap: 4px;
+        height: calc(100vh - 200px) !important;
+        max-height: calc(100vh - 200px) !important;
     }
 
     /* 1 participant - full screen */
-    #videoGrid.video-grid.participants-1 {
+    #videoGrid.video-grid.participants-1,
+    #videoGrid.video-grid.single,
+    .video-grid.single {
         grid-template-columns: 1fr !important;
         grid-template-rows: 1fr !important;
     }
 
-    /* 2 participants - stacked vertically, equal height */
-    #videoGrid.video-grid.participants-2 {
+    /* 2 participants - stacked vertically, equal height, FILL SPACE */
+    #videoGrid.video-grid.participants-2,
+    #videoGrid.video-grid.duo,
+    .video-grid.duo {
         grid-template-columns: 1fr !important;
         grid-template-rows: 1fr 1fr !important;
+        height: 100% !important;
+        overflow: hidden !important;
+    }
+
+    /* Ensure tiles fill their grid cells */
+    #videoGrid.video-grid.participants-2>.video-tile,
+    #videoGrid.video-grid.duo>.video-tile,
+    .video-grid.duo>.video-tile,
+    #videoGrid .video-tile.p2p-tile {
+        height: 100% !important;
+        min-height: 0 !important;
     }
 
     /* 3-4 participants - 2x2 grid */
@@ -306,11 +342,19 @@
     background: #1a1a2e;
     border-radius: 12px;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.video-container>#videoGrid {
+    flex: 1;
+    min-height: 0;
 }
 
 @media (max-width: 768px) {
     .video-container {
-        min-height: 70vh;
+        min-height: calc(100vh - 220px);
+        height: calc(100vh - 220px);
         border-radius: 8px;
     }
 
@@ -327,4 +371,28 @@
     .subtitle-text .subtitle-main {
         font-size: 16px;
     }
+}
+
+/* ========================================
+   P2P WebRTC specific tile styles
+   ======================================== */
+.video-tile.p2p-tile {
+    position: relative;
+    background: #16213e;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.video-tile.p2p-tile video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.video-tile.p2p-tile.local video {
+    transform: scaleX(-1);
+    /* Mirror local video */
 }
