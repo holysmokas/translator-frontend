@@ -84,7 +84,10 @@
 
         // Video mode (set by host's tier for guests)
         videoMode: null,  // 'p2p' or 'daily' - set when joining as guest
-        hostTier: null    // Host's tier when joining as guest
+        hostTier: null,    // Host's tier when joining as guest
+
+        // Subtitle timeout tracker (for movie-style display)
+        subtitleTimeout: null
     };
 
     // Language names and flags for display
@@ -755,6 +758,13 @@
     function showInterimSubtitle(text) {
         if (!elements.subtitleOverlay) return;
 
+        // Clear any existing subtitle timeout
+        if (state.subtitleTimeout) {
+            clearTimeout(state.subtitleTimeout);
+            state.subtitleTimeout = null;
+        }
+
+        // Show interim text (replaces any previous)
         elements.subtitleOverlay.innerHTML = `
             <div class="subtitle-text interim">
                 <span class="speaking-indicator">🎤</span> ${escapeHtml(text)}...
@@ -764,38 +774,45 @@
     }
 
     function hideInterimSubtitle() {
-        // Don't hide completely, just remove interim
+        // Clear the entire overlay when hiding interim
         if (elements.subtitleOverlay) {
-            const interim = elements.subtitleOverlay.querySelector('.interim');
-            if (interim) interim.remove();
+            elements.subtitleOverlay.innerHTML = '';
         }
     }
 
     function showSubtitle(sender, text, originalText, senderLang) {
         if (!elements.subtitleOverlay) return;
 
+        // Clear any existing subtitle timeout (movie-style: only one at a time)
+        if (state.subtitleTimeout) {
+            clearTimeout(state.subtitleTimeout);
+            state.subtitleTimeout = null;
+        }
+
         const langInfo = LANGUAGES[senderLang] || { name: senderLang, flag: '🌐' };
 
-        // Create clean subtitle element - only show translated text
-        const subtitle = document.createElement('div');
-        subtitle.className = 'subtitle-text received';
-        subtitle.innerHTML = `
-            <div class="subtitle-sender">${langInfo.flag} ${escapeHtml(sender)}</div>
-            <div class="subtitle-main">${escapeHtml(text)}</div>
+        // Clear and show new subtitle (replaces previous)
+        elements.subtitleOverlay.innerHTML = `
+            <div class="subtitle-text received">
+                <div class="subtitle-sender">${langInfo.flag} ${escapeHtml(sender)}</div>
+                <div class="subtitle-main">${escapeHtml(text)}</div>
+            </div>
         `;
-
-        // Clear old subtitles and show new one
-        elements.subtitleOverlay.innerHTML = '';
-        elements.subtitleOverlay.appendChild(subtitle);
         elements.subtitleOverlay.style.display = 'block';
 
-        // Auto-hide after 6 seconds
-        setTimeout(() => {
-            if (subtitle.parentNode === elements.subtitleOverlay) {
-                subtitle.classList.add('fade-out');
-                setTimeout(() => subtitle.remove(), 500);
+        // Auto-hide after 4 seconds
+        state.subtitleTimeout = setTimeout(() => {
+            if (elements.subtitleOverlay) {
+                const subtitle = elements.subtitleOverlay.querySelector('.subtitle-text');
+                if (subtitle) {
+                    subtitle.classList.add('fade-out');
+                    setTimeout(() => {
+                        elements.subtitleOverlay.innerHTML = '';
+                    }, 500);
+                }
             }
-        }, 6000);
+            state.subtitleTimeout = null;
+        }, 4000);
     }
 
     // ========================================
