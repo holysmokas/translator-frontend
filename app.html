@@ -21,6 +21,8 @@
     <link rel="stylesheet" href="css/daily-video-grid.css">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/subtitle-styles.css">
+    <link rel="stylesheet" href="css/whiteboard.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>">
 
@@ -920,6 +922,11 @@
                                 <span class="control-icon">⛶</span>
                                 <span class="control-label">Fullscreen</span>
                             </button>
+                            <button class="control-btn" id="toggleWhiteboardBtn" onclick="Whiteboard.toggle()"
+                                title="Whiteboard">
+                                <span class="control-icon">📋</span>
+                                <span class="control-label">Board</span>
+                            </button>
                             <button class="control-btn danger" id="endCallBtn" title="Leave room">
                                 <span class="control-icon">📞</span>
                                 <span class="control-label">Leave</span>
@@ -1169,6 +1176,7 @@
 
     <script src="js/config.js"></script>
     <script src="js/webrtc-p2p.js"></script>
+    <script src="js/whiteboard.js"></script>
     <script src="js/app.js"></script>
 
     <!-- Service Worker Registration -->

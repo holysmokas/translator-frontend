@@ -1,0 +1,429 @@
+/* ============================================
+   Whiteboard Styles for Mamnoon.ai
+   ============================================ */
+
+/* Panel Container */
+.whiteboard-panel {
+    position: fixed;
+    top: 0;
+    right: -400px;
+    width: 400px;
+    height: 100vh;
+    background: #ffffff;
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    transition: right 0.3s ease;
+}
+
+.whiteboard-panel.open {
+    right: 0;
+}
+
+/* Adjust main area when whiteboard is open */
+.main-area.whiteboard-open {
+    margin-right: 400px;
+    transition: margin-right 0.3s ease;
+}
+
+/* Header */
+.whiteboard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.whiteboard-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 15px;
+    color: #333;
+}
+
+.whiteboard-icon {
+    font-size: 18px;
+}
+
+.whiteboard-header-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.wb-header-btn {
+    background: none;
+    border: none;
+    padding: 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #666;
+    transition: all 0.2s;
+}
+
+.wb-header-btn:hover {
+    background: #e9ecef;
+    color: #333;
+}
+
+/* Canvas Container */
+.whiteboard-canvas-container {
+    flex: 1;
+    background: #f0f0f0;
+    padding: 12px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.whiteboard-canvas-container canvas {
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Toolbar */
+.whiteboard-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+    flex-wrap: wrap;
+}
+
+.whiteboard-toolbar.locked {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.whiteboard-toolbar.locked::after {
+    content: '🔒 View only';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.toolbar-section {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.toolbar-divider {
+    width: 1px;
+    height: 24px;
+    background: #ddd;
+    margin: 0 4px;
+}
+
+/* Tool Buttons */
+.tool-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #555;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+}
+
+.tool-btn:hover {
+    background: #e9ecef;
+    color: #333;
+}
+
+.tool-btn.active {
+    background: #6366f1;
+    color: white;
+    border-color: #4f46e5;
+}
+
+/* Color Buttons */
+.color-btn {
+    width: 24px;
+    height: 24px;
+    border: 2px solid transparent;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+.color-btn:hover {
+    transform: scale(1.15);
+}
+
+.color-btn.active {
+    border-color: #6366f1;
+    transform: scale(1.15);
+}
+
+/* Size Buttons */
+.size-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+}
+
+.size-btn:hover {
+    background: #e9ecef;
+}
+
+.size-btn.active {
+    background: #e8e8ff;
+    border-color: #6366f1;
+}
+
+.size-dot {
+    background: #333;
+    border-radius: 50%;
+}
+
+/* Action Buttons */
+.action-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #555;
+    transition: all 0.2s;
+}
+
+.action-btn:hover {
+    background: #e9ecef;
+    color: #333;
+}
+
+.action-btn.danger:hover {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+/* Whiteboard Toggle Button (for controls bar) */
+.whiteboard-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.whiteboard-toggle-btn.active {
+    background: #6366f1 !important;
+    color: white !important;
+}
+
+/* ============================================
+   Responsive Styles
+   ============================================ */
+
+/* Tablet */
+@media (max-width: 1024px) {
+    .whiteboard-panel {
+        width: 350px;
+        right: -350px;
+    }
+
+    .whiteboard-panel.open {
+        right: 0;
+    }
+
+    .main-area.whiteboard-open {
+        margin-right: 350px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .whiteboard-panel {
+        width: 100%;
+        right: -100%;
+        top: 0;
+        height: 100%;
+    }
+
+    .whiteboard-panel.open {
+        right: 0;
+    }
+
+    .main-area.whiteboard-open {
+        margin-right: 0;
+        display: none;
+        /* Hide main area on mobile when whiteboard open */
+    }
+
+    .whiteboard-toolbar {
+        padding: 10px;
+        gap: 6px;
+    }
+
+    .tool-btn,
+    .action-btn {
+        width: 32px;
+        height: 32px;
+    }
+
+    .color-btn {
+        width: 22px;
+        height: 22px;
+    }
+
+    .toolbar-divider {
+        display: none;
+    }
+}
+
+/* ============================================
+   Dark Mode Support
+   ============================================ */
+@media (prefers-color-scheme: dark) {
+    .whiteboard-panel {
+        background: #1f2937;
+    }
+
+    .whiteboard-header {
+        background: #111827;
+        border-color: #374151;
+    }
+
+    .whiteboard-title {
+        color: #f3f4f6;
+    }
+
+    .wb-header-btn {
+        color: #9ca3af;
+    }
+
+    .wb-header-btn:hover {
+        background: #374151;
+        color: #f3f4f6;
+    }
+
+    .whiteboard-canvas-container {
+        background: #111827;
+    }
+
+    .whiteboard-toolbar {
+        background: #111827;
+        border-color: #374151;
+    }
+
+    .tool-btn,
+    .size-btn,
+    .action-btn {
+        background: #374151;
+        color: #d1d5db;
+    }
+
+    .tool-btn:hover,
+    .size-btn:hover,
+    .action-btn:hover {
+        background: #4b5563;
+        color: #f3f4f6;
+    }
+
+    .tool-btn.active {
+        background: #6366f1;
+        color: white;
+    }
+
+    .size-btn.active {
+        background: #4338ca;
+        border-color: #6366f1;
+    }
+
+    .toolbar-divider {
+        background: #4b5563;
+    }
+
+    .size-dot {
+        background: #d1d5db;
+    }
+}
+
+/* ============================================
+   Animation for sync indicator
+   ============================================ */
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.sync-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #10b981;
+    margin-left: auto;
+}
+
+.sync-indicator::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: #10b981;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+/* ============================================
+   Tooltips
+   ============================================ */
+.tool-btn[title],
+.color-btn[title],
+.size-btn[title],
+.action-btn[title] {
+    position: relative;
+}
+
+.tool-btn[title]:hover::after,
+.action-btn[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    white-space: nowrap;
+    margin-bottom: 4px;
+    z-index: 100;
+}
