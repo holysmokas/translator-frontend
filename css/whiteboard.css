@@ -70,6 +70,11 @@
     color: #333;
 }
 
+.wb-header-btn.danger:hover {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
 /* Canvas Container */
 .whiteboard-canvas-container {
     flex: 1;

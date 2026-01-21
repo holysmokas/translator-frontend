@@ -30,7 +30,7 @@
         sessionId: null,
         hasTranscriptVault: false,
         vaultIncludedInPlan: false,
-        maxMinutes: 15,
+        maxMinutes: 5,
         timerInterval: null,
         startTime: null,
         myLanguage: 'en',
@@ -1963,7 +1963,7 @@
             // Store room info
             state.roomCode = data.room_code;
             state.sessionId = data.session_id;
-            state.maxMinutes = data.max_minutes || 15;
+            state.maxMinutes = data.max_minutes || 5;
 
             // Connect WebSocket
             connectWebSocket(data.video_url);
