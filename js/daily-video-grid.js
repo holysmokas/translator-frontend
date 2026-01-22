@@ -689,45 +689,91 @@ function updateGridLayout() {
 // Controls
 // ========================================
 function toggleMute() {
-    if (!callObject) return;
-    const localAudio = callObject.localAudio();
-    callObject.setLocalAudio(!localAudio);
+    console.log('🎤 toggleMute called');
+
+    // Check if we're in P2P mode
+    const useP2P = window.MamnoonState?.useP2P || false;
+    console.log('🎤 useP2P:', useP2P, 'WebRTCP2P:', typeof WebRTCP2P !== 'undefined', 'callObject:', !!callObject);
+
+    let isNowEnabled = true;
+
+    if (useP2P && typeof WebRTCP2P !== 'undefined') {
+        // P2P WebRTC mode
+        isNowEnabled = WebRTCP2P.toggleAudio();
+        console.log('🎤 P2P Mic toggled, enabled:', isNowEnabled);
+    } else if (callObject) {
+        // Daily.co mode
+        const localAudio = callObject.localAudio();
+        callObject.setLocalAudio(!localAudio);
+        isNowEnabled = !localAudio;
+        console.log('🎤 Daily.co Mic toggled, enabled:', isNowEnabled);
+    } else {
+        console.log('🎤 No video system active');
+        return;
+    }
 
     // Update button UI - check both possible IDs
     const btn = document.getElementById('toggleMicBtn') || document.getElementById('toggleMuteBtn');
     if (btn) {
-        if (localAudio) {
+        if (!isNowEnabled) {
             // Now muted
             btn.classList.add('muted');
-            btn.querySelector('.control-icon').textContent = '🔇';
-            btn.querySelector('.control-label').textContent = 'Unmute';
+            const icon = btn.querySelector('.control-icon');
+            const label = btn.querySelector('.control-label');
+            if (icon) icon.textContent = '🔇';
+            if (label) label.textContent = 'Unmute';
         } else {
             // Now unmuted
             btn.classList.remove('muted');
-            btn.querySelector('.control-icon').textContent = '🎤';
-            btn.querySelector('.control-label').textContent = 'Mute';
+            const icon = btn.querySelector('.control-icon');
+            const label = btn.querySelector('.control-label');
+            if (icon) icon.textContent = '🎤';
+            if (label) label.textContent = 'Mute';
         }
     }
 }
 
 function toggleVideo() {
-    if (!callObject) return;
-    const localVideo = callObject.localVideo();
-    callObject.setLocalVideo(!localVideo);
+    console.log('📹 toggleVideo called');
+
+    // Check if we're in P2P mode
+    const useP2P = window.MamnoonState?.useP2P || false;
+    console.log('📹 useP2P:', useP2P, 'WebRTCP2P:', typeof WebRTCP2P !== 'undefined', 'callObject:', !!callObject);
+
+    let isNowEnabled = true;
+
+    if (useP2P && typeof WebRTCP2P !== 'undefined') {
+        // P2P WebRTC mode
+        isNowEnabled = WebRTCP2P.toggleVideo();
+        console.log('📹 P2P Camera toggled, enabled:', isNowEnabled);
+    } else if (callObject) {
+        // Daily.co mode
+        const localVideo = callObject.localVideo();
+        callObject.setLocalVideo(!localVideo);
+        isNowEnabled = !localVideo;
+        console.log('📹 Daily.co Camera toggled, enabled:', isNowEnabled);
+    } else {
+        console.log('📹 No video system active');
+        return;
+    }
 
     // Update button UI
     const btn = document.getElementById('toggleVideoBtn');
     if (btn) {
-        if (localVideo) {
+        if (!isNowEnabled) {
             // Now video off
             btn.classList.add('video-off');
-            btn.querySelector('.control-icon').textContent = '📷';
-            btn.querySelector('.control-label').textContent = 'Start Video';
+            const icon = btn.querySelector('.control-icon');
+            const label = btn.querySelector('.control-label');
+            if (icon) icon.textContent = '📷';
+            if (label) label.textContent = 'Start Video';
         } else {
             // Now video on
             btn.classList.remove('video-off');
-            btn.querySelector('.control-icon').textContent = '📹';
-            btn.querySelector('.control-label').textContent = 'Stop Video';
+            const icon = btn.querySelector('.control-icon');
+            const label = btn.querySelector('.control-label');
+            if (icon) icon.textContent = '📹';
+            if (label) label.textContent = 'Stop Video';
         }
     }
 }

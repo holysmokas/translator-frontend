@@ -91,6 +91,9 @@
         whiteboardOpen: false
     };
 
+    // Expose state to window for cross-script access (e.g., daily-video-grid.js)
+    window.MamnoonState = state;
+
     // Language names and flags for display
     const LANGUAGES = {
         'en': { name: 'English', flag: '🇺🇸' },
@@ -969,84 +972,8 @@
 
     window.disconnectRoom = disconnectRoom;
 
-    // ========================================
-    // Global Mic/Video Toggle Functions
-    // Works with both P2P WebRTC and Daily.co
-    // ========================================
-    window.toggleMute = function () {
-        console.log('🎤 toggleMute called');
-        console.log('🎤 state.useP2P:', state.useP2P);
-        console.log('🎤 WebRTCP2P defined:', typeof WebRTCP2P !== 'undefined');
-        console.log('🎤 callObject defined:', typeof window.callObject !== 'undefined');
-
-        const micBtn = elements.toggleMicBtn;
-        const iconSpan = micBtn?.querySelector('.control-icon');
-        const labelSpan = micBtn?.querySelector('.control-label');
-
-        let isEnabled = true;
-
-        if (state.useP2P && typeof WebRTCP2P !== 'undefined') {
-            // P2P WebRTC mode
-            console.log('🎤 Calling WebRTCP2P.toggleAudio()');
-            isEnabled = WebRTCP2P.toggleAudio();
-            console.log('🎤 P2P Mic toggled, isEnabled:', isEnabled);
-        } else if (typeof window.callObject !== 'undefined') {
-            // Daily.co mode
-            const localParticipant = window.callObject.participants().local;
-            const isCurrentlyMuted = !localParticipant?.audio;
-            window.callObject.setLocalAudio(isCurrentlyMuted);
-            isEnabled = isCurrentlyMuted; // After toggle
-            console.log('🎤 Daily.co Mic toggled:', isEnabled ? 'ON' : 'OFF');
-        } else {
-            console.log('🎤 No video system active - cannot toggle');
-            return;
-        }
-
-        // Update button UI
-        if (micBtn) {
-            micBtn.classList.toggle('muted', !isEnabled);
-            if (iconSpan) iconSpan.textContent = isEnabled ? '🎤' : '🔇';
-            if (labelSpan) labelSpan.textContent = isEnabled ? 'Mute' : 'Unmute';
-            console.log('🎤 Button UI updated, muted class:', !isEnabled);
-        }
-    };
-
-    window.toggleVideo = function () {
-        console.log('📹 toggleVideo called');
-        console.log('📹 state.useP2P:', state.useP2P);
-        console.log('📹 WebRTCP2P defined:', typeof WebRTCP2P !== 'undefined');
-
-        const videoBtn = elements.toggleVideoBtn;
-        const iconSpan = videoBtn?.querySelector('.control-icon');
-        const labelSpan = videoBtn?.querySelector('.control-label');
-
-        let isEnabled = true;
-
-        if (state.useP2P && typeof WebRTCP2P !== 'undefined') {
-            // P2P WebRTC mode
-            console.log('📹 Calling WebRTCP2P.toggleVideo()');
-            isEnabled = WebRTCP2P.toggleVideo();
-            console.log('📹 P2P Camera toggled, isEnabled:', isEnabled);
-        } else if (typeof window.callObject !== 'undefined') {
-            // Daily.co mode
-            const localParticipant = window.callObject.participants().local;
-            const isCurrentlyOff = !localParticipant?.video;
-            window.callObject.setLocalVideo(isCurrentlyOff);
-            isEnabled = isCurrentlyOff; // After toggle
-            console.log('📹 Daily.co Camera toggled:', isEnabled ? 'ON' : 'OFF');
-        } else {
-            console.log('📹 No video system active - cannot toggle');
-            return;
-        }
-
-        // Update button UI
-        if (videoBtn) {
-            videoBtn.classList.toggle('muted', !isEnabled);
-            if (iconSpan) iconSpan.textContent = isEnabled ? '📹' : '📷';
-            if (labelSpan) labelSpan.textContent = isEnabled ? 'Video' : 'Start Video';
-            console.log('📹 Button UI updated, muted class:', !isEnabled);
-        }
-    };
+    // Note: toggleMute and toggleVideo are defined in daily-video-grid.js
+    // and handle both P2P WebRTC and Daily.co modes via window.MamnoonState.useP2P
 
     // Rejoin from history
     window.rejoinFromHistory = async function (roomCode, sessionId) {
@@ -1326,6 +1253,9 @@
         elements.startVoiceBtn?.addEventListener('click', toggleListening);
         elements.toggleFullscreenBtn?.addEventListener('click', toggleFullscreen);
         elements.endCallBtn?.addEventListener('click', leaveRoom);
+
+        // Note: Mic and Video buttons use onclick in HTML which calls
+        // toggleMute() and toggleVideo() from daily-video-grid.js
 
         // Transcript dropdown
         elements.transcriptBtn?.addEventListener('click', (e) => {
