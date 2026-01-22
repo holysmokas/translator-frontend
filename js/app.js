@@ -974,7 +974,11 @@
     // Works with both P2P WebRTC and Daily.co
     // ========================================
     window.toggleMute = function () {
-        console.log('🎤 toggleMute called, useP2P:', state.useP2P);
+        console.log('🎤 toggleMute called');
+        console.log('🎤 state.useP2P:', state.useP2P);
+        console.log('🎤 WebRTCP2P defined:', typeof WebRTCP2P !== 'undefined');
+        console.log('🎤 callObject defined:', typeof window.callObject !== 'undefined');
+
         const micBtn = elements.toggleMicBtn;
         const iconSpan = micBtn?.querySelector('.control-icon');
         const labelSpan = micBtn?.querySelector('.control-label');
@@ -983,8 +987,9 @@
 
         if (state.useP2P && typeof WebRTCP2P !== 'undefined') {
             // P2P WebRTC mode
+            console.log('🎤 Calling WebRTCP2P.toggleAudio()');
             isEnabled = WebRTCP2P.toggleAudio();
-            console.log('🎤 P2P Mic toggled:', isEnabled ? 'ON' : 'OFF');
+            console.log('🎤 P2P Mic toggled, isEnabled:', isEnabled);
         } else if (typeof window.callObject !== 'undefined') {
             // Daily.co mode
             const localParticipant = window.callObject.participants().local;
@@ -993,7 +998,7 @@
             isEnabled = isCurrentlyMuted; // After toggle
             console.log('🎤 Daily.co Mic toggled:', isEnabled ? 'ON' : 'OFF');
         } else {
-            console.log('🎤 No video system active');
+            console.log('🎤 No video system active - cannot toggle');
             return;
         }
 
@@ -1002,11 +1007,15 @@
             micBtn.classList.toggle('muted', !isEnabled);
             if (iconSpan) iconSpan.textContent = isEnabled ? '🎤' : '🔇';
             if (labelSpan) labelSpan.textContent = isEnabled ? 'Mute' : 'Unmute';
+            console.log('🎤 Button UI updated, muted class:', !isEnabled);
         }
     };
 
     window.toggleVideo = function () {
-        console.log('📹 toggleVideo called, useP2P:', state.useP2P);
+        console.log('📹 toggleVideo called');
+        console.log('📹 state.useP2P:', state.useP2P);
+        console.log('📹 WebRTCP2P defined:', typeof WebRTCP2P !== 'undefined');
+
         const videoBtn = elements.toggleVideoBtn;
         const iconSpan = videoBtn?.querySelector('.control-icon');
         const labelSpan = videoBtn?.querySelector('.control-label');
@@ -1015,8 +1024,9 @@
 
         if (state.useP2P && typeof WebRTCP2P !== 'undefined') {
             // P2P WebRTC mode
+            console.log('📹 Calling WebRTCP2P.toggleVideo()');
             isEnabled = WebRTCP2P.toggleVideo();
-            console.log('📹 P2P Camera toggled:', isEnabled ? 'ON' : 'OFF');
+            console.log('📹 P2P Camera toggled, isEnabled:', isEnabled);
         } else if (typeof window.callObject !== 'undefined') {
             // Daily.co mode
             const localParticipant = window.callObject.participants().local;
@@ -1025,7 +1035,7 @@
             isEnabled = isCurrentlyOff; // After toggle
             console.log('📹 Daily.co Camera toggled:', isEnabled ? 'ON' : 'OFF');
         } else {
-            console.log('📹 No video system active');
+            console.log('📹 No video system active - cannot toggle');
             return;
         }
 
@@ -1034,6 +1044,7 @@
             videoBtn.classList.toggle('muted', !isEnabled);
             if (iconSpan) iconSpan.textContent = isEnabled ? '📹' : '📷';
             if (labelSpan) labelSpan.textContent = isEnabled ? 'Video' : 'Start Video';
+            console.log('📹 Button UI updated, muted class:', !isEnabled);
         }
     };
 
