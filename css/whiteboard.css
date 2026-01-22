@@ -89,6 +89,15 @@
 .whiteboard-canvas-container canvas {
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    touch-action: none;
+    /* Stylus/tablet support - prevents scroll interference */
+}
+
+/* Fabric.js canvas layers - ensure stylus works on all layers */
+.whiteboard-canvas-container .canvas-container,
+.whiteboard-canvas-container .upper-canvas,
+.whiteboard-canvas-container .lower-canvas {
+    touch-action: none;
 }
 
 /* Toolbar */

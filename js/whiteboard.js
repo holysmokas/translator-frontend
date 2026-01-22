@@ -286,11 +286,16 @@ const Whiteboard = (function () {
             isDrawingMode: true,
             backgroundColor: '#ffffff',
             selection: false,
+            allowTouchScrolling: false,  // Prevent scroll while drawing
+            enablePointerEvents: true,   // Use pointer events for stylus support
         });
 
         canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
         canvas.freeDrawingBrush.color = currentColor;
         canvas.freeDrawingBrush.width = currentWidth;
+
+        // Enable pressure sensitivity for stylus
+        setupPressureSensitivity(canvas);
 
         window.addEventListener('resize', handleResize);
 
@@ -299,6 +304,44 @@ const Whiteboard = (function () {
 
         // Save initial state
         saveState();
+    }
+
+    // ============================================
+    // Stylus/Tablet Pressure Sensitivity
+    // ============================================
+    function setupPressureSensitivity(fabricCanvas) {
+        const upperCanvas = fabricCanvas.upperCanvasEl;
+        if (!upperCanvas) return;
+
+        let baseWidth = currentWidth;
+
+        upperCanvas.addEventListener('pointerdown', (e) => {
+            // Only respond to pen input for palm rejection (optional)
+            // Uncomment next line to ignore touch, only allow stylus:
+            // if (e.pointerType === 'touch') return;
+
+            baseWidth = currentWidth;
+            if (e.pressure && e.pressure > 0) {
+                // Adjust brush width based on pressure (0.0 to 1.0)
+                const pressureWidth = baseWidth * (0.5 + e.pressure);
+                fabricCanvas.freeDrawingBrush.width = Math.max(1, Math.min(pressureWidth, baseWidth * 2));
+            }
+        });
+
+        upperCanvas.addEventListener('pointermove', (e) => {
+            if (e.buttons > 0 && e.pressure && e.pressure > 0) {
+                // Dynamically adjust width while drawing
+                const pressureWidth = baseWidth * (0.5 + e.pressure);
+                fabricCanvas.freeDrawingBrush.width = Math.max(1, Math.min(pressureWidth, baseWidth * 2));
+            }
+        });
+
+        upperCanvas.addEventListener('pointerup', () => {
+            // Reset to base width
+            fabricCanvas.freeDrawingBrush.width = currentWidth;
+        });
+
+        console.log('✏️ Stylus pressure sensitivity enabled');
     }
 
     // ============================================
@@ -987,17 +1030,51 @@ const Whiteboard = (function () {
                 isDrawingMode: true,
                 backgroundColor: '#ffffff',
                 selection: false,
+                allowTouchScrolling: false,  // Prevent scroll while drawing
+                enablePointerEvents: true,   // Use pointer events for stylus support
             });
             
             canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
             canvas.freeDrawingBrush.color = currentColor;
             canvas.freeDrawingBrush.width = currentWidth;
             
+            // Enable pressure sensitivity for stylus in popout
+            setupPopoutPressureSensitivity(canvas);
+            
             canvas.on('path:created', handlePathCreated);
             
             window.addEventListener('resize', handleResize);
             
             saveState();
+        }
+        
+        // Stylus pressure sensitivity for popout window
+        function setupPopoutPressureSensitivity(fabricCanvas) {
+            const upperCanvas = fabricCanvas.upperCanvasEl;
+            if (!upperCanvas) return;
+            
+            let baseWidth = currentWidth;
+            
+            upperCanvas.addEventListener('pointerdown', (e) => {
+                baseWidth = currentWidth;
+                if (e.pressure && e.pressure > 0) {
+                    const pressureWidth = baseWidth * (0.5 + e.pressure);
+                    fabricCanvas.freeDrawingBrush.width = Math.max(1, Math.min(pressureWidth, baseWidth * 2));
+                }
+            });
+            
+            upperCanvas.addEventListener('pointermove', (e) => {
+                if (e.buttons > 0 && e.pressure && e.pressure > 0) {
+                    const pressureWidth = baseWidth * (0.5 + e.pressure);
+                    fabricCanvas.freeDrawingBrush.width = Math.max(1, Math.min(pressureWidth, baseWidth * 2));
+                }
+            });
+            
+            upperCanvas.addEventListener('pointerup', () => {
+                fabricCanvas.freeDrawingBrush.width = currentWidth;
+            });
+            
+            console.log('✏️ Popout stylus pressure sensitivity enabled');
         }
         
         function handleResize() {
