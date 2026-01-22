@@ -363,6 +363,9 @@
             : state.user.email.split('@')[0];
         elements.userName.textContent = displayName;
 
+        // Bind events FIRST (before any modals can appear)
+        bindEvents();
+
         // Load profile and usage
         await loadProfile();
 
@@ -389,9 +392,6 @@
 
         // Request notification permission
         initNotifications();
-
-        // Bind events
-        bindEvents();
 
         // Check URL params for payment status
         checkPaymentStatus();
