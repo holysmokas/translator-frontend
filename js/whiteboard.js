@@ -437,7 +437,6 @@ const Whiteboard = (function () {
 
     function clear() {
         if (!canvas) return;
-        if (!confirm('Clear the entire whiteboard?')) return;
 
         canvas.clear();
         canvas.backgroundColor = '#ffffff';
@@ -1191,7 +1190,6 @@ const Whiteboard = (function () {
         }
         
         function clearCanvas() {
-            if (!confirm('Clear the entire whiteboard?')) return;
             canvas.clear();
             canvas.backgroundColor = '#ffffff';
             canvas.renderAll();

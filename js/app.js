@@ -292,6 +292,8 @@
             danger = true
         } = options;
 
+        console.log('📋 showConfirm called:', { title, confirmText });
+
         elements.confirmIcon.textContent = icon;
         elements.confirmTitle.textContent = title;
         elements.confirmMessage.textContent = message;
@@ -306,6 +308,7 @@
     }
 
     function hideConfirm(result) {
+        console.log('📋 hideConfirm called with result:', result);
         elements.confirmModal.style.display = 'none';
         if (confirmResolve) {
             confirmResolve(result);
@@ -1201,8 +1204,19 @@
         elements.downloadTranscript?.addEventListener('click', downloadTranscript);
 
         // Confirm modal
-        elements.confirmOk?.addEventListener('click', () => hideConfirm(true));
-        elements.confirmCancel?.addEventListener('click', () => hideConfirm(false));
+        console.log('📋 Setting up confirm modal listeners, elements:', {
+            confirmOk: !!elements.confirmOk,
+            confirmCancel: !!elements.confirmCancel,
+            confirmModal: !!elements.confirmModal
+        });
+        elements.confirmOk?.addEventListener('click', () => {
+            console.log('📋 confirmOk clicked!');
+            hideConfirm(true);
+        });
+        elements.confirmCancel?.addEventListener('click', () => {
+            console.log('📋 confirmCancel clicked!');
+            hideConfirm(false);
+        });
         elements.confirmModal?.addEventListener('click', (e) => {
             if (e.target === elements.confirmModal) hideConfirm(false);
         });
@@ -1651,7 +1665,10 @@
                 });
 
                 if (shouldRejoin) {
+                    console.log('🔄 User chose to rejoin, calling rejoinActiveSession with data:', data);
                     rejoinActiveSession(data);
+                } else {
+                    console.log('🔄 User chose to stay here');
                 }
                 // If they click "Stay Here", banner remains visible
             } else {
@@ -1685,6 +1702,7 @@
     }
 
     async function rejoinActiveSession(sessionData) {
+        console.log('🔄 rejoinActiveSession called with:', sessionData);
         showLoading('Rejoining room...');
 
         try {
