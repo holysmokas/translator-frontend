@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us | Mamnoon.ai</title>
+    <meta name="description"
+        content="Get in touch with the Mamnoon.ai team. Sales inquiries, support, partnerships, and general questions.">
+
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Mamnoon.ai">
+
+    <!-- PWA Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+
+    <link rel="stylesheet" href="css/style.css?v=9">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>">
+
+    <style>
+        /* Contact Page Specific Styles */
+        .contact-hero {
+            padding: 120px 0 60px;
+            text-align: center;
+        }
+
+        .contact-hero h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #1a1a2e;
+        }
+
+        .contact-hero p {
+            font-size: 1.15rem;
+            color: #64748b;
+            max-width: 540px;
+            margin: 0 auto;
+        }
+
+        /* Contact Layout */
+        .contact-section {
+            padding: 0 0 80px;
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.4fr;
+            gap: 48px;
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        /* Info Cards */
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .info-card {
+            background: #f8f9fc;
+            border-radius: 16px;
+            padding: 28px;
+            border: 1px solid #e9ecef;
+            transition: all 0.2s;
+        }
+
+        .info-card:hover {
+            border-color: #c7d2fe;
+            background: #fafafe;
+        }
+
+        .info-card-icon {
+            font-size: 28px;
+            margin-bottom: 12px;
+        }
+
+        .info-card h3 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+        }
+
+        .info-card p {
+            font-size: 0.92rem;
+            color: #64748b;
+            line-height: 1.55;
+            margin: 0;
+        }
+
+        .info-card a {
+            color: #6366f1;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .info-card a:hover {
+            text-decoration: underline;
+        }
+
+        .response-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: #10b981;
+            font-weight: 500;
+        }
+
+        .response-badge::before {
+            content: '';
+            width: 7px;
+            height: 7px;
+            background: #10b981;
+            border-radius: 50%;
+        }
+
+        /* Form Card */
+        .contact-form-card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e9ecef;
+        }
+
+        .contact-form-card h2 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 28px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.88rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 0.95rem;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            background: #fafbfc;
+            color: #1a1a2e;
+            transition: all 0.2s;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #6366f1;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #9ca3af;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 130px;
+        }
+
+        .form-group select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 40px;
+            cursor: pointer;
+        }
+
+        .form-submit-btn {
+            width: 100%;
+            padding: 14px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.25s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: inherit;
+        }
+
+        .form-submit-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.35);
+        }
+
+        .form-submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .form-submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Success State */
+        .form-success {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .form-success.show {
+            display: block;
+        }
+
+        .form-success-icon {
+            font-size: 56px;
+            margin-bottom: 16px;
+        }
+
+        .form-success h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 10px;
+        }
+
+        .form-success p {
+            color: #64748b;
+            font-size: 0.95rem;
+            max-width: 360px;
+            margin: 0 auto;
+        }
+
+        /* Error State */
+        .form-error {
+            display: none;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            margin-bottom: 16px;
+        }
+
+        .form-error.show {
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .contact-hero {
+                padding: 100px 0 40px;
+            }
+
+            .contact-hero h1 {
+                font-size: 2rem;
+            }
+
+            .contact-grid {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+
+            .contact-info {
+                order: 2;
+            }
+
+            .contact-form-card {
+                order: 1;
+                padding: 28px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <span class="logo-icon">🌍</span>
+                <span class="logo-text">Mamnoon.ai</span>
+            </a>
+            <div class="nav-links">
+                <a href="/#features">Features</a>
+                <a href="/#pricing">Pricing</a>
+                <a href="/#how-it-works">How It Works</a>
+            </div>
+            <div class="nav-auth">
+                <a href="login.html" class="btn btn-ghost">Log In</a>
+                <a href="signup.html" class="btn btn-primary">Start Free Trial</a>
+            </div>
+            <button class="nav-mobile-toggle" id="mobileToggle">☰</button>
+        </div>
+        <div class="nav-mobile-menu" id="mobileMenu">
+            <a href="/#features">Features</a>
+            <a href="/#pricing">Pricing</a>
+            <a href="/#how-it-works">How It Works</a>
+            <div class="nav-mobile-auth">
+                <a href="login.html" class="btn btn-ghost btn-block">Log In</a>
+                <a href="signup.html" class="btn btn-primary btn-block">Start Free Trial</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contact Hero -->
+    <section class="contact-hero">
+        <div class="container">
+            <h1>Get in <span class="gradient-text">Touch</span></h1>
+            <p>Have a question, need a demo, or want to explore a partnership? We'd love to hear from you.</p>
+        </div>
+    </section>
+
+    <!-- Contact Content -->
+    <section class="contact-section">
+        <div class="container">
+            <div class="contact-grid">
+
+                <!-- Left: Info Cards -->
+                <div class="contact-info">
+                    <div class="info-card">
+                        <div class="info-card-icon">💬</div>
+                        <h3>Sales & Demos</h3>
+                        <p>Interested in Mamnoon.ai for your team or organization? Let's schedule a live demo.</p>
+                        <div class="response-badge">Typically responds within 2 hours</div>
+                    </div>
+
+                    <div class="info-card">
+                        <div class="info-card-icon">🛠️</div>
+                        <h3>Technical Support</h3>
+                        <p>Having an issue with your account or a call? We'll get you sorted.</p>
+                        <div class="response-badge">Typically responds within 24 hours</div>
+                    </div>
+
+                    <div class="info-card">
+                        <div class="info-card-icon">🤝</div>
+                        <h3>Partnerships</h3>
+                        <p>Want to integrate Mamnoon.ai or explore a collaboration? Let's talk.</p>
+                    </div>
+
+                    <div class="info-card">
+                        <div class="info-card-icon">📧</div>
+                        <h3>Email Us Directly</h3>
+                        <p>Prefer email? Reach us at <a href="mailto:support@mamnoon.ai">support@mamnoon.ai</a></p>
+                    </div>
+                </div>
+
+                <!-- Right: Contact Form -->
+                <div class="contact-form-card">
+                    <h2>Send us a message</h2>
+
+                    <div class="form-error" id="formError">Something went wrong. Please try again.</div>
+
+                    <form id="contactForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="contactName">Name</label>
+                                <input type="text" id="contactName" name="name" placeholder="Your name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="contactEmail">Email</label>
+                                <input type="email" id="contactEmail" name="email" placeholder="you@company.com"
+                                    required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="contactType">What can we help with?</label>
+                            <select id="contactType" name="type" required>
+                                <option value="" disabled selected>Select a topic</option>
+                                <option value="sales">Sales & Pricing</option>
+                                <option value="demo">Request a Demo</option>
+                                <option value="support">Technical Support</option>
+                                <option value="partnership">Partnership</option>
+                                <option value="enterprise">Enterprise Inquiry</option>
+                                <option value="general">General Question</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="contactCompany">Company <span
+                                    style="color:#9ca3af; font-weight:400;">(optional)</span></label>
+                            <input type="text" id="contactCompany" name="company" placeholder="Your company name">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="contactMessage">Message</label>
+                            <textarea id="contactMessage" name="message"
+                                placeholder="Tell us more about what you need..." required></textarea>
+                        </div>
+
+                        <button type="submit" class="form-submit-btn" id="submitBtn">
+                            <span>Send Message</span>
+                            <span>→</span>
+                        </button>
+                    </form>
+
+                    <!-- Success Message -->
+                    <div class="form-success" id="formSuccess">
+                        <div class="form-success-icon">✅</div>
+                        <h3>Message Sent!</h3>
+                        <p>Thank you for reaching out. We'll get back to you shortly.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="footer-logo">
+                        <span class="logo-icon">🌍</span>
+                        <span class="logo-text">Mamnoon.ai</span>
+                    </div>
+                    <p>Breaking language barriers with AI-powered real-time translation.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4>Product</h4>
+                        <a href="/#features">Features</a>
+                        <a href="/#pricing">Pricing</a>
+                        <a href="/#how-it-works">How It Works</a>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Company</h4>
+                        <a href="contact.html">Contact</a>
+                        <a href="/#faq">FAQ</a>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Legal</h4>
+                        <a href="privacy.html">Privacy Policy</a>
+                        <a href="terms.html">Terms of Service</a>
+                        <a href="cookies.html">Cookie Policy</a>
+                        <a href="gdpr.html">GDPR</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Mamnoon.ai. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/config.js"></script>
+    <script>
+        // Mobile nav toggle
+        const mobileToggle = document.getElementById('mobileToggle');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        mobileToggle.addEventListener('click', function () {
+            mobileMenu.classList.toggle('active');
+            this.textContent = mobileMenu.classList.contains('active') ? '✕' : '☰';
+        });
+
+        mobileMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('active');
+                mobileToggle.textContent = '☰';
+            });
+        });
+
+        // Pre-fill type from URL param (e.g., contact.html?type=sales)
+        const urlParams = new URLSearchParams(window.location.search);
+        const preselectedType = urlParams.get('type');
+        if (preselectedType) {
+            const typeSelect = document.getElementById('contactType');
+            const option = typeSelect.querySelector(`option[value="${preselectedType}"]`);
+            if (option) {
+                typeSelect.value = preselectedType;
+            }
+        }
+
+        // Form submission
+        const form = document.getElementById('contactForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const formError = document.getElementById('formError');
+        const formSuccess = document.getElementById('formSuccess');
+
+        // Google Sheets webhook URL (same Apps Script)
+        const SHEETS_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbxwvH9-xXszKBmSKd_XcEHY8Cy-yAU_XXjqGdGXB35yLxuWFcXoZnFX0Sh1NdYCR4iu/exec';
+
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            formError.classList.remove('show');
+
+            const name = document.getElementById('contactName').value.trim();
+            const email = document.getElementById('contactEmail').value.trim();
+            const type = document.getElementById('contactType').value;
+            const company = document.getElementById('contactCompany').value.trim();
+            const message = document.getElementById('contactMessage').value.trim();
+
+            if (!name || !email || !type || !message) {
+                formError.textContent = 'Please fill in all required fields.';
+                formError.classList.add('show');
+                return;
+            }
+
+            // Disable button
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span>Sending...</span>';
+
+            try {
+                // Log to Google Sheets
+                await fetch(SHEETS_WEBHOOK_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: name,
+                        email: email,
+                        plan: type,
+                        source: 'contact_form',
+                        platform: 'web',
+                        // Extra fields logged as message
+                        company: company,
+                        message: message
+                    })
+                });
+
+                // Also send notification email via backend
+                try {
+                    const API_BASE = window.CONFIG?.API_BASE || 'https://translator-production-3363.up.railway.app';
+                    await fetch(`${API_BASE}/api/contact`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, email, type, company, message })
+                    });
+                } catch (emailErr) {
+                    console.warn('Email notification failed:', emailErr);
+                    // Non-blocking — form still succeeds
+                }
+
+                // Show success
+                form.style.display = 'none';
+                document.querySelector('.contact-form-card h2').style.display = 'none';
+                formSuccess.classList.add('show');
+
+            } catch (err) {
+                console.error('Form submission error:', err);
+                formError.textContent = 'Something went wrong. Please try again or email us directly.';
+                formError.classList.add('show');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span>Send Message</span><span>→</span>';
+            }
+        });
+    </script>
+</body>
+
+</html>
