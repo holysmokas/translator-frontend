@@ -1,34 +1,139 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GDPR Compliance | Mamnoon.ai</title>
     <link rel="stylesheet" href="css/style.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>">
     <style>
-        .legal-page { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
-        .legal-page h1 { font-size: 32px; margin-bottom: 8px; }
-        .legal-page .last-updated { color: var(--gray-500); margin-bottom: 32px; }
-        .legal-page h2 { font-size: 22px; margin-top: 32px; margin-bottom: 16px; color: var(--gray-800); }
-        .legal-page h3 { font-size: 18px; margin-top: 24px; margin-bottom: 12px; }
-        .legal-page p, .legal-page li { line-height: 1.7; color: var(--gray-700); margin-bottom: 12px; }
-        .legal-page ul { padding-left: 24px; margin-bottom: 16px; }
-        .legal-page a { color: var(--primary); }
-        .legal-nav { background: white; padding: 16px 0; border-bottom: 1px solid var(--gray-200); margin-bottom: 20px; }
-        .legal-nav-inner { max-width: 800px; margin: 0 auto; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; }
-        .legal-nav a { color: var(--gray-600); text-decoration: none; }
-        .legal-nav a:hover { color: var(--primary); }
-        .rights-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin: 24px 0; }
-        .right-card { background: var(--gray-50); padding: 20px; border-radius: 8px; border-left: 4px solid var(--primary); }
-        .right-card h4 { margin: 0 0 8px 0; color: var(--gray-800); }
-        .right-card p { margin: 0; font-size: 14px; }
-        .action-box { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 24px; border-radius: 12px; margin: 24px 0; }
-        .action-box h3 { color: white; margin-top: 0; }
-        .action-box a { color: white; text-decoration: underline; }
-        .badge { display: inline-block; background: #10b981; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 16px; }
+        .legal-page {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .legal-page h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .legal-page .last-updated {
+            color: var(--gray-500);
+            margin-bottom: 32px;
+        }
+
+        .legal-page h2 {
+            font-size: 22px;
+            margin-top: 32px;
+            margin-bottom: 16px;
+            color: var(--gray-800);
+        }
+
+        .legal-page h3 {
+            font-size: 18px;
+            margin-top: 24px;
+            margin-bottom: 12px;
+        }
+
+        .legal-page p,
+        .legal-page li {
+            line-height: 1.7;
+            color: var(--gray-700);
+            margin-bottom: 12px;
+        }
+
+        .legal-page ul {
+            padding-left: 24px;
+            margin-bottom: 16px;
+        }
+
+        .legal-page a {
+            color: var(--primary);
+        }
+
+        .legal-nav {
+            background: white;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--gray-200);
+            margin-bottom: 20px;
+        }
+
+        .legal-nav-inner {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .legal-nav a {
+            color: var(--gray-600);
+            text-decoration: none;
+        }
+
+        .legal-nav a:hover {
+            color: var(--primary);
+        }
+
+        .rights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin: 24px 0;
+        }
+
+        .right-card {
+            background: var(--gray-50);
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .right-card h4 {
+            margin: 0 0 8px 0;
+            color: var(--gray-800);
+        }
+
+        .right-card p {
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .action-box {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            padding: 24px;
+            border-radius: 12px;
+            margin: 24px 0;
+        }
+
+        .action-box h3 {
+            color: white;
+            margin-top: 0;
+        }
+
+        .action-box a {
+            color: white;
+            text-decoration: underline;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
     </style>
 </head>
+
 <body>
     <div class="legal-nav">
         <div class="legal-nav-inner">
@@ -45,7 +150,8 @@
         <h1>GDPR Compliance</h1>
         <p class="last-updated">Last updated: January 5, 2025</p>
 
-        <p>Mamnoon.ai is committed to protecting the privacy of our users, including those in the European Union. This page explains how we comply with the General Data Protection Regulation (GDPR).</p>
+        <p>Mamnoon.ai is committed to protecting the privacy of our users, including those in the European Union. This
+            page explains how we comply with the General Data Protection Regulation (GDPR).</p>
 
         <h2>1. Our Commitment to GDPR</h2>
         <p>As a data processor and controller, we are committed to:</p>
@@ -122,7 +228,8 @@
         </ul>
 
         <h2>5. International Data Transfers</h2>
-        <p>Some of your data may be transferred to and processed in the United States. We ensure appropriate safeguards through:</p>
+        <p>Some of your data may be transferred to and processed in the United States. We ensure appropriate safeguards
+            through:</p>
         <ul>
             <li>Standard Contractual Clauses (SCCs) approved by the European Commission</li>
             <li>Data processing agreements with all sub-processors</li>
@@ -170,10 +277,15 @@
         <p><strong>Email:</strong> <a href="mailto:gdpr@mamnoon.ai">gdpr@mamnoon.ai</a></p>
 
         <h2>11. Supervisory Authority</h2>
-        <p>If you are not satisfied with our response, you have the right to lodge a complaint with your local data protection authority. A list of EU data protection authorities can be found at <a href="https://edpb.europa.eu/about-edpb/board/members_en" target="_blank">edpb.europa.eu</a>.</p>
+        <p>If you are not satisfied with our response, you have the right to lodge a complaint with your local data
+            protection authority. A list of EU data protection authorities can be found at <a
+                href="https://edpb.europa.eu/about-edpb/board/members_en" target="_blank">edpb.europa.eu</a>.</p>
 
         <h2>12. Updates</h2>
-        <p>We may update this page periodically. Material changes will be communicated via email or through our service.</p>
+        <p>We may update this page periodically. Material changes will be communicated via email or through our service.
+        </p>
+        <p>&copy; 2026 Mamnoon.ai. All rights reserved. | By Milani Labs www.milanilabs.com</p>
     </div>
 </body>
+
 </html>
